@@ -220,10 +220,10 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 @media print{
   @page{size:A4;margin:10mm;}
   body{margin:0;padding:0;background:#fff!important;}
-  body>*:not(#pov):not(#cfPrintOv):not(#drPrintOv):not(#stockPrintOv){display:none!important;}
-  #pov-btns,#cfPrintOv>div:first-child,#drPrintBtns,#stockPrintBtns{display:none!important;}
-  #pov,#cfPrintOv,#drPrintOv,#stockPrintOv{display:block!important;position:static!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-  #pov *,#cfPrintOv *,#drPrintOv *,#stockPrintOv *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body>*:not(#pov):not(#cfPrintOv):not(#drPrintOv):not(#stockPrintOv):not(#pdfOv){display:none!important;}
+  #pov-btns,#cfPrintOv>div:first-child,#drPrintBtns,#stockPrintBtns,#pdfOv>div:first-child{display:none!important;}
+  #pov,#cfPrintOv,#drPrintOv,#stockPrintOv,#pdfOv{display:block!important;position:static!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  #pov *,#cfPrintOv *,#drPrintOv *,#stockPrintOv *,#pdfOv *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
 }
 </style>
 <style>
@@ -657,10 +657,16 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 
 @media print{
   body *{visibility:hidden;}
-  #receiptBox, #receiptBox *{visibility:visible;}
+  #receiptBox, #receiptBox *,
+  #pov, #pov *,
+  #cfPrintOv, #cfPrintOv *,
+  #drPrintOv, #drPrintOv *,
+  #stockPrintOv, #stockPrintOv *,
+  #pdfOv, #pdfOv *{visibility:visible!important;}
   #receiptOverlay{position:absolute;top:0;left:0;background:none;padding:0;display:flex !important;}
   #receiptBox{box-shadow:none;max-width:100%;}
   #receiptBox .modal-actions{display:none;}
+  #pov-btns,#cfPrintOv>div:first-child,#drPrintBtns,#stockPrintBtns,#pdfOv>div:first-child{visibility:hidden!important;}
 }
 
 </style>
@@ -1238,6 +1244,9 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 
 <!-- ═══ BALANCE SHEET ═══ -->
 <div class="pg" id="pg-balance">
+  <div id="bs-autofill-note" style="padding:9px 12px;margin-bottom:10px;background:var(--gray);color:#64748B;border-radius:10px;font-size:11px;font-weight:700;text-align:center">🔄 Auto-Fill ho raha hai — App ka live data check ho raha hai...</div>
+  <button class="btn bp" style="width:100%;margin-bottom:12px" onclick="autoFillBS()">🔄 App Data Se Abhi Auto-Fill Karein</button>
+  <div style="font-size:10.5px;color:#94A3B8;text-align:center;margin:-6px 0 12px;line-height:1.5">🔄 AUTO wale fields Stock/Cash/Udhar/Capital/Loan se khud bharte hain (jab bhi yeh tab kholte hain). Har AUTO field ke saath button hai — usse dabakar 🔒 MANUAL kar sakte hain, phir Auto-Fill uss field ko touch nahi karega aur aap khud value daal sakte hain. Baaki fields (Dukaan, Bank Balance, Advance, Creditors, Outstanding Exp) hamesha manual hi rahengi.</div>
   <div class="two-col">
     <div>
       <div class="card">
@@ -1249,11 +1258,11 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
           <div class="cr"><span class="cr-lbl">Computer/Billing Machine</span><input class="bs-in" type="number" id="bs-a3" placeholder="0" oninput="calcBS()" style="width:130px"></div>
           <div class="cr tot"><span class="cr-lbl"><b>Fixed Assets Total</b></span><span class="cr-amt" id="bs-total-a">₹0</span></div>
           <div style="background:var(--royal-l);padding:8px 12px;font-size:11px;font-weight:700;color:var(--royal)">B. Current Assets</div>
-          <div class="cr"><span class="cr-lbl">Cash in Hand</span><input class="bs-in" type="number" id="bs-b1" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Cash in Hand<button type="button" id="bs-lock-bs-b1" onclick="toggleBSLock('bs-b1')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-b1" placeholder="0" oninput="calcBS()" style="width:130px"></div>
           <div class="cr"><span class="cr-lbl">Bank Balance</span><input class="bs-in" type="number" id="bs-b2" placeholder="0" oninput="calcBS()" style="width:130px"></div>
-          <div class="cr"><span class="cr-lbl">Stock Value (Maal)</span><input class="bs-in" type="number" id="bs-b3" placeholder="0" oninput="calcBS()" style="width:130px"></div>
-          <div class="cr"><span class="cr-lbl">Debtors (Udhar Dena)</span><input class="bs-in" type="number" id="bs-b4" placeholder="0" oninput="calcBS()" style="width:130px"></div>
-          <div class="cr"><span class="cr-lbl">Advance Payments</span><input class="bs-in" type="number" id="bs-b5" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Stock Value (Maal)<button type="button" id="bs-lock-bs-b3" onclick="toggleBSLock('bs-b3')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-b3" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Debtors (Udhar Dena)<button type="button" id="bs-lock-bs-b4" onclick="toggleBSLock('bs-b4')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-b4" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Advance Payments (Staff)<button type="button" id="bs-lock-bs-b5" onclick="toggleBSLock('bs-b5')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-b5" placeholder="0" oninput="calcBS()" style="width:130px"></div>
           <div class="cr tot"><span class="cr-lbl"><b>Current Assets Total</b></span><span class="cr-amt" id="bs-total-b">₹0</span></div>
           <div class="cr" style="background:var(--gold-l)"><span style="font-weight:800;color:var(--royal)">TOTAL ASSETS</span><span style="font-weight:800;font-size:16px;color:var(--green)" id="bs-total-assets">₹0</span></div>
         </div>
@@ -1264,11 +1273,11 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
         <div class="ch"><h3>LIABILITIES (Denadari)</h3></div>
         <div class="cb" style="padding:0">
           <div style="background:var(--royal-l);padding:8px 12px;font-size:11px;font-weight:700;color:var(--royal)">D. Capital</div>
-          <div class="cr"><span class="cr-lbl">Owner Capital</span><input class="bs-in" type="number" id="bs-d1" placeholder="0" oninput="calcBS()" style="width:130px"></div>
-          <div class="cr"><span class="cr-lbl">Net Profit (Year)</span><input class="bs-in" type="number" id="bs-d2" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Owner Capital<button type="button" id="bs-lock-bs-d1" onclick="toggleBSLock('bs-d1')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-d1" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Net Profit (Year)<button type="button" id="bs-lock-bs-d2" onclick="toggleBSLock('bs-d2')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-d2" placeholder="0" oninput="calcBS()" style="width:130px"></div>
           <div class="cr tot"><span class="cr-lbl"><b>Capital Total</b></span><span class="cr-amt" id="bs-total-d">₹0</span></div>
           <div style="background:var(--royal-l);padding:8px 12px;font-size:11px;font-weight:700;color:var(--royal)">E. Long Term Liabilities</div>
-          <div class="cr"><span class="cr-lbl">Bank Loan</span><input class="bs-in" type="number" id="bs-e1" placeholder="0" oninput="calcBS()" style="width:130px"></div>
+          <div class="cr"><span class="cr-lbl">Bank Loan (Loan Tracker)<button type="button" id="bs-lock-bs-e1" onclick="toggleBSLock('bs-e1')" style="font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer">🔄 AUTO</button></span><input class="bs-in" type="number" id="bs-e1" placeholder="0" oninput="calcBS()" style="width:130px"></div>
           <div class="cr"><span class="cr-lbl">Personal Loan</span><input class="bs-in" type="number" id="bs-e2" placeholder="0" oninput="calcBS()" style="width:130px"></div>
           <div class="cr tot"><span class="cr-lbl"><b>LT Liabilities Total</b></span><span class="cr-amt" id="bs-total-e">₹0</span></div>
           <div style="background:var(--royal-l);padding:8px 12px;font-size:11px;font-weight:700;color:var(--royal)">F. Current Liabilities</div>
@@ -2916,6 +2925,7 @@ function go(name){
   if(name==='custdb')showCustomerDB();
   if(name==='capital'){if(typeof render==='function')render();}
   if(name==='loan'){if(typeof lrRenderAll==='function')lrRenderAll();if(typeof lrAutofillDates==='function')lrAutofillDates();}
+  if(name==='balance'){if(typeof autoFillBS==='function')autoFillBS();}
 }
 
 // Handle Android back button
@@ -4891,12 +4901,116 @@ function calcBS(){
   var check=document.getElementById('bs-check');
   if(check&&(totalA>0||totalL>0)){
     if(Math.abs(totalA-totalL)<1){check.innerHTML='✅ BALANCED! Assets = Liabilities<br><small>Net Worth: <b>'+rs(netWorth)+'</b></small>';check.style.cssText='padding:12px;text-align:center;font-weight:700;font-size:13px;background:var(--green-l);color:var(--green);border-radius:10px';}
-    else{var diff=totalA-totalL;check.innerHTML='⚠️ DIFFERENCE: '+rs(Math.abs(diff))+'<br><small>'+(diff>0?'Assets Zyada — Capital add karo':'Liabilities Zyada — Expenses check karo')+'</small>';check.style.cssText='padding:12px;text-align:center;font-weight:700;font-size:13px;background:var(--red-l);color:var(--red);border-radius:10px';}
+    else{var diff=totalA-totalL;check.innerHTML='⚠️ DIFFERENCE: '+rs(Math.abs(diff))+'<br><small>'+(diff>0?'Assets Zyada — Capital ya Loan check karo':'Liabilities Zyada — in 2 wajah se aksar hota hai:<br>1) Fixed Assets (Dukaan/Furniture/Computer) abhi 0 hai par unme paisa laga hoga — unhe bharein<br>2) Capital Tracker me Deposit daali par Cash Tracker me Cash-IN nahi daali — dono ek saath entry karein')+'</small>';check.style.cssText='padding:12px;text-align:center;font-weight:700;font-size:12px;background:var(--red-l);color:var(--red);border-radius:10px;line-height:1.6';}
   }
   window._bsData={a:a,b:b,totalA:totalA,d:d,e:e,f:f,totalL:totalL,netWorth:netWorth,
     a1:bsv('bs-a1'),a2:bsv('bs-a2'),a3:bsv('bs-a3'),
     b1:bsv('bs-b1'),b2:bsv('bs-b2'),b3:bsv('bs-b3'),b4:bsv('bs-b4'),b5:bsv('bs-b5'),
     d1:bsv('bs-d1'),d2:bsv('bs-d2'),e1:bsv('bs-e1'),e2:bsv('bs-e2'),f1:bsv('bs-f1'),f2:bsv('bs-f2')};
+}
+
+// ── MANUAL/AUTO LOCK for Balance Sheet fields ──
+// Locked field = user chose Manual entry, Auto-Fill won't overwrite it.
+var BS_AUTO_FIELDS=['bs-b1','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1'];
+function bsGetLocks(){try{return JSON.parse(localStorage.getItem('bf_bs_manual_locks')||'[]');}catch(e){return [];}}
+function bsSetLocks(arr){localStorage.setItem('bf_bs_manual_locks',JSON.stringify(arr));}
+function toggleBSLock(fieldId){
+  var locks=bsGetLocks();
+  var idx=locks.indexOf(fieldId);
+  if(idx>=0){locks.splice(idx,1);toast('🔄 '+fieldId+' ab Auto se bharegi','ts');}
+  else{locks.push(fieldId);toast('🔒 Ab isse aap khud bhar sakte hain (Manual)','ts');}
+  bsSetLocks(locks);
+  renderBSLockUI();
+}
+function renderBSLockUI(){
+  var locks=bsGetLocks();
+  BS_AUTO_FIELDS.forEach(function(id){
+    var btn=document.getElementById('bs-lock-'+id);
+    if(!btn)return;
+    var isLocked=locks.indexOf(id)>=0;
+    if(isLocked){
+      btn.textContent='🔒 MANUAL';
+      btn.style.cssText='font-size:8.5px;background:#FFF3E0;color:#EA580C;padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer';
+    }else{
+      btn.textContent='🔄 AUTO';
+      btn.style.cssText='font-size:8.5px;background:var(--green-l);color:var(--green);padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:800;vertical-align:middle;border:none;cursor:pointer';
+    }
+  });
+}
+
+// ── AUTO-FILL BALANCE SHEET FROM LIVE APP DATA ──
+// Cash in Hand ← Cash entries (D.cash), Stock Value ← Stock (D.stock, at buy price),
+// Debtors ← Udhar (D.udhar remaining), Advance Payments ← pending Staff Advances (D.advances),
+// Owner Capital ← Capital Tracker (deposit-withdraw),
+// Net Profit (Year) ← Sales-Expenses (this year), Bank Loan ← Loan & ROI Tracker outstanding.
+function autoFillBS(){
+  try{
+    // Stock Value (at cost/buy price)
+    var stockVal=(D.stock||[]).reduce(function(a,s){return a+((s.qty||0)*(s.buyPrice||0));},0);
+
+    // Cash in Hand = all-time Cash IN minus Cash OUT from Cash tracker
+    var cashIn=(D.cash||[]).filter(function(c){return c.type==='income';}).reduce(function(a,c){return a+(c.amount||0);},0);
+    var cashOut=(D.cash||[]).filter(function(c){return c.type==='expense';}).reduce(function(a,c){return a+(c.amount||0);},0);
+    var cashInHand=cashIn-cashOut;
+
+    // Debtors = total Udhar still baaki (remaining) — customers ka udhaar
+    var debtors=(D.udhar||[]).reduce(function(a,u){return a+(u.remaining||0);},0);
+
+    // Advance Payments = Staff ko diye gaye advance jo abhi tak salary se kate nahi (pending)
+    if(typeof initExtra==='function')initExtra();
+    var advancePending=(D.advances||[]).filter(function(a){return a.status==='pending';}).reduce(function(a,x){return a+(x.amount||0);},0);
+
+    // Owner Capital (net) = Capital Tracker: total deposit − total withdraw
+    var capEntries=[];
+    try{capEntries=JSON.parse(localStorage.getItem('bhagya_capital_entries')||'[]');}catch(e){capEntries=[];}
+    var totalDep=capEntries.filter(function(e){return e.type==='deposit';}).reduce(function(a,e){return a+Number(e.amount||0);},0);
+    var totalWd=capEntries.filter(function(e){return e.type==='withdraw';}).reduce(function(a,e){return a+Number(e.amount||0);},0);
+    var netCapital=totalDep-totalWd;
+
+    // Net Profit (Year) = is saal ki Sales − is saal ke Expenses
+    var yr=td().substring(0,4);
+    var ySales=(D.sales||[]).filter(function(s){return s.date&&s.date.startsWith(yr);}).reduce(function(a,s){return a+(s.total||0);},0);
+    var yExp=(D.expenses||[]).filter(function(e){return e.date&&e.date.startsWith(yr);}).reduce(function(a,e){return a+(e.amount||0);},0);
+    var netProfitYear=ySales-yExp;
+
+    // Bank Loan = Loan & ROI Tracker outstanding (Term Loans + CC/OD), live global lrDB use karo
+    var loanTotal=0;
+    if(typeof lrDB!=='undefined'&&lrDB){
+      var termOut=(lrDB.termLoans||[]).reduce(function(sum,l){
+        var paidP=(lrDB.termPayments||[]).filter(function(p){return p.loanId===l.id;}).reduce(function(s,p){return s+(p.principal||0);},0);
+        return sum+Math.max(0,(l.amount||0)-paidP);
+      },0);
+      var ccOut=(lrDB.ccAccounts||[]).reduce(function(sum,a){return sum+(typeof lrCcOutstanding==='function'?lrCcOutstanding(a.id):0);},0);
+      loanTotal=termOut+ccOut;
+    }
+
+    var setv=function(id,v){
+      if(bsGetLocks().indexOf(id)>=0)return; // manual-locked, skip
+      var el=document.getElementById(id);if(el)el.value=Math.round(v);
+    };
+    setv('bs-b1',cashInHand);
+    setv('bs-b3',stockVal);
+    setv('bs-b4',debtors);
+    setv('bs-b5',advancePending);
+    setv('bs-d1',netCapital);
+    setv('bs-d2',netProfitYear);
+    setv('bs-e1',loanTotal);
+
+    renderBSLockUI();
+    calcBS();
+
+    var note=document.getElementById('bs-autofill-note');
+    if(note){
+      var now=new Date();
+      var timeStr=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      var lockCount=bsGetLocks().length;
+      note.innerHTML='✅ Live App Data se Auto-Fill ho gaya — '+fd(td())+', '+timeStr+'<br><span style="font-weight:400;font-size:10px">'+(lockCount?lockCount+' field(s) 🔒 Manual par lock hai, unhe chhua nahi gaya.':'Cash, Stock, Udhar, Capital, Loan — sab live hai.')+' Field ke 🔄/🔒 button se Auto ↔ Manual badlein.</span>';
+      note.style.cssText='padding:9px 12px;margin-bottom:10px;background:var(--green-l);color:var(--green);border-radius:10px;font-size:11px;font-weight:700;text-align:center';
+    }
+  }catch(err){
+    var note2=document.getElementById('bs-autofill-note');
+    if(note2){note2.textContent='⚠️ Auto-Fill me dikkat aayi, manually bharein';note2.style.cssText='padding:9px 12px;margin-bottom:10px;background:var(--red-l);color:var(--red);border-radius:10px;font-size:11px;font-weight:700;text-align:center';}
+  }
 }
 
 // ── PDF HELPERS ──
