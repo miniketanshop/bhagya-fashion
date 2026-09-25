@@ -73,6 +73,17 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 /* ── BTN ── */
 .btn{padding:11px 18px;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:5px;width:100%;transition:opacity .2s;}
 .btn:active{opacity:.8;}
+/* ── PROFIT MODE SEGMENT TOGGLE ── */
+.seg-wrap{display:flex;gap:8px;margin-bottom:8px;}
+.seg-btn{flex:1;padding:10px 6px;border-radius:9px;border:2px solid #E2E8F0;background:#fff;font-size:11.5px;font-weight:700;color:#64748B;text-align:center;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s;}
+.seg-btn.active{border-color:#1A3A6B;background:linear-gradient(135deg,#1A3A6B,#1e40af);color:#F59E0B;}
+.pf-locked{background:#F1F5F9 !important;color:#64748B;}
+/* ── PROFIT TREND CHART ── */
+.pt-sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.pt-sc{background:#F8FAFC;border-radius:10px;padding:8px 6px;text-align:center;}
+.pt-sc .l{font-size:9px;color:#64748B;font-weight:700;text-transform:uppercase;}
+.pt-sc .v{font-size:13px;font-weight:900;margin-top:2px;}
+.pt-trend-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:800;margin-bottom:10px;}
 .bp{background:linear-gradient(135deg,var(--royal),#1e40af);color:var(--gold);}
 .bs2{background:linear-gradient(135deg,var(--green),#15803d);color:#fff;}
 .bd{background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;width:auto;padding:7px 11px;font-size:11px;}
@@ -1222,18 +1233,18 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
         <div class="cb" style="padding:0;overflow-x:auto">
           <table class="mtbl">
             <tr><th>Mahina</th><th>Cash In</th><th>Cash Out</th><th>Balance</th></tr>
-            <tr id="mt-jan"><td>January</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-feb"><td>February</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-mar"><td>March</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-apr"><td>April</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-may"><td>May</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-jun"><td>June</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-jul"><td>July</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-aug"><td>August</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-sep"><td>September</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-oct"><td>October</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-nov"><td>November</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
-            <tr id="mt-dec"><td>December</td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-jan"><td>January</td><td><input type="number" id="mt-jan-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-jan-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-feb"><td>February</td><td><input type="number" id="mt-feb-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-feb-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-mar"><td>March</td><td><input type="number" id="mt-mar-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-mar-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-apr"><td>April</td><td><input type="number" id="mt-apr-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-apr-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-may"><td>May</td><td><input type="number" id="mt-may-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-may-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-jun"><td>June</td><td><input type="number" id="mt-jun-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-jun-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-jul"><td>July</td><td><input type="number" id="mt-jul-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-jul-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-aug"><td>August</td><td><input type="number" id="mt-aug-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-aug-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-sep"><td>September</td><td><input type="number" id="mt-sep-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-sep-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-oct"><td>October</td><td><input type="number" id="mt-oct-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-oct-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-nov"><td>November</td><td><input type="number" id="mt-nov-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-nov-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
+            <tr id="mt-dec"><td>December</td><td><input type="number" id="mt-dec-in" placeholder="0" oninput="calcMonthly()"></td><td><input type="number" id="mt-dec-out" placeholder="0" oninput="calcMonthly()"></td><td class="mt-bal">₹0</td></tr>
             <tr class="trow"><td><b>TOTAL</b></td><td><b id="mt-total-in">₹0</b></td><td><b id="mt-total-out">₹0</b></td><td><b id="mt-total-bal">₹0</b></td></tr>
           </table>
         </div>
@@ -1659,10 +1670,19 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
     <button class="btn bo" onclick="pdfFull()" style="font-size:11px;padding:10px 6px">📊 Full Report PDF</button>
   </div>
 
+  <!-- MODE TOGGLE: AUTO vs MANUAL -->
+  <div class="seg-wrap">
+    <div class="seg-btn" id="profModeAuto" onclick="setProfitMode('auto')">🤖 Auto (Bills Se)</div>
+    <div class="seg-btn active" id="profModeManual" onclick="setProfitMode('manual')">✍️ Manual (Khud Likho)</div>
+  </div>
+  <div id="profAutoNote" style="display:none;font-size:10.5px;color:#64748B;background:#EEF2FF;padding:8px 10px;border-radius:8px;margin-bottom:10px;line-height:1.6">
+    🤖 <b>Auto mode:</b> Revenue, COGS aur Operating Expenses neeche wali Date Range ke sales/expense bills se khud-b-khud bhar jaate hain. Depreciation, Interest aur Tax hamesha khud (manual) dalna hoga.
+  </div>
+
   <!-- DATE RANGE -->
   <div class="fr" style="margin-bottom:10px">
-    <div class="fg"><label class="fl">From</label><input class="fi" id="rFrom" type="date"></div>
-    <div class="fg"><label class="fl">To</label><input class="fi" id="rTo" type="date"></div>
+    <div class="fg"><label class="fl">From</label><input class="fi" id="rFrom" type="date" onchange="onProfitDateChange()"></div>
+    <div class="fg"><label class="fl">To</label><input class="fi" id="rTo" type="date" onchange="onProfitDateChange()"></div>
   </div>
   <div class="fr" style="margin-bottom:14px">
     <div class="fg"><label class="fl">Revenue (Bikri) ₹</label><input class="fi" id="rev-total" type="number" inputmode="numeric" placeholder="e.g. 80000" oninput="calcAll()"></div>
@@ -1676,7 +1696,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
     <div class="fg"><label class="fl">Interest / EMI ₹</label><input class="fi" id="int-total" type="number" inputmode="numeric" placeholder="0" oninput="calcAll()"></div>
     <div class="fg"><label class="fl">Tax ₹</label><input class="fi" id="tax-total" type="number" inputmode="numeric" placeholder="0" oninput="calcAll()"></div>
   </div>
-  <button class="btn bp" style="margin-bottom:14px" onclick="calcAll()">📊 Calculate Karo</button>
+  <button class="btn bp" style="margin-bottom:14px" onclick="runProfitCalc()">📊 Calculate Karo</button>
 
   <!-- PROFIT CARDS -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -1707,6 +1727,16 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
     <div class="ch"><h3>📉 P&amp;L Statement</h3></div>
     <div class="cb" style="padding:0" id="pl-table">
       <div class="empty"><p>Upar data bharke Calculate dabao</p></div>
+    </div>
+  </div>
+
+  <!-- PROFIT TREND GRAPH -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="ch" style="background:linear-gradient(135deg,#0F766E,#0d9488)"><h3>📈 Profit Trend — Upar ya Neeche?</h3></div>
+    <div class="cb">
+      <div style="font-size:11px;color:#64748B;margin-bottom:8px">Upar wali Date Range ke sales aur expense bills se graph banega — dikhega business kitna upar hai ya neeche.</div>
+      <button class="btn bs2" onclick="renderProfitTrend()">📈 Graph Dikhao</button>
+      <div id="profitTrendBox" style="margin-top:10px"></div>
     </div>
   </div>
 
@@ -2357,7 +2387,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script type="text/plain" id="bfMainScript">
-var D={sales:[],stock:[],cash:[],udhar:[],expenses:[],bc:1,calc:[],calcMeta:{billNo:'CALC-001',custName:'',custPhone:''}};
+var D={sales:[],stock:[],cash:[],udhar:[],expenses:[],bc:1,calc:[],calcMeta:{billNo:'CALC-001',custName:'',custPhone:''},cfbs:{}};
 
 // ═══ ACTIVITY LOG (delete/edit tracking, cloud sync) ═══
 function bfLogActivity(module,action,detail){
@@ -2476,7 +2506,7 @@ function alPwdBack(){
   var ov=document.getElementById('alLockOv');if(ov)ov.style.display='none';
   go('dash');
 }
-var BF_FIELDS=['sales','stock','cash','udhar','expenses','bc','calc','calcMeta'];
+var BF_FIELDS=['sales','stock','cash','udhar','expenses','bc','calc','calcMeta','cfbs'];
 var _bfLastSaved={};
 var _bfLastStockById={};  // item.id -> last-known serialized value, taaki save() par sirf
                            // BADLE hue stock items alag se cloud ko bheje ja saken (poora
@@ -2919,13 +2949,15 @@ function go(name){
   if(name==='expense')showExp();
   if(name==='cash')showCash();
   if(name==='profit'||name==='report'){setRepDates();calcProfit();}
+  if(name==='profit'){initProfitMode();}
   if(name==='report')setRepDates2();
   if(name==='activitylog')showActivityLog();
   if(name==='inventory'){var idEl=document.getElementById('invDate');if(idEl&&!idEl.value)idEl.value=td();}
   if(name==='custdb')showCustomerDB();
   if(name==='capital'){if(typeof render==='function')render();}
   if(name==='loan'){if(typeof lrRenderAll==='function')lrRenderAll();if(typeof lrAutofillDates==='function')lrAutofillDates();}
-  if(name==='balance'){if(typeof autoFillBS==='function')autoFillBS();}
+  if(name==='cashflow'){if(typeof bfCfBsRestore==='function')bfCfBsRestore();}
+  if(name==='balance'){if(typeof bfCfBsRestore==='function')bfCfBsRestore();if(typeof autoFillBS==='function')autoFillBS();}
 }
 
 // Handle Android back button
@@ -4837,6 +4869,133 @@ function backupData(){
   toast('📥 Backup saved!','ts');
 }
 
+// ── PROFIT: AUTO vs MANUAL MODE ──
+var _profitMode=(function(){try{return localStorage.getItem('bf_profit_mode')||'manual';}catch(e){return'manual';}})();
+function setProfitMode(m,silent){
+  _profitMode=m;
+  try{localStorage.setItem('bf_profit_mode',m);}catch(e){}
+  var autoBtn=document.getElementById('profModeAuto'),manBtn=document.getElementById('profModeManual'),note=document.getElementById('profAutoNote');
+  var ids=['rev-total','cogs-total','opex-total'];
+  if(m==='auto'){
+    if(autoBtn)autoBtn.classList.add('active');if(manBtn)manBtn.classList.remove('active');
+    if(note)note.style.display='block';
+    ids.forEach(function(id){var el=document.getElementById(id);if(el){el.readOnly=true;el.classList.add('pf-locked');}});
+    autoFillProfit(silent);
+  }else{
+    if(manBtn)manBtn.classList.add('active');if(autoBtn)autoBtn.classList.remove('active');
+    if(note)note.style.display='none';
+    ids.forEach(function(id){var el=document.getElementById(id);if(el){el.readOnly=false;el.classList.remove('pf-locked');}});
+  }
+}
+function initProfitMode(){setProfitMode(_profitMode,true);}
+function onProfitDateChange(){
+  if(_profitMode==='auto')autoFillProfit();
+}
+function autoFillProfit(silent){
+  var from=(document.getElementById('rFrom')||{}).value||'';
+  var to=(document.getElementById('rTo')||{}).value||td();
+  var sales=D.sales.filter(function(s){return(!from||s.date>=from)&&(!to||s.date<=to);});
+  var exps=D.expenses.filter(function(e){return(!from||e.date>=from)&&(!to||e.date<=to);});
+  var rev=sales.reduce(function(a,s){return a+(s.total||0);},0);
+  var cogs=0;
+  sales.forEach(function(s){(s.items||[]).forEach(function(it){
+    var si=null;
+    if(it.stockId)si=D.stock.find(function(x){return x.id===it.stockId;});
+    if(!si){var bn=(it.name||'').trim().toLowerCase();si=D.stock.find(function(x){return(x.name||'').trim().toLowerCase()===bn;});}
+    var buy=si?(si.buyPrice||0):0;
+    cogs+=buy*(it.qty||0);
+  });});
+  var opex=exps.filter(function(e){return!/purchase/i.test(e.cat||'');}).reduce(function(a,e){return a+(e.amount||0);},0);
+  var re=document.getElementById('rev-total'),ce=document.getElementById('cogs-total'),oe=document.getElementById('opex-total');
+  if(re)re.value=rev;if(ce)ce.value=cogs.toFixed(0);if(oe)oe.value=opex;
+  calcAll();
+  if(!silent){
+    if(!sales.length&&!exps.length){toast('⚠️ Is date range mein koi bill/expense nahi mila','te');}else{toast('🤖 Bills se auto bhar diya!','ts');}
+  }
+}
+function runProfitCalc(){
+  if(_profitMode==='auto')autoFillProfit();else calcAll();
+}
+
+// ── PROFIT TREND CHART (day/month wise, upar/neeche dikhata hai) ──
+function renderProfitTrend(){
+  var box=document.getElementById('profitTrendBox');
+  var fromEl=document.getElementById('rFrom'),toEl=document.getElementById('rTo');
+  var from=fromEl?fromEl.value:'',to=toEl?toEl.value:td();
+  if(!to)to=td();
+  if(!from){var d=new Date(to);d.setDate(d.getDate()-29);from=d.toISOString().split('T')[0];}
+  var start=new Date(from+'T00:00:00'),end=new Date(to+'T00:00:00');
+  if(end<start){box.innerHTML='<div class="empty"><p>To date, From date se pehle nahi ho sakti</p></div>';return;}
+  var totalDays=Math.round((end-start)/86400000)+1;
+  var byMonth=totalDays>60;
+  var buckets={},order=[];
+  function bucketKey(dt){return byMonth?(dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')):(dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'));}
+  var cur=new Date(start);
+  while(cur<=end){
+    var k=bucketKey(cur);
+    if(!(k in buckets)){buckets[k]={sale:0,exp:0};order.push(k);}
+    cur=byMonth?new Date(cur.getFullYear(),cur.getMonth()+1,1):new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1);
+  }
+  D.sales.forEach(function(s){if(s.date>=from&&s.date<=to){var k=byMonth?s.date.substring(0,7):s.date;if(k in buckets)buckets[k].sale+=(s.total||0);}});
+  D.expenses.forEach(function(e){if(e.date>=from&&e.date<=to){var k=byMonth?e.date.substring(0,7):e.date;if(k in buckets)buckets[k].exp+=(e.amount||0);}});
+  var labels=order,profits=order.map(function(k){return buckets[k].sale-buckets[k].exp;});
+  var totalProfit=profits.reduce(function(a,v){return a+v;},0);
+  var totalSale=order.reduce(function(a,k){return a+buckets[k].sale;},0);
+  var totalExp=order.reduce(function(a,k){return a+buckets[k].exp;},0);
+  var avgProfit=profits.length?totalProfit/profits.length:0;
+  var bestIdx=0,worstIdx=0;
+  profits.forEach(function(v,i){if(v>profits[bestIdx])bestIdx=i;if(v<profits[worstIdx])worstIdx=i;});
+  // Trend: compare avg of 2nd half vs 1st half
+  var half=Math.floor(profits.length/2)||1;
+  var firstHalf=profits.slice(0,half),secondHalf=profits.slice(profits.length-half);
+  var avg1=firstHalf.reduce(function(a,v){return a+v;},0)/(firstHalf.length||1);
+  var avg2=secondHalf.reduce(function(a,v){return a+v;},0)/(secondHalf.length||1);
+  var trendUp=avg2>avg1*1.03,trendDown=avg2<avg1*0.97;
+  var trendPct=avg1!==0?(((avg2-avg1)/Math.abs(avg1))*100):(avg2>0?100:0);
+  var badgeHtml;
+  if(profits.length<2){
+    badgeHtml='<div class="pt-trend-badge" style="background:#EEF2FF;color:#1A3A6B">ℹ️ Trend dekhne ke liye kam se kam 2 din/mahine ka data chahiye</div>';
+  }else if(trendUp){
+    badgeHtml='<div class="pt-trend-badge" style="background:#dcfce7;color:#16A34A">📈 UPAR JAA RAHA HAI — ~'+Math.abs(trendPct).toFixed(0)+'% badhotri</div>';
+  }else if(trendDown){
+    badgeHtml='<div class="pt-trend-badge" style="background:#fee2e2;color:#DC2626">📉 NEECHE JAA RAHA HAI — ~'+Math.abs(trendPct).toFixed(0)+'% giravat</div>';
+  }else{
+    badgeHtml='<div class="pt-trend-badge" style="background:#fff8e1;color:#EA580C">➖ LAGBHAG SAME HAI (na zyada upar, na neeche)</div>';
+  }
+  // SVG chart
+  var W=Math.max(300,labels.length*(byMonth?54:34)),H=150,pad=26;
+  var maxV=Math.max.apply(null,profits.concat([0])),minV=Math.min.apply(null,profits.concat([0]));
+  var range=(maxV-minV)||1;
+  var barW=Math.max(10,(W-2*pad)/labels.length-6);
+  var zeroY=pad+(maxV/range)*(H-2*pad);
+  var bars='',line='',pts=[];
+  labels.forEach(function(k,i){
+    var x=pad+i*((W-2*pad)/labels.length)+3;
+    var v=profits[i];
+    var y=pad+((maxV-v)/range)*(H-2*pad);
+    var barH=Math.abs(zeroY-y);
+    var barY=v>=0?y:zeroY;
+    var col=v>=0?'#16A34A':'#DC2626';
+    bars+='<rect x="'+x+'" y="'+barY+'" width="'+barW+'" height="'+Math.max(1,barH)+'" fill="'+col+'" rx="2"></rect>';
+    pts.push((x+barW/2)+','+y);
+  });
+  line='<polyline points="'+pts.join(' ')+'" fill="none" stroke="#1A3A6B" stroke-width="2"></polyline>';
+  var zeroLine='<line x1="'+pad+'" y1="'+zeroY+'" x2="'+(W-pad+10)+'" y2="'+zeroY+'" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="4,3"></line>';
+  var lblFmt=function(k){if(byMonth){var mm=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var parts=k.split('-');return mm[parseInt(parts[1])-1]+' '+parts[0].slice(2);}else{var d=k.split('-');return d[2]+'/'+d[1];}};
+  var showLabels=labels.length<=12;
+  var labelsHtml=showLabels?labels.map(function(k,i){var x=pad+i*((W-2*pad)/labels.length)+3+barW/2;return'<text x="'+x+'" y="'+(H-6)+'" font-size="8" fill="#64748B" text-anchor="middle">'+lblFmt(k)+'</text>';}).join(''):'';
+  var svg='<div style="overflow-x:auto"><svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="min-width:100%">'+zeroLine+bars+line+labelsHtml+'</svg></div>';
+  box.innerHTML=badgeHtml
+    +'<div class="pt-sum">'
+    +'<div class="pt-sc"><div class="l">Total Profit</div><div class="v" style="color:'+(totalProfit>=0?'#16A34A':'#DC2626')+'">'+rs(totalProfit)+'</div></div>'
+    +'<div class="pt-sc"><div class="l">Avg/'+(byMonth?'Mahina':'Din')+'</div><div class="v" style="color:'+(avgProfit>=0?'#16A34A':'#DC2626')+'">'+rs(Math.round(avgProfit))+'</div></div>'
+    +'<div class="pt-sc"><div class="l">Best '+(byMonth?'Mahina':'Din')+'</div><div class="v" style="color:#16A34A">'+rs(profits[bestIdx]||0)+'</div></div>'
+    +'</div>'
+    +svg
+    +'<div style="font-size:10px;color:#94A3B8;margin-top:8px;text-align:center">🟩 Green bar = us '+(byMonth?'mahine':'din')+' profit hua &nbsp; 🟥 Red bar = loss hua &nbsp; ── Neeli line = trend</div>'
+    +'<div style="font-size:10.5px;color:#64748B;margin-top:6px">Total Sale: <b style="color:#16A34A">'+rs(totalSale)+'</b> &nbsp;|&nbsp; Total Expense: <b style="color:#DC2626">'+rs(totalExp)+'</b></div>';
+}
+
 // ── CALC ALL (Gross Profit + EBITDA + Net Profit) ──
 function calcAll(){
   var rev=parseFloat((document.getElementById('rev-total')||{}).value)||0;
@@ -4909,6 +5068,54 @@ function calcBS(){
     d1:bsv('bs-d1'),d2:bsv('bs-d2'),e1:bsv('bs-e1'),e2:bsv('bs-e2'),f1:bsv('bs-f1'),f2:bsv('bs-f2')};
 }
 
+// ── CASH FLOW / BALANCE SHEET — MANUAL ENTRY PERSISTENCE ──
+// Pehle ye saare manual input fields (Cash Flow ke cf-* aur Monthly Summary ke mt-*,
+// Balance Sheet ke bs-*) sirf DOM mein rehte the — kahin bhi save nahi hote the.
+// Isliye tab/page badalne ya app dobara kholne par daala hua data GAAYAB ho jaata tha.
+// Ab har field D.cfbs{} (localStorage key bf_d_cfbs, cloud sync mein bhi shaamil) mein
+// save hota hai, aur page khulte hi wahi se wapas load ho jaata hai — kabhi gaayab nahi hoga.
+var CF_FIELD_IDS=['cf-sale','cf-recovery','cf-loan-in','cf-other-in','cf-purchase','cf-salary','cf-rent','cf-bijli','cf-emi','cf-other-out','cf-opening'];
+var MT_FIELD_IDS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].reduce(function(a,m){a.push('mt-'+m+'-in','mt-'+m+'-out');return a;},[]);
+var BS_FIELD_IDS=['bs-a1','bs-a2','bs-a3','bs-b1','bs-b2','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1','bs-e2','bs-f1','bs-f2'];
+function bfCfBsSaveField(id,val){
+  if(!D.cfbs)D.cfbs={};
+  D.cfbs[id]=val;
+  save();
+}
+function bfCfBsRestore(){
+  // Cash Flow + Monthly Summary — hamesha jo save hai wahi wapas bharo
+  CF_FIELD_IDS.concat(MT_FIELD_IDS).forEach(function(id){
+    var el=document.getElementById(id);
+    if(el && D.cfbs && D.cfbs[id]!==undefined && D.cfbs[id]!=='') el.value=D.cfbs[id];
+  });
+  // Balance Sheet — jo field abhi AUTO mode mein hai (locked nahi) usko chhod do,
+  // usse autoFillBS() live data se bharega; sirf pure-manual aur MANUAL-locked fields bharo
+  var locks=(typeof bsGetLocks==='function')?bsGetLocks():[];
+  BS_FIELD_IDS.forEach(function(id){
+    if(BS_AUTO_FIELDS.indexOf(id)>=0 && locks.indexOf(id)<0) return;
+    var el=document.getElementById(id);
+    if(el && D.cfbs && D.cfbs[id]!==undefined && D.cfbs[id]!=='') el.value=D.cfbs[id];
+  });
+  if(typeof calcCF==='function')calcCF();
+  if(typeof calcMonthly==='function')calcMonthly();
+  if(typeof calcBS==='function')calcBS();
+}
+// Jab bhi in fields mein user kuch type kare, turant save karo (delegated listener —
+// alag alag har input par listener lagane ki zaroorat nahi)
+(function bfCfBsAttachSaveListeners(){
+  var cfPage=document.getElementById('pg-cashflow');
+  var bsPage=document.getElementById('pg-balance');
+  function onInput(e){
+    var id=e.target && e.target.id;
+    if(!id)return;
+    if(CF_FIELD_IDS.indexOf(id)>=0 || MT_FIELD_IDS.indexOf(id)>=0 || BS_FIELD_IDS.indexOf(id)>=0){
+      bfCfBsSaveField(id,e.target.value);
+    }
+  }
+  if(cfPage)cfPage.addEventListener('input',onInput);
+  if(bsPage)bsPage.addEventListener('input',onInput);
+})();
+
 // ── MANUAL/AUTO LOCK for Balance Sheet fields ──
 // Locked field = user chose Manual entry, Auto-Fill won't overwrite it.
 var BS_AUTO_FIELDS=['bs-b1','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1'];
@@ -4918,7 +5125,14 @@ function toggleBSLock(fieldId){
   var locks=bsGetLocks();
   var idx=locks.indexOf(fieldId);
   if(idx>=0){locks.splice(idx,1);toast('🔄 '+fieldId+' ab Auto se bharegi','ts');}
-  else{locks.push(fieldId);toast('🔒 Ab isse aap khud bhar sakte hain (Manual)','ts');}
+  else{
+    locks.push(fieldId);
+    toast('🔒 Ab isse aap khud bhar sakte hain (Manual)','ts');
+    // MANUAL par switch karte hi abhi jo value dikh rahi hai usko turant save kar do,
+    // nahi to agli baar page kholne par ye khaali (0) dikhegi
+    var el=document.getElementById(fieldId);
+    if(el && typeof bfCfBsSaveField==='function')bfCfBsSaveField(fieldId,el.value);
+  }
   bsSetLocks(locks);
   renderBSLockUI();
 }
@@ -6136,6 +6350,7 @@ load();
 document.getElementById('billNo').textContent=String(D.bc).padStart(3,'0');
 setDates();showDash();calcProfit();
 checkDailyReminder();
+if(typeof bfCfBsRestore==='function')bfCfBsRestore();
 
 // ═══ CAPITAL TRACKER (merged from Bhagya_Fashion_Capital_Tracker_EN) ═══
 const STORAGE_KEY = 'bhagya_capital_entries';
@@ -7112,7 +7327,7 @@ lrRenderAll();
   // STOCK ab is list mein NAHI hai — usko neeche alag, PER-ITEM tarike se sync kiya jaata
   // hai (stock_items map), taaki DO PHONE agar EK SAATH ALAG-ALAG item add karein to
   // ek doosre ka data OVERWRITE/CUT na ho — yahi "ek daalo ek katt jaata hai" ki asli wajah thi.
-  var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
+  var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bf_d_cfbs","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
   var docRef = bfDb.collection("bhagya_sync").doc(CLOUD_DOC_ID);
   var justWroteFromCloud = false;
   var writeTimer = null;
