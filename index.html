@@ -1156,7 +1156,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
     <div class="cb">
       <div class="fr">
         <div class="fg"><label class="fl">Category</label>
-          <select class="fs" id="eCat"><option>🚗 Transport</option><option>🛍️ Stock Purchase</option><option>💡 Bijli/Paani</option><option>👨‍💼 Salary</option><option>📦 Packaging</option><option>📱 Phone/Net</option><option>🏪 Shop Rent</option><option>🔧 Repair</option><option>📢 Advertisement</option><option>🍽️ Khana</option><option>Other</option></select>
+          <select class="fs" id="eCat"><option>🚗 Transport</option><option>🛍️ Stock Purchase</option><option>💡 Bijli/Paani</option><option>👨‍💼 Salary</option><option>📦 Packaging</option><option>📱 Phone/Net</option><option>🏪 Shop Rent</option><option>🏗️ Capex (Furniture/Interior)</option><option>🔧 Repair</option><option>📢 Advertisement</option><option>🍽️ Khana</option><option>Other</option></select>
         </div>
         <div class="fg"><label class="fl">Date</label><input class="fi" id="eDate" type="date"></div>
       </div>
@@ -1172,6 +1172,13 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 
 <!-- ═══ CASH FLOW ═══ -->
 <div class="pg" id="pg-cashflow">
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><b style="font-size:12px;color:#1A3A6B">📅 Mahina:</b><input type="month" id="cf-month" onchange="autoFillCF()" style="flex:1;padding:9px;border:1.5px solid #dbe4ff;border-radius:10px;font-size:13px"></div>
+  <div style="font-size:10.5px;color:#64748B;background:#EEF2FF;padding:8px 10px;border-radius:8px;margin-bottom:10px;line-height:1.6">🔄 Ye page ab <b>AUTO</b> hai — Sale bills, Udhar payment, Expense aur Cash page ki entries se khud bharta hai. Opening = pichle mahinon ka closing. Koi figure galat lage to us <b>entry</b> ko sahi karo (yahan type nahi hota).</div>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button id="cfModeAuto" onclick="bfCfSetMode('auto')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #1A3A6B;font-weight:800;font-size:13px;cursor:pointer">🤖 AUTO</button>
+    <button id="cfModeManual" onclick="bfCfSetMode('manual')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #1A3A6B;font-weight:800;font-size:13px;cursor:pointer">✍️ MANUAL</button>
+  </div>
+  <div id="cfModeNote" style="font-size:10.5px;color:#64748B;margin:-4px 2px 10px"></div>
   <div style="display:flex;gap:10px;margin-bottom:12px">
     <button class="btn bg2" style="flex:1" onclick="printCashFlow()">🖨️ Print Cash Flow</button>
     <button class="btn bs2" style="flex:1" onclick="shareCashFlow()">📲 WhatsApp Share</button>
@@ -1299,6 +1306,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
       <div id="bs-check" style="padding:12px;text-align:center;font-weight:700;font-size:13px;background:var(--gray);color:#64748B;border-radius:10px;margin-bottom:12px">— Data enter karein —</div>
+      <div id="bs-recon" style="display:none;padding:12px;font-size:11.5px;line-height:1.7;background:#FFF7ED;color:#9A3412;border-radius:10px;margin-bottom:12px"></div>
       <!-- NET WORTH CARD -->
       <div class="card" style="margin-bottom:0">
         <div class="ch"><h3>💎 Net Worth</h3></div>
@@ -2590,7 +2598,22 @@ function save(){
   });
   _bfDiffStockAndQueue();
 }
-function td(){return new Date().toISOString().split('T')[0];}
+function td(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+// ══ FIX: ek hi jagah se Profit/COGS/Opex nikalne ke helpers (Dashboard, Profit, Trend, Balance Sheet sab yahi use karte hain) ══
+function bfFindStock(it){var si=null;if(it.stockId)si=D.stock.find(function(x){return x.id===it.stockId;});if(!si){var bn=bfNormName(it.name);si=D.stock.find(function(x){return bfNormName(x.name)===bn;});}return si;}
+function bfItemBuy(it){var si=bfFindStock(it);return si?(si.buyPrice||0):0;}
+function bfSaleCogs(sl){var c=0;(sl.items||[]).forEach(function(it){c+=bfItemBuy(it)*(it.qty||0);});return c;}
+// Opex = sirf chalu kharcha. Stock Purchase / Capex (furniture, interior) profit se ALAG hain
+function bfIsOpex(e){return !/purchase|capex|fixed asset|kharida/i.test(e.cat||'');}
+function bfPnL(from,to){
+  var sales=D.sales.filter(function(x){return(!from||x.date>=from)&&(!to||x.date<=to);});
+  var exps=D.expenses.filter(function(e){return(!from||e.date>=from)&&(!to||e.date<=to);});
+  var rev=0,cogs=0,miss={};
+  sales.forEach(function(x){rev+=(x.total||0);(x.items||[]).forEach(function(it){var b=bfItemBuy(it);if(!b)miss[it.name||'?']=1;cogs+=b*(it.qty||0);});});
+  var opex=0,nonOpex=0;
+  exps.forEach(function(e){if(bfIsOpex(e))opex+=(e.amount||0);else nonOpex+=(e.amount||0);});
+  return{rev:rev,cogs:cogs,opex:opex,nonOpex:nonOpex,missing:Object.keys(miss),salesCount:sales.length,expCount:exps.length};
+}
 function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 // Naam ko "normalize" karo taaki "Dress 620432" aur "Dress620432" ya "dress 620432 "
 // (extra space / alag capital-small) ko app EK HI item maane — pehle chhoti si spelling
@@ -2956,7 +2979,7 @@ function go(name){
   if(name==='custdb')showCustomerDB();
   if(name==='capital'){if(typeof render==='function')render();}
   if(name==='loan'){if(typeof lrRenderAll==='function')lrRenderAll();if(typeof lrAutofillDates==='function')lrAutofillDates();}
-  if(name==='cashflow'){if(typeof bfCfBsRestore==='function')bfCfBsRestore();}
+  if(name==='cashflow'){if(typeof bfCfBsRestore==='function')bfCfBsRestore();if(typeof autoFillCF==='function')autoFillCF();}
   if(name==='balance'){if(typeof bfCfBsRestore==='function')bfCfBsRestore();if(typeof autoFillBS==='function')autoFillBS();}
 }
 
@@ -3014,7 +3037,7 @@ function showDash(){
   document.getElementById('d-udhar').textContent=rs(D.udhar.reduce(function(a,u){return a+(u.remaining||0);},0));
   var ms=D.sales.filter(function(s){return s.date&&s.date.startsWith(m);}).reduce(function(a,s){return a+s.total;},0);
   var me=D.expenses.filter(function(e){return e.date&&e.date.startsWith(m);}).reduce(function(a,e){return a+e.amount;},0);
-  document.getElementById('d-profit').textContent=rs(ms-me);
+  var _pl=bfPnL(m+'-01',m+'-31');document.getElementById('d-profit').textContent=rs(_pl.rev-_pl.cogs-_pl.opex);
   var sd=document.getElementById('todaySumm');
   if(!ts.length){sd.innerHTML='<div class="empty"><div class="ei">📅</div><p>Aaj koi sale nahi</p></div>';}
   else{sd.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center"><div><div style="font-size:18px">🧾</div><div style="font-size:11px;color:#64748B">Bills</div><div style="font-weight:800;color:var(--royal)">'+ts.length+'</div></div><div><div style="font-size:18px">💰</div><div style="font-size:11px;color:#64748B">Sale</div><div style="font-weight:800;color:var(--green)">'+rs(ta)+'</div></div><div><div style="font-size:18px">📋</div><div style="font-size:11px;color:#64748B">Udhar</div><div style="font-weight:800;color:var(--red)">'+ts.filter(function(s){return s.payMode==='udhar';}).length+' bills</div></div></div>';}
@@ -3276,8 +3299,13 @@ function delSaleBill(billNo){
   if(pin.trim()!=='454061'){toast('❌ Galat PIN! Delete nahi hua.','te');return;}
   var s=D.sales.find(function(x){return x.billNo===billNo;});
   if(!s){toast('❌ Bill nahi mila!','te');return;}
-  if(!confirm('❗ Pakka Bill #'+billNo+' ('+(s.customer||'Walk-in')+' — '+rs(s.total)+') delete karna hai?\nStock/Cash mein hua asar wapas nahi hoga.'))return;
+  if(!confirm('❗ Pakka Bill #'+billNo+' ('+(s.customer||'Walk-in')+' — '+rs(s.total)+') delete karna hai?\nStock wapas jud jayega aur Cash/Udhar entry bhi hat jayegi.'))return;
   D.sales=D.sales.filter(function(x){return x.billNo!==billNo;});
+  // FIX: bill delete par Cash, Udhar aur Stock ka asar bhi wapas karo
+  var _tag='(Bill #'+billNo+')';
+  for(var _k=D.cash.length-1;_k>=0;_k--){var _d=D.cash[_k].desc||'';if(_d.indexOf('Sale - ')===0&&_d.slice(-_tag.length)===_tag){D.cash.splice(_k,1);break;}}
+  D.udhar=D.udhar.filter(function(u){return u.note!=='Bill #'+billNo;});
+  (s.items||[]).forEach(function(it){var si=bfFindStock(it);if(si)si.qty=(si.qty||0)+(it.qty||0);});
   if(typeof bfLogActivity==='function')bfLogActivity('Sale Bill','Delete','Bill #'+billNo+' — '+(s.customer||'Walk-in')+' — '+rs(s.total)+' ('+fd(s.date)+')');
   save();showDash();
   toast('🗑️ Bill #'+billNo+' delete ho gaya!','ts');
@@ -4690,8 +4718,9 @@ function saveExp(){
   var amt=parseFloat(document.getElementById('eAmt').value)||0;
   if(!desc){toast('❌ Description daalen!','te');return;}
   if(amt<=0){toast('❌ Amount daalen!','te');return;}
-  D.expenses.push({id:Date.now(),cat:cat,date:date,desc:desc,amount:amt});
-  D.cash.push({date:date,desc:'Expense - '+cat+': '+desc,type:'expense',amount:amt});
+  var _eid=Date.now();
+  D.expenses.push({id:_eid,cat:cat,date:date,desc:desc,amount:amt});
+  D.cash.push({date:date,desc:'Expense - '+cat+': '+desc,type:'expense',amount:amt,eid:_eid});
   save();document.getElementById('eDesc').value='';document.getElementById('eAmt').value='';
   showExp();toast('✅ Expense saved! '+rs(amt),'ts');
 }
@@ -4705,7 +4734,16 @@ function showExp(){
   if(!recent.length){div.innerHTML='<div class="empty"><div class="ei">💸</div><p>Koi expense nahi</p></div>';return;}
   div.innerHTML=recent.map(function(e){var orig=D.expenses.indexOf(e);return'<div class="er"><div class="ei">'+e.cat.split(' ')[0]+'</div><div style="flex:1"><div style="font-size:12px;font-weight:600">'+e.desc+'</div><div style="font-size:10px;color:#94A3B8">'+e.cat+' · '+fd(e.date)+'</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:var(--red)">'+rs(e.amount)+'</div><button class="btn bd" style="padding:5px 8px;font-size:10px;margin-top:3px" onclick="delExp('+orig+')">🗑️</button></div></div>';}).join('');
 }
-function delExp(i){var e=D.expenses[i];if(e)bfLogActivity('Expense','Delete',(e.category||'Expense')+' - '+rs(e.amount||0)+(e.date?' ('+fd(e.date)+')':''));D.expenses.splice(i,1);save();showExp();toast('🗑️ Deleted!');}
+function delExp(i){
+  var e=D.expenses[i];if(!e)return;
+  bfLogActivity('Expense','Delete',(e.cat||e.category||'Expense')+' - '+rs(e.amount||0)+(e.date?' ('+fd(e.date)+')':''));
+  // FIX: expense delete hone par uski Cash entry bhi hatao (pehle Cash in Hand galat reh jata tha)
+  var ci=-1,k;
+  for(k=0;k<D.cash.length;k++){if(D.cash[k].eid&&D.cash[k].eid===e.id){ci=k;break;}}
+  if(ci<0){for(k=0;k<D.cash.length;k++){var c=D.cash[k];if(c.type==='expense'&&c.amount===e.amount&&c.date===e.date&&(c.desc||'')==='Expense - '+e.cat+': '+e.desc){ci=k;break;}}}
+  if(ci>=0)D.cash.splice(ci,1);
+  D.expenses.splice(i,1);save();showExp();toast('🗑️ Deleted!');
+}
 
 // CASH FLOW PRINT & SHARE
 function printCashFlow(){
@@ -4772,6 +4810,74 @@ function calcCF(){
     else if(closing<0){msg.textContent='❌ CASH DEFICIT: '+rs(closing)+' — Kharcha zyada!';msg.style.cssText='padding:12px;font-size:12px;font-weight:700;text-align:center;background:var(--red-l);color:var(--red)';}
     else{msg.textContent='— Data enter karein —';msg.style.cssText='padding:12px;font-size:12px;font-weight:700;text-align:center;background:var(--gray);color:#64748B';}
   }
+}
+// ── CASH FLOW AUTO-FILL (Cash tracker D.cash se — Balance Sheet ka Cash in Hand isi se banta hai, isliye dono hamesha match) ──
+function bfCashClass(c){
+  var d=c.desc||'';
+  if(c.type==='income'){
+    if(/^Sale -/i.test(d))return'cf-sale';
+    if(/^Udhar payment/i.test(d))return'cf-recovery';
+    if(/capital|deposit|invest|loan|karz/i.test(d))return'cf-loan-in';
+    return'cf-other-in';
+  }
+  if(/^Staff Advance/i.test(d))return'cf-salary';
+  if(/purchase|maal|kharid|stock/i.test(d))return'cf-purchase';
+  if(/salary|tankh|vetan/i.test(d))return'cf-salary';
+  if(/rent|kiraya/i.test(d))return'cf-rent';
+  if(/bijli|paani|electric/i.test(d))return'cf-bijli';
+  if(/\bemi\b|loan/i.test(d))return'cf-emi';
+  return'cf-other-out';
+}
+// ── CASH FLOW: AUTO / MANUAL MODE ──
+var _cfMode=(function(){try{return localStorage.getItem('bf_cf_mode')||'auto';}catch(e){return'auto';}})();
+function bfCfApplyModeUI(){
+  var man=_cfMode==='manual';
+  CF_FIELD_IDS.concat(MT_FIELD_IDS).forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    el.readOnly=!man;el.style.background=man?'':'#f1f5f9';
+  });
+  var a=document.getElementById('cfModeAuto'),b=document.getElementById('cfModeManual'),n=document.getElementById('cfModeNote');
+  if(a){a.style.background=man?'#fff':'#1A3A6B';a.style.color=man?'#1A3A6B':'#fff';}
+  if(b){b.style.background=man?'#1A3A6B':'#fff';b.style.color=man?'#fff':'#1A3A6B';}
+  if(n)n.textContent=man?'✍️ Manual: aap khud figure likh sakte ho — save ho jata hai, auto overwrite nahi karega.':'🤖 Auto: Cash page ki entries se khud bharta hai (fields locked).';
+}
+function bfCfSetMode(m){
+  if(m==='manual'&&_cfMode!=='manual'){
+    // Manual par jaate hi abhi dikh rahi auto values ko save kar do (starting point)
+    if(!D.cfbs)D.cfbs={};
+    CF_FIELD_IDS.concat(MT_FIELD_IDS).forEach(function(id){var el=document.getElementById(id);if(el)D.cfbs[id]=el.value;});
+    save();
+  }
+  _cfMode=m;
+  try{localStorage.setItem('bf_cf_mode',m);}catch(e){}
+  bfCfApplyModeUI();
+  autoFillCF();
+  toast(m==='manual'?'✍️ Manual mode ON':'🤖 Auto mode ON','ts');
+}
+function autoFillCF(){
+  if(_cfMode==='manual'){bfCfApplyModeUI();bfCfBsRestore();return;}
+  var mEl=document.getElementById('cf-month');
+  var m=(mEl&&mEl.value)||td().substring(0,7);
+  if(mEl&&!mEl.value)mEl.value=m;
+  var ids=['cf-sale','cf-recovery','cf-loan-in','cf-other-in','cf-purchase','cf-salary','cf-rent','cf-bijli','cf-emi','cf-other-out'];
+  var sums={};ids.forEach(function(k){sums[k]=0;});
+  var opening=0;
+  (D.cash||[]).forEach(function(c){
+    if(!c.date||(c.type!=='income'&&c.type!=='expense'))return;
+    var amt=c.amount||0,mm=c.date.substring(0,7);
+    if(mm<m)opening+=(c.type==='income'?amt:-amt);
+    else if(mm===m)sums[bfCashClass(c)]+=amt;
+  });
+  ids.forEach(function(k){var el=document.getElementById(k);if(el){el.value=sums[k]||'';el.readOnly=true;el.style.background='#f1f5f9';}});
+  var op=document.getElementById('cf-opening');if(op){op.value=Math.round(opening)||'';op.readOnly=true;op.style.background='#f1f5f9';}
+  var yr=m.substring(0,4),mk=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  mk.forEach(function(k,i){
+    var ym=yr+'-'+String(i+1).padStart(2,'0'),inn=0,out=0;
+    (D.cash||[]).forEach(function(c){if(c.date&&c.date.substring(0,7)===ym){if(c.type==='income')inn+=c.amount||0;else if(c.type==='expense')out+=c.amount||0;}});
+    var a=document.getElementById('mt-'+k+'-in'),b=document.getElementById('mt-'+k+'-out');
+    if(a){a.value=inn||'';a.readOnly=true;}if(b){b.value=out||'';b.readOnly=true;}
+  });
+  calcCF();calcMonthly();bfCfApplyModeUI();
 }
 function calcMonthly(){
   var rows=document.querySelectorAll('.mtbl tr[id^="mt-"]');
@@ -4894,23 +5000,17 @@ function onProfitDateChange(){
 function autoFillProfit(silent){
   var from=(document.getElementById('rFrom')||{}).value||'';
   var to=(document.getElementById('rTo')||{}).value||td();
-  var sales=D.sales.filter(function(s){return(!from||s.date>=from)&&(!to||s.date<=to);});
-  var exps=D.expenses.filter(function(e){return(!from||e.date>=from)&&(!to||e.date<=to);});
-  var rev=sales.reduce(function(a,s){return a+(s.total||0);},0);
-  var cogs=0;
-  sales.forEach(function(s){(s.items||[]).forEach(function(it){
-    var si=null;
-    if(it.stockId)si=D.stock.find(function(x){return x.id===it.stockId;});
-    if(!si){var bn=(it.name||'').trim().toLowerCase();si=D.stock.find(function(x){return(x.name||'').trim().toLowerCase()===bn;});}
-    var buy=si?(si.buyPrice||0):0;
-    cogs+=buy*(it.qty||0);
-  });});
-  var opex=exps.filter(function(e){return!/purchase/i.test(e.cat||'');}).reduce(function(a,e){return a+(e.amount||0);},0);
+  var P=bfPnL(from,to);
+  var rev=P.rev,cogs=P.cogs,opex=P.opex;
   var re=document.getElementById('rev-total'),ce=document.getElementById('cogs-total'),oe=document.getElementById('opex-total');
   if(re)re.value=rev;if(ce)ce.value=cogs.toFixed(0);if(oe)oe.value=opex;
   calcAll();
+  var wn=document.getElementById('profCogsWarn');
+  if(!wn){var nt=document.getElementById('profAutoNote');if(nt){wn=document.createElement('div');wn.id='profCogsWarn';wn.style.cssText='margin-top:6px;color:#DC2626;font-weight:700';nt.appendChild(wn);}}
+  if(wn)wn.innerHTML=P.missing.length?('⚠️ '+P.missing.length+' bika hua item Stock se match nahi hua ya Buy Price 0 hai — isliye COGS kam aur Profit zyada dikh raha hai: '+P.missing.slice(0,6).join(', ')+(P.missing.length>6?'...':'')+'. Stock page me naam/Buy Price theek karo.'):'';
+  if(P.nonOpex>0&&wn&&!P.missing.length)wn.innerHTML='ℹ️ Is range me ₹'+Math.round(P.nonOpex).toLocaleString('en-IN')+' Stock Purchase/Capex kharcha hai — ye Profit se alag hai (Stock/Fixed Asset banta hai).';
   if(!silent){
-    if(!sales.length&&!exps.length){toast('⚠️ Is date range mein koi bill/expense nahi mila','te');}else{toast('🤖 Bills se auto bhar diya!','ts');}
+    if(!P.salesCount&&!P.expCount){toast('⚠️ Is date range mein koi bill/expense nahi mila','te');}else{toast('🤖 Bills se auto bhar diya!','ts');}
   }
 }
 function runProfitCalc(){
@@ -4936,8 +5036,8 @@ function renderProfitTrend(){
     if(!(k in buckets)){buckets[k]={sale:0,exp:0};order.push(k);}
     cur=byMonth?new Date(cur.getFullYear(),cur.getMonth()+1,1):new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1);
   }
-  D.sales.forEach(function(s){if(s.date>=from&&s.date<=to){var k=byMonth?s.date.substring(0,7):s.date;if(k in buckets)buckets[k].sale+=(s.total||0);}});
-  D.expenses.forEach(function(e){if(e.date>=from&&e.date<=to){var k=byMonth?e.date.substring(0,7):e.date;if(k in buckets)buckets[k].exp+=(e.amount||0);}});
+  D.sales.forEach(function(s){if(s.date>=from&&s.date<=to){var k=byMonth?s.date.substring(0,7):s.date;if(k in buckets){buckets[k].sale+=(s.total||0);buckets[k].exp+=bfSaleCogs(s);}}});
+  D.expenses.forEach(function(e){if(e.date>=from&&e.date<=to&&bfIsOpex(e)){var k=byMonth?e.date.substring(0,7):e.date;if(k in buckets)buckets[k].exp+=(e.amount||0);}});
   var labels=order,profits=order.map(function(k){return buckets[k].sale-buckets[k].exp;});
   var totalProfit=profits.reduce(function(a,v){return a+v;},0);
   var totalSale=order.reduce(function(a,k){return a+buckets[k].sale;},0);
@@ -4993,7 +5093,7 @@ function renderProfitTrend(){
     +'</div>'
     +svg
     +'<div style="font-size:10px;color:#94A3B8;margin-top:8px;text-align:center">🟩 Green bar = us '+(byMonth?'mahine':'din')+' profit hua &nbsp; 🟥 Red bar = loss hua &nbsp; ── Neeli line = trend</div>'
-    +'<div style="font-size:10.5px;color:#64748B;margin-top:6px">Total Sale: <b style="color:#16A34A">'+rs(totalSale)+'</b> &nbsp;|&nbsp; Total Expense: <b style="color:#DC2626">'+rs(totalExp)+'</b></div>';
+    +'<div style="font-size:10.5px;color:#64748B;margin-top:6px">Total Sale: <b style="color:#16A34A">'+rs(totalSale)+'</b> &nbsp;|&nbsp; Maal+Kharcha: <b style="color:#DC2626">'+rs(totalExp)+'</b></div>';
 }
 
 // ── CALC ALL (Gross Profit + EBITDA + Net Profit) ──
@@ -5061,6 +5161,24 @@ function calcBS(){
   if(check&&(totalA>0||totalL>0)){
     if(Math.abs(totalA-totalL)<1){check.innerHTML='✅ BALANCED! Assets = Liabilities<br><small>Net Worth: <b>'+rs(netWorth)+'</b></small>';check.style.cssText='padding:12px;text-align:center;font-weight:700;font-size:13px;background:var(--green-l);color:var(--green);border-radius:10px';}
     else{var diff=totalA-totalL;check.innerHTML='⚠️ DIFFERENCE: '+rs(Math.abs(diff))+'<br><small>'+(diff>0?'Assets Zyada — Capital ya Loan check karo':'Liabilities Zyada — in 2 wajah se aksar hota hai:<br>1) Fixed Assets (Dukaan/Furniture/Computer) abhi 0 hai par unme paisa laga hoga — unhe bharein<br>2) Capital Tracker me Deposit daali par Cash Tracker me Cash-IN nahi daali — dono ek saath entry karein')+'</small>';check.style.cssText='padding:12px;text-align:center;font-weight:700;font-size:12px;background:var(--red-l);color:var(--red);border-radius:10px;line-height:1.6';}
+  }
+  var rc=document.getElementById('bs-recon');
+  if(rc){
+    if(Math.abs(totalA-totalL)<1){rc.style.display='none';}
+    else{
+      var cap=[];try{cap=JSON.parse(localStorage.getItem('bhagya_capital_entries')||'[]');}catch(e2){cap=[];}
+      var dep=cap.filter(function(x){return x.type==='deposit';}).reduce(function(q,x){return q+Number(x.amount||0);},0);
+      var wdr=cap.filter(function(x){return x.type==='withdraw';}).reduce(function(q,x){return q+Number(x.amount||0);},0);
+      var cIn=(D.cash||[]).filter(function(c){return c.type==='income'&&/capital|deposit|invest|loan|karz/i.test(c.desc||'');}).reduce(function(q,c){return q+(c.amount||0);},0);
+      var cOut=(D.cash||[]).filter(function(c){return c.type==='expense'&&/withdraw|drawing|owner|ghar/i.test(c.desc||'');}).reduce(function(q,c){return q+(c.amount||0);},0);
+      rc.style.display='block';
+      rc.innerHTML='<b>🔎 Hisaab Milan (kahan gadbad hai)</b><br>'
+        +'• Paisa aaya (Capital+Profit+Loan+Udhar): <b>'+rs(totalL)+'</b> &nbsp;|&nbsp; Paisa jo Assets me dikh raha hai: <b>'+rs(totalA)+'</b><br>'
+        +'• <b>Gap: '+rs(Math.abs(totalA-totalL))+'</b> — '+(totalA<totalL?'ye paisa Bank Balance / Stock / Fixed Assets / Dukaan me laga hoga par yahan entry nahi hui.':'Assets zyada hain — Capital/Loan ya Creditors entry chhoot gayi hogi.')+'<br>'
+        +'• Capital Tracker Deposit <b>'+rs(dep)+'</b> vs Cash page me Capital/Loan Cash-IN <b>'+rs(cIn)+'</b> → fark <b>'+rs(dep-cIn)+'</b><br>'
+        +'• Capital Tracker Withdraw <b>'+rs(wdr)+'</b> vs Cash page me Withdraw Cash-OUT <b>'+rs(cOut)+'</b> → fark <b>'+rs(wdr-cOut)+'</b><br>'
+        +'• Bank Balance, Dukaan/Property, Computer, Creditors fields <b>manual</b> hain — jahan paisa gaya wahan bharo.';
+    }
   }
   window._bsData={a:a,b:b,totalA:totalA,d:d,e:e,f:f,totalL:totalL,netWorth:netWorth,
     a1:bsv('bs-a1'),a2:bsv('bs-a2'),a3:bsv('bs-a3'),
@@ -5183,9 +5301,8 @@ function autoFillBS(){
 
     // Net Profit (Year) = is saal ki Sales − is saal ke Expenses
     var yr=td().substring(0,4);
-    var ySales=(D.sales||[]).filter(function(s){return s.date&&s.date.startsWith(yr);}).reduce(function(a,s){return a+(s.total||0);},0);
-    var yExp=(D.expenses||[]).filter(function(e){return e.date&&e.date.startsWith(yr);}).reduce(function(a,e){return a+(e.amount||0);},0);
-    var netProfitYear=ySales-yExp;
+    var _py=bfPnL(yr+'-01-01',yr+'-12-31');
+    var netProfitYear=_py.rev-_py.cogs-_py.opex;
 
     // Bank Loan = Loan & ROI Tracker outstanding (Term Loans + CC/OD), live global lrDB use karo
     var loanTotal=0;
@@ -5656,9 +5773,9 @@ var advSigCanvas,advSigCtx,advDrawing=false,advHasSig=false;
 function setupAdvSigPad(){advSigCanvas=document.getElementById('adv-sigPad');if(!advSigCanvas)return;advSigCtx=advSigCanvas.getContext('2d');resizeAdvSig();if(advSigCanvas._bound)return;advSigCanvas._bound=true;function pos(e){var r=advSigCanvas.getBoundingClientRect();var cx=e.touches?e.touches[0].clientX:e.clientX;var cy=e.touches?e.touches[0].clientY:e.clientY;return{x:cx-r.left,y:cy-r.top};}function start(e){advDrawing=true;advHasSig=true;var p=pos(e);advSigCtx.beginPath();advSigCtx.moveTo(p.x,p.y);e.preventDefault();}function move(e){if(!advDrawing)return;var p=pos(e);advSigCtx.lineTo(p.x,p.y);advSigCtx.strokeStyle='#1A3A6B';advSigCtx.lineWidth=2.2;advSigCtx.lineCap='round';advSigCtx.stroke();e.preventDefault();}function end(){advDrawing=false;}advSigCanvas.addEventListener('mousedown',start);advSigCanvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);advSigCanvas.addEventListener('touchstart',start,{passive:false});advSigCanvas.addEventListener('touchmove',move,{passive:false});advSigCanvas.addEventListener('touchend',end);}
 function resizeAdvSig(){if(!advSigCanvas)return;var ratio=window.devicePixelRatio||1;var w=advSigCanvas.clientWidth||300;advSigCanvas.width=w*ratio;advSigCanvas.height=130*ratio;advSigCtx=advSigCanvas.getContext('2d');advSigCtx.scale(ratio,ratio);}
 function clearAdvSig(){if(!advSigCtx||!advSigCanvas)return;advSigCtx.clearRect(0,0,advSigCanvas.width,advSigCanvas.height);advHasSig=false;}
-function saveAdvance(){initExtra();var staffId=document.getElementById('adv-staff').value;var date=(document.getElementById('adv-date')||{}).value||td();var amount=parseFloat((document.getElementById('adv-amt')||{}).value)||0;var reason=(document.getElementById('adv-reason')||{}).value||'General Zarurat';var deduction=(document.getElementById('adv-deduct')||{}).value||'full';var installments=deduction==='installment'?(parseInt((document.getElementById('adv-inst')||{}).value)||2):1;if(!staffId||!amount||amount<=0){toast('❌ Staff aur amount sahi se bharo!','te');return;}var sig=advHasSig&&advSigCanvas?advSigCanvas.toDataURL():null;D.advances.push({id:Date.now(),staffId:staffId,date:date,amount:amount,reason:reason,deduction:deduction,installments:installments,signature:sig,status:'pending'});save();document.getElementById('adv-amt').value='';document.getElementById('adv-staff').value='';document.getElementById('adv-info').style.display='none';document.getElementById('adv-dup').style.display='none';document.getElementById('adv-limit').style.display='none';clearAdvSig();renderAdvDashboard();renderAdvHistory();toast('✅ Advance saved!','ts');}
+function saveAdvance(){initExtra();var staffId=document.getElementById('adv-staff').value;var date=(document.getElementById('adv-date')||{}).value||td();var amount=parseFloat((document.getElementById('adv-amt')||{}).value)||0;var reason=(document.getElementById('adv-reason')||{}).value||'General Zarurat';var deduction=(document.getElementById('adv-deduct')||{}).value||'full';var installments=deduction==='installment'?(parseInt((document.getElementById('adv-inst')||{}).value)||2):1;if(!staffId||!amount||amount<=0){toast('❌ Staff aur amount sahi se bharo!','te');return;}var sig=advHasSig&&advSigCanvas?advSigCanvas.toDataURL():null;var _aid=Date.now();var _sn=(D.staff.find(function(x){return String(x.id)===String(staffId);})||{}).name||'Staff';D.cash.push({date:date,desc:'Staff Advance - '+_sn,type:'expense',amount:amount,aid:_aid});D.advances.push({id:_aid,staffId:staffId,date:date,amount:amount,reason:reason,deduction:deduction,installments:installments,signature:sig,status:'pending'});save();document.getElementById('adv-amt').value='';document.getElementById('adv-staff').value='';document.getElementById('adv-info').style.display='none';document.getElementById('adv-dup').style.display='none';document.getElementById('adv-limit').style.display='none';clearAdvSig();renderAdvDashboard();renderAdvHistory();toast('✅ Advance saved!','ts');}
 function toggleAdvStatus(i){initExtra();D.advances[i].status=D.advances[i].status==='paid'?'pending':'paid';save();renderAdvHistory();renderAdvDashboard();}
-function delAdvance(i){requireOwner('Advance entry delete?',function(){initExtra();var a=D.advances[i];if(a)bfLogActivity('Staff Advance','Delete',(a.staffName||'Staff')+' - '+rs(a.amount||0));D.advances.splice(i,1);save();renderAdvHistory();renderAdvDashboard();toast('🗑️ Deleted!','ts');});}
+function delAdvance(i){requireOwner('Advance entry delete?',function(){initExtra();var a=D.advances[i];if(a)bfLogActivity('Staff Advance','Delete',(a.staffName||'Staff')+' - '+rs(a.amount||0));if(a){for(var _c=D.cash.length-1;_c>=0;_c--){if(D.cash[_c].aid&&D.cash[_c].aid===a.id){D.cash.splice(_c,1);break;}}}D.advances.splice(i,1);save();renderAdvHistory();renderAdvDashboard();toast('🗑️ Deleted!','ts');});}
 function renderAdvHistory(){initExtra();var sf=(document.getElementById('adv-fstaff')||{}).value||'';var mf=(document.getElementById('adv-fmonth')||{}).value||'';var list=D.advances.map(function(a,i){var c={};for(var k in a)c[k]=a[k];c._i=i;return c;}).sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});if(sf)list=list.filter(function(a){return String(a.staffId)===String(sf);});if(mf)list=list.filter(function(a){return advMonthKey(a.date)===mf;});var el=document.getElementById('adv-list');if(!el)return;if(!list.length){el.innerHTML='<div class="empty"><p>Koi advance record nahi</p></div>';return;}el.innerHTML=list.map(function(a){var s=D.staff.find(function(x){return String(x.id)===String(a.staffId);});var name=s?s.name:'(Hataya gaya staff)';var dtext=a.deduction==='full'?'Agli salary se poora':a.installments+' installments mein';return'<div style="padding:11px 12px;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b style="font-size:13px;color:#1A3A6B">'+name+'</b><b style="font-size:15px;color:#1A3A6B">'+rs(a.amount)+'</b></div><div style="font-size:11px;color:#64748B">📅 '+fd(a.date)+' | '+a.reason+'</div><div style="font-size:11px;color:#64748B">💳 '+dtext+'</div><div style="margin-top:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="bg '+(a.status==='paid'?'bg-g':'bg-o')+'">'+(a.status==='paid'?'✅ Kaat liya':'⏳ Pending')+'</span><span style="font-size:10px;color:#94A3B8">'+(a.signature?'✍️ Signed':'⚠️ Signature nahi')+'</span></div><div style="margin-top:7px;display:flex;gap:6px"><button onclick="toggleAdvStatus('+a._i+')" style="flex:1;padding:7px;border:none;border-radius:7px;background:#EEF2FF;color:#1A3A6B;font-size:11px;font-weight:700;cursor:pointer">🔄 Status Badlo</button><button onclick="delAdvance('+a._i+')" style="padding:7px 10px;border:none;border-radius:7px;background:#fee2e2;color:#DC2626;font-size:12px;cursor:pointer">🗑️</button></div></div>';}).join('');}
 function renderAdvDashboard(){initExtra();var nowM=td().substring(0,7);var se=document.getElementById('adv-statStaff');if(se)se.textContent=D.staff.length;var thisMonth=D.advances.filter(function(a){return advMonthKey(a.date)===nowM;});var total=thisMonth.reduce(function(a,b){return a+b.amount;},0);var me=document.getElementById('adv-statMonth');if(me)me.textContent=rs(total);var ce=document.getElementById('adv-statCount');if(ce)ce.textContent=thisMonth.length;var pending=D.advances.filter(function(a){return a.status==='pending';}).reduce(function(a,b){return a+b.amount;},0);var pe=document.getElementById('adv-statPending');if(pe)pe.textContent=rs(pending);var sl=document.getElementById('adv-statusList');if(!sl)return;if(!D.staff.length){sl.innerHTML='<div class="empty"><p>Pehle Staff & Salary mein staff add karo</p></div>';return;}sl.innerHTML=D.staff.map(function(s){var adv=thisMonth.filter(function(a){return String(a.staffId)===String(s.id);});var cnt=adv.length,tot=adv.reduce(function(a,b){return a+b.amount;},0);var badge=cnt===0?'<span class="bg bg-b">Koi advance nahi</span>':cnt===1?'<span class="bg bg-g">✅ Rule ke andar (1x)</span>':'<span class="bg bg-r">⚠️ 1 se zyada baar!</span>';return'<div style="padding:9px 0;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px;color:#1A3A6B">'+s.name+'</b>'+badge+'</div><div style="font-size:11px;color:#64748B;margin-top:2px">Is mahine: '+cnt+' entries, total '+rs(tot)+'</div></div>';}).join('');}
 // ─ BB Purchase ─
