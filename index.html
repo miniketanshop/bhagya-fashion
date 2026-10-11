@@ -236,6 +236,14 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   #pov,#cfPrintOv,#drPrintOv,#stockPrintOv,#pdfOv{display:block!important;position:static!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   #pov *,#cfPrintOv *,#drPrintOv *,#stockPrintOv *,#pdfOv *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
 }
+
+/* ── Daily Report Auto/Manual ── */
+.dr-info{font-size:10.5px;color:#64748B;background:#EEF2FF;padding:8px 10px;border-radius:8px;margin-top:10px;line-height:1.6}
+.dr-ch{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.drtg{display:inline-flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--gold);flex:0 0 auto}
+.drtg span{padding:4px 9px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;opacity:.65;white-space:nowrap}
+.drtg span.on{background:var(--gold);color:var(--royal);opacity:1}
+.dr-tiny{font-size:9.5px;color:#94A3B8;font-weight:400}
 </style>
 <style>
 /* ══ Capital Tracker (merged) — scoped styles ══ */
@@ -1017,75 +1025,111 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- ═══ DAILY REPORT ═══ -->
+<!-- ═══ DAILY REPORT (AUTO + MANUAL) ═══ -->
 <div class="pg" id="pg-daily">
-  <div style="display:flex;gap:10px;margin-bottom:12px">
-    <button class="btn bg2" style="flex:1" onclick="printDaily()">🖨️ Print Daily Report</button>
-    <button class="btn bs2" style="flex:1" onclick="shareDaily()">📲 WhatsApp Share</button>
-  </div>
-  <div style="display:flex;gap:8px;margin-bottom:12px">
-    <button class="btn bg2" style="flex:1" onclick="printDaily()">🖨️ Print Daily Report</button>
-    <button class="btn bs2" style="flex:1" onclick="shareDaily()">📲 WhatsApp Share</button>
-  </div>
+  <div class="card"><div class="cb" style="padding:10px 12px">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input class="fi" type="date" id="dr-date" onchange="drChangeDate()" style="flex:1;margin:0">
+      <button class="btn bg2" style="flex:0 0 auto;padding:9px 14px" onclick="drToday()">Aaj</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn bg2" style="flex:1" onclick="printDaily()">🖨️ Print Daily Report</button>
+      <button class="btn bs2" style="flex:1" onclick="shareDaily()">📲 WhatsApp Share</button>
+    </div>
+    <div class="dr-info">🤖 <b>AUTO</b> = Sale Bill, Expense, Udhar, Cash aur Return ki entries se khud bharta hai (kuch likhna nahi). ✍️ <b>MANUAL</b> = jo cheez app me entry nahi hui, wo khud likho. Har section me dono ka button hai.</div>
+  </div></div>
+
+  <div id="dr-sum" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
+
   <div class="two-col">
     <div>
       <div class="card">
-        <div class="ch"><h3>📅 Aaj ki Bikri</h3></div>
+        <div class="ch dr-ch"><h3>📅 Aaj ki Bikri</h3>
+          <div class="drtg" id="drtg-sale"><span data-m="auto" onclick="drSetMode('sale','auto')">🤖 Auto</span><span data-m="manual" onclick="drSetMode('sale','manual')">✍️ Manual</span></div>
+        </div>
         <div class="cb" style="padding:0">
-          <table class="dt">
+          <div id="dr-sale-auto"></div>
+          <table class="dt" id="dr-sale-man">
             <tr><th>Item / Category</th><th>Qty</th><th>Rate (₹)</th><th>Total (₹)</th></tr>
-            <tr id="dr-r1"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..."></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td class="dr-tot">₹0</td></tr>
-            <tr id="dr-r2"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..."></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td class="dr-tot">₹0</td></tr>
-            <tr id="dr-r3"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..."></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td class="dr-tot">₹0</td></tr>
-            <tr id="dr-r4"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..."></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td class="dr-tot">₹0</td></tr>
-            <tr id="dr-r5"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..."></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td><input class="bs-in" type="number" value="0" oninput="calcDR()"></td><td class="dr-tot">₹0</td></tr>
-            <tr class="tr-total"><td colspan="3"><b>KUL BIKRI</b></td><td><b id="dr-total">₹0</b></td></tr>
+            <tr id="dr-r1"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..." oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td class="dr-tot">₹0</td></tr>
+            <tr id="dr-r2"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..." oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td class="dr-tot">₹0</td></tr>
+            <tr id="dr-r3"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..." oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td class="dr-tot">₹0</td></tr>
+            <tr id="dr-r4"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..." oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td class="dr-tot">₹0</td></tr>
+            <tr id="dr-r5"><td><input class="bs-in" style="text-align:left" placeholder="Item naam..." oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td><input class="bs-in" type="number" inputmode="decimal" placeholder="0" oninput="drManualChanged()"></td><td class="dr-tot">₹0</td></tr>
           </table>
+          <table class="dt"><tr class="tr-total"><td><b>KUL BIKRI</b></td><td style="text-align:right"><b id="dr-total">₹0</b></td></tr></table>
         </div>
       </div>
+
       <div class="card">
-        <div class="ch"><h3>💸 Aaj ka Kharcha</h3></div>
+        <div class="ch dr-ch"><h3>💸 Aaj ka Kharcha</h3>
+          <div class="drtg" id="drtg-exp"><span data-m="auto" onclick="drSetMode('exp','auto')">🤖 Auto</span><span data-m="manual" onclick="drSetMode('exp','manual')">✍️ Manual</span></div>
+        </div>
         <div class="cb" style="padding:0">
-          <table class="dt">
+          <div id="dr-exp-auto"></div>
+          <table class="dt" id="dr-exp-man">
             <tr><th>Kharcha</th><th>Amount (₹)</th></tr>
-            <tr><td>Maal Kharidi</td><td><input class="bs-in" type="number" id="dr-e1" value="0" oninput="calcDR()"></td></tr>
-            <tr><td>Salary/Wages</td><td><input class="bs-in" type="number" id="dr-e2" value="0" oninput="calcDR()"></td></tr>
-            <tr><td>Bijli/Paani</td><td><input class="bs-in" type="number" id="dr-e3" value="0" oninput="calcDR()"></td></tr>
-            <tr><td>Transport</td><td><input class="bs-in" type="number" id="dr-e4" value="0" oninput="calcDR()"></td></tr>
-            <tr><td>Anya Kharcha</td><td><input class="bs-in" type="number" id="dr-e5" value="0" oninput="calcDR()"></td></tr>
-            <tr class="tr-total"><td><b>KUL KHARCHA</b></td><td><b id="dr-exp">₹0</b></td></tr>
+            <tr><td>Maal Kharidi</td><td><input class="bs-in" type="number" inputmode="decimal" id="dr-e1" placeholder="0" oninput="drManualChanged()"></td></tr>
+            <tr><td>Salary/Wages</td><td><input class="bs-in" type="number" inputmode="decimal" id="dr-e2" placeholder="0" oninput="drManualChanged()"></td></tr>
+            <tr><td>Bijli/Paani</td><td><input class="bs-in" type="number" inputmode="decimal" id="dr-e3" placeholder="0" oninput="drManualChanged()"></td></tr>
+            <tr><td>Transport</td><td><input class="bs-in" type="number" inputmode="decimal" id="dr-e4" placeholder="0" oninput="drManualChanged()"></td></tr>
+            <tr><td>Anya Kharcha</td><td><input class="bs-in" type="number" inputmode="decimal" id="dr-e5" placeholder="0" oninput="drManualChanged()"></td></tr>
           </table>
+          <table class="dt"><tr class="tr-total"><td><b>KUL KHARCHA</b></td><td style="text-align:right"><b id="dr-exp">₹0</b></td></tr></table>
         </div>
       </div>
+
       <div class="card">
-        <div class="ch"><h3>📝 Notes</h3></div>
-        <div class="cb"><textarea class="fi" style="height:70px;resize:vertical" placeholder="Aaj ki khas baat..."></textarea></div>
+        <div class="ch"><h3>↩️ Return / Exchange <span style="font-size:10px;font-weight:600;opacity:.75">🤖 Auto</span></h3></div>
+        <div class="cb" style="padding:0">
+          <div id="dr-ret"></div>
+          <div style="padding:8px 12px"><button class="btn bg2" style="width:100%;padding:8px" onclick="goPage('returns')">➕ Return / Exchange entry karo</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><h3>📝 Notes <span style="font-size:10px;font-weight:600;opacity:.75">✍️ Manual</span></h3></div>
+        <div class="cb"><textarea class="fi" id="dr-note" style="height:70px;resize:vertical" placeholder="Aaj ki khas baat..." oninput="drManualChanged()"></textarea></div>
       </div>
     </div>
+
     <div>
-      <div class="card">
-        <div class="ch"><h3>💰 Cash Closing</h3></div>
+      <div class="card" id="dr-cash">
+        <div class="ch dr-ch"><h3>💰 Cash Closing</h3>
+          <div class="drtg" id="drtg-cash"><span data-m="auto" onclick="drSetMode('cash','auto')">🤖 Auto</span><span data-m="manual" onclick="drSetMode('cash','manual')">✍️ Manual</span></div>
+        </div>
         <div class="cb" style="padding:0">
-          <div class="cr"><span class="cr-lbl">Opening Cash</span><input class="bs-in" type="number" id="dr-opening" style="width:120px" placeholder="0" oninput="calcDR()"></div>
-          <div class="cr"><span class="cr-lbl">Cash Sale</span><span class="cr-amt" id="dr-r-cash">₹0</span></div>
-          <div class="cr"><span class="cr-lbl">Anya Cash In</span><input class="bs-in" type="number" id="dr-other-in" style="width:120px" placeholder="0" oninput="calcDR()"></div>
+          <div class="cr"><span class="cr-lbl">Opening Cash <span class="dr-c-auto dr-tiny">(kal ka closing)</span></span>
+            <span class="cr-amt dr-c-auto" id="dr-open-a">₹0</span>
+            <input class="bs-in dr-c-man" type="number" inputmode="decimal" id="dr-opening" style="width:120px" placeholder="0" oninput="drManualChanged()"></div>
+          <div class="cr"><span class="cr-lbl">Cash Sale <span class="dr-tiny">(galle me aaya)</span></span><span class="cr-amt dr-c-auto" id="dr-r-cash">₹0</span><input class="bs-in dr-c-man" type="number" inputmode="decimal" id="dr-cs" style="width:120px" placeholder="Bikri jitna" oninput="drManualChanged()"></div>
+          <div class="cr dr-c-auto"><span class="cr-lbl">Udhar Wasooli <span class="dr-tiny">(Udhar page se)</span></span><span class="cr-amt" id="dr-recov">₹0</span></div>
+          <div class="cr"><span class="cr-lbl">Anya Cash In</span>
+            <span class="cr-amt dr-c-auto" id="dr-oi-a">₹0</span>
+            <input class="bs-in dr-c-man" type="number" inputmode="decimal" id="dr-other-in" style="width:120px" placeholder="0" oninput="drManualChanged()"></div>
           <div class="cr sub"><span class="cr-lbl"><b>Sub Total IN</b></span><span class="cr-amt" id="dr-sub-in">₹0</span></div>
           <div class="cr"><span class="cr-lbl">Kul Kharcha</span><span class="cr-amt" id="dr-r-exp" style="color:var(--red)">₹0</span></div>
-          <div class="cr"><span class="cr-lbl">Anya Cash Out</span><input class="bs-in" type="number" id="dr-other-out" style="width:120px" placeholder="0" oninput="calcDR()"></div>
+          <div class="cr dr-c-auto"><span class="cr-lbl">Return Refund <span class="dr-tiny">(cash wapas)</span></span><span class="cr-amt" id="dr-ret-out" style="color:var(--red)">₹0</span></div>
+          <div class="cr dr-c-man"><span class="cr-lbl">Anya Cash Out</span>
+            <input class="bs-in" type="number" inputmode="decimal" id="dr-other-out" style="width:120px" placeholder="0" oninput="drManualChanged()"></div>
           <div class="cr sub"><span class="cr-lbl"><b>Sub Total OUT</b></span><span class="cr-amt" id="dr-sub-out">₹0</span></div>
-          <div class="cr tot"><span class="cr-lbl"><b>CLOSING CASH</b></span><span class="cr-amt" id="dr-closing">₹0</span></div>
+          <div class="cr tot"><span class="cr-lbl"><b>CLOSING CASH</b> <span class="dr-tiny">(app ke hisaab se)</span></span><span class="cr-amt" id="dr-closing">₹0</span></div>
           <div class="cr"><span class="cr-lbl"><b>NET PROFIT/LOSS</b></span><span class="cr-amt" id="dr-profit">₹0</span></div>
+          <div id="dr-profit-note" class="dr-tiny" style="padding:0 12px 8px"></div>
         </div>
       </div>
+
       <div class="card">
-        <div class="ch"><h3>🔄 Return / Exchange</h3></div>
+        <div class="ch"><h3>🧮 Galla Gin ke Milao <span style="font-size:10px;font-weight:600;opacity:.75">✍️ Manual</span></h3></div>
         <div class="cb" style="padding:0">
-          <table class="dt">
-            <tr><th>Type</th><th>Amount (₹)</th><th>Note</th></tr>
-            <tr><td>Return</td><td><input class="bs-in" type="number" placeholder="0"></td><td><input class="bs-in" style="text-align:left" placeholder="item naam..."></td></tr>
-            <tr><td>Exchange</td><td><input class="bs-in" type="number" placeholder="0"></td><td><input class="bs-in" style="text-align:left" placeholder="item naam..."></td></tr>
-          </table>
+          <div class="cr"><span class="cr-lbl">Galle me asli Cash (gin ke)</span><input class="bs-in" type="number" inputmode="decimal" id="dr-count" style="width:120px" placeholder="0" oninput="drManualChanged()"></div>
+          <div class="cr" id="dr-diff-row"><span class="cr-lbl"><b>Farak</b></span><span class="cr-amt" id="dr-diff">—</span></div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><h3>💳 Payment Split <span style="font-size:10px;font-weight:600;opacity:.75">🤖 Auto</span></h3></div>
+        <div class="cb" style="padding:0" id="dr-pay"></div>
       </div>
     </div>
   </div>
@@ -2395,7 +2439,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script type="text/plain" id="bfMainScript">
-var D={sales:[],stock:[],cash:[],udhar:[],expenses:[],bc:1,calc:[],calcMeta:{billNo:'CALC-001',custName:'',custPhone:''},cfbs:{}};
+var D={sales:[],stock:[],cash:[],udhar:[],expenses:[],bc:1,calc:[],calcMeta:{billNo:'CALC-001',custName:'',custPhone:''},cfbs:{},returns:[],daily:{}};
 
 // ═══ ACTIVITY LOG (delete/edit tracking, cloud sync) ═══
 function bfLogActivity(module,action,detail){
@@ -2514,7 +2558,7 @@ function alPwdBack(){
   var ov=document.getElementById('alLockOv');if(ov)ov.style.display='none';
   go('dash');
 }
-var BF_FIELDS=['sales','stock','cash','udhar','expenses','bc','calc','calcMeta','cfbs'];
+var BF_FIELDS=['sales','stock','cash','udhar','expenses','bc','calc','calcMeta','cfbs','returns','daily'];
 var _bfLastSaved={};
 var _bfLastStockById={};  // item.id -> last-known serialized value, taaki save() par sirf
                            // BADLE hue stock items alag se cloud ko bheje ja saken (poora
@@ -2971,6 +3015,7 @@ function go(name){
   if(name==='udhar')showUdhar();
   if(name==='expense')showExp();
   if(name==='cash')showCash();
+  if(name==='daily')showDaily();
   if(name==='profit'||name==='report'){setRepDates();calcProfit();}
   if(name==='profit'){initProfitMode();}
   if(name==='report')setRepDates2();
@@ -3013,6 +3058,7 @@ window.addEventListener('popstate', function(e){
     if(prev==='udhar')showUdhar();
     if(prev==='expense')showExp();
     if(prev==='cash')showCash();
+    if(prev==='daily')showDaily();
     history.pushState(null,null,'');
   } else {
     // On dashboard - show exit confirm
@@ -4276,244 +4322,364 @@ function shareStockWA(){
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
-// DAILY REPORT PRINT & SHARE
-function getDailyData(){
-  var rows=document.querySelectorAll('#pg-daily .dt tr[id^="dr-r"]');
-  var items=[];var totalSale=0;
-  rows.forEach(function(row){
-    var inputs=row.querySelectorAll('input');
-    if(inputs.length<3)return;
-    var naam=inputs[0].value.trim();
-    var qty=parseFloat(inputs[1].value)||0;
-    var rate=parseFloat(inputs[2].value)||0;
-    var tot=qty*rate;
-    if(naam&&tot>0){items.push({naam:naam,qty:qty,rate:rate,tot:tot});totalSale+=tot;}
+// ═══════════════════════════════════════════════════════════════
+// DAILY REPORT — AUTO + MANUAL (Bikri / Kharcha / Cash teeno section me alag mode)
+//  AUTO   : Sale Bills, Expense page, Udhar, Cash page, Return page se khud
+//  MANUAL : jo cheez app me entry nahi hui — khud likho (date-wise save + cloud sync)
+//  Hamesha MANUAL: Notes, Galla Gin ke Milao
+// ═══════════════════════════════════════════════════════════════
+var DR_MODES={sale:'auto',exp:'auto',cash:'auto'};
+var _drSaveT=null;
+function drLoadModes(){['sale','exp','cash'].forEach(function(k){try{DR_MODES[k]=localStorage.getItem('bf_dr_mode_'+k)||'auto';}catch(e){DR_MODES[k]='auto';}});}
+function drEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function drDate(){var el=document.getElementById('dr-date');return(el&&el.value)||td();}
+function drMan(date){return(D.daily&&D.daily[date])||{};}
+function drNum(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+function drBucket(t){
+  t=t||'';
+  if(/staff advance|salary|tankh|vetan|wages/i.test(t))return'e2';
+  if(/capex/i.test(t))return'e5';
+  if(/stock purchase|purchase|kharid|maal/i.test(t))return'e1';
+  if(/bijli|paani|electric|water/i.test(t))return'e3';
+  if(/transport|bhada|freight/i.test(t))return'e4';
+  return'e5';
+}
+var DR_EL={e1:'Maal Kharidi',e2:'Salary/Wages',e3:'Bijli/Paani',e4:'Transport',e5:'Anya Kharcha'};
+
+// Galle ka cash (drawer) — UPI/Card sale bank me jaati hai, isliye drawer se bahar
+function drDrawerBefore(date){
+  var pm={};(D.sales||[]).forEach(function(s){pm[s.billNo]=s.payMode;});
+  var bal=0;
+  (D.cash||[]).forEach(function(c){
+    if(!c.date||c.date>=date)return;
+    if(c.type!=='income'&&c.type!=='expense')return;
+    if(c.type==='income'&&/^Sale -/i.test(c.desc||'')){
+      var m=/Bill #(\d+)/.exec(c.desc||'');
+      if(m){var p=pm[m[1]];if(p==='upi'||p==='card')return;}
+    }
+    bal+=(c.type==='income'?1:-1)*(c.amount||0);
   });
-  var exp={
-    e1:parseFloat((document.getElementById('dr-e1')||{}).value)||0,
-    e2:parseFloat((document.getElementById('dr-e2')||{}).value)||0,
-    e3:parseFloat((document.getElementById('dr-e3')||{}).value)||0,
-    e4:parseFloat((document.getElementById('dr-e4')||{}).value)||0,
-    e5:parseFloat((document.getElementById('dr-e5')||{}).value)||0,
-  };
-  var totalExp=exp.e1+exp.e2+exp.e3+exp.e4+exp.e5;
-  var opening=parseFloat((document.getElementById('dr-opening')||{}).value)||0;
-  var otherIn=parseFloat((document.getElementById('dr-other-in')||{}).value)||0;
-  var otherOut=parseFloat((document.getElementById('dr-other-out')||{}).value)||0;
-  var closing=opening+totalSale+otherIn-totalExp-otherOut;
-  var profit=totalSale-totalExp;
-  return{items:items,totalSale:totalSale,exp:exp,totalExp:totalExp,opening:opening,otherIn:otherIn,otherOut:otherOut,closing:closing,profit:profit};
+  (D.returns||[]).forEach(function(r){if(r.type==='Return'&&r.date&&r.date<date)bal-=r.amount||0;});
+  return bal;
 }
 
+// ── AUTO figures (hamesha app ki entries se) ──
+function drParts(date){
+  initExtra();
+  var sales=(D.sales||[]).filter(function(s){return s.date===date;});
+  var S={bills:sales.length,items:[],itemsSum:0,discount:0,total:0,pay:{cash:0,upi:0,card:0,udhar:0}};
+  var map={};
+  sales.forEach(function(s){
+    var pmode=s.payMode||'cash';
+    S.total+=s.total||0;S.pay[pmode]=(S.pay[pmode]||0)+(s.total||0);
+    (s.items||[]).forEach(function(it){
+      var k=bfNormName(it.name),amt=(it.total!=null?it.total:(it.price||0)*(it.qty||0));
+      var o=map[k]||(map[k]={name:it.name,qty:0,amt:0});
+      o.qty+=it.qty||0;o.amt+=amt;S.itemsSum+=amt;
+    });
+  });
+  S.discount=Math.max(0,S.itemsSum-S.total);
+  S.items=Object.keys(map).map(function(k){var o=map[k];return{name:o.name,qty:o.qty,amt:o.amt,rate:o.qty?o.amt/o.qty:0};}).sort(function(a,b){return b.amt-a.amt;});
+
+  var X={b:{e1:0,e2:0,e3:0,e4:0,e5:0},list:[],total:0},seen={};
+  (D.expenses||[]).filter(function(e){return e.date===date;}).forEach(function(e){
+    var b=drBucket(e.cat);X.b[b]+=e.amount||0;X.total+=e.amount||0;seen[e.id]=1;
+    X.list.push({b:b,t:(e.cat||'')+(e.desc?': '+e.desc:''),a:e.amount||0});
+  });
+  (D.cash||[]).forEach(function(c){
+    if(c.date!==date||c.type!=='expense')return;
+    if(c.eid&&seen[c.eid])return;
+    var b=drBucket(c.desc);X.b[b]+=c.amount||0;X.total+=c.amount||0;
+    X.list.push({b:b,t:c.desc||'Cash kharcha',a:c.amount||0});
+  });
+
+  var R={list:(D.returns||[]).filter(function(r){return r.date===date;}),refund:0};
+  R.list.forEach(function(r){if(r.type==='Return')R.refund+=r.amount||0;});
+
+  var C={opening:drDrawerBefore(date),recovery:0,otherIn:0};
+  (D.cash||[]).forEach(function(c){
+    if(c.date!==date||c.type!=='income')return;
+    if(/^Sale -/i.test(c.desc||''))return;
+    if(/^Udhar payment/i.test(c.desc||''))C.recovery+=c.amount||0;else C.otherIn+=c.amount||0;
+  });
+  return{S:S,X:X,R:R,C:C};
+}
+
+// ── Final figures (mode ke hisaab se Auto ya Manual) ──
+function drData(date){
+  var P=drParts(date),m=drMan(date),M=DR_MODES;
+  var d={date:date,modes:{sale:M.sale,exp:M.exp,cash:M.cash},P:P};
+  // Bikri
+  if(M.sale==='manual'){
+    var items=[],tot=0;
+    (m.s||[]).forEach(function(r){var q=drNum(r[1]),rt=drNum(r[2]),t=q*rt;if(t>0){items.push({name:(r[0]||'').trim()||'(naam nahi)',qty:q,rate:rt,amt:t});tot+=t;}});
+    d.items=items;d.discount=0;d.totalSale=tot;
+  }else{d.items=P.S.items;d.discount=P.S.discount;d.totalSale=P.S.total;}
+  // Kharcha
+  if(M.exp==='manual'){
+    d.exp={};d.totalExp=0;[1,2,3,4,5].forEach(function(i){var v=drNum((m.e||[])[i-1]);d.exp['e'+i]=v;d.totalExp+=v;});d.expList=[];
+  }else{d.exp=P.X.b;d.totalExp=P.X.total;d.expList=P.X.list;}
+  // Cash
+  if(M.cash==='manual'){
+    d.opening=drNum(m.op);d.cashSale=(m.cs!==undefined&&m.cs!=='')?drNum(m.cs):((M.sale==='manual')?d.totalSale:P.S.pay.cash);
+    d.recovery=0;d.otherIn=drNum(m.oi);d.refund=0;d.otherOut=drNum(m.oo);
+  }else{
+    d.opening=P.C.opening;d.cashSale=(M.sale==='manual')?d.totalSale:P.S.pay.cash;
+    d.recovery=P.C.recovery;d.otherIn=P.C.otherIn;d.refund=P.R.refund;d.otherOut=0;
+  }
+  d.subIn=d.opening+d.cashSale+d.recovery+d.otherIn;
+  d.subOut=d.totalExp+d.refund+d.otherOut;
+  d.closing=d.subIn-d.subOut;
+  // Profit
+  d.missing=[];
+  if(M.sale==='auto'&&M.exp==='auto'){
+    var pl=bfPnL(date,date);d.profit=pl.rev-pl.cogs-pl.opex;d.basis='real';d.missing=pl.missing;
+  }else{d.profit=d.totalSale-d.totalExp;d.basis='cash';}
+  d.count=(m.cnt===undefined||m.cnt===''||isNaN(parseFloat(m.cnt)))?null:parseFloat(m.cnt);
+  d.diff=d.count===null?null:d.count-d.closing;
+  d.note=(m.note||'').trim();
+  d.returns=P.R.list;d.pay=P.S.pay;d.bills=P.S.bills;
+  return d;
+}
+
+// ── Manual data: DOM <-> D.daily[date] ──
+function drCollectManual(){
+  var date=drDate();if(!D.daily)D.daily={};
+  var o={s:[],e:[],op:'',oi:'',oo:'',cs:'',cnt:'',note:''};
+  for(var i=1;i<=5;i++){
+    var inp=document.getElementById('dr-r'+i).querySelectorAll('input');
+    o.s.push([inp[0].value,inp[1].value,inp[2].value]);
+    o.e.push((document.getElementById('dr-e'+i)||{}).value||'');
+  }
+  o.op=document.getElementById('dr-opening').value;
+  o.cs=document.getElementById('dr-cs').value;
+  o.oi=document.getElementById('dr-other-in').value;
+  o.oo=document.getElementById('dr-other-out').value;
+  o.cnt=document.getElementById('dr-count').value;
+  o.note=document.getElementById('dr-note').value;
+  var has=o.s.some(function(r){return r[0]||r[1]||r[2];})||o.e.some(Boolean)||o.op||o.oi||o.oo||o.cs||o.cnt||o.note;
+  if(has)D.daily[date]=o;else delete D.daily[date];
+  clearTimeout(_drSaveT);_drSaveT=setTimeout(drFlush,300);
+}
+function drFillManual(date){
+  var m=drMan(date);
+  for(var i=1;i<=5;i++){
+    var r=(m.s||[])[i-1]||['','',''];
+    var inp=document.getElementById('dr-r'+i).querySelectorAll('input');
+    inp[0].value=r[0]||'';inp[1].value=r[1]||'';inp[2].value=r[2]||'';
+    document.getElementById('dr-e'+i).value=(m.e||[])[i-1]||'';
+  }
+  document.getElementById('dr-opening').value=m.op||'';
+  document.getElementById('dr-cs').value=m.cs||'';
+  document.getElementById('dr-other-in').value=m.oi||'';
+  document.getElementById('dr-other-out').value=m.oo||'';
+  document.getElementById('dr-count').value=m.cnt||'';
+  document.getElementById('dr-note').value=m.note||'';
+}
+// Manual par jaate hi abhi ki auto values starting point ke taur par bhar do (agar manual khali ho)
+function drPrefill(k,date){
+  var P=drParts(date);if(!D.daily)D.daily={};
+  var m=D.daily[date]||{s:[],e:[],op:'',oi:'',oo:'',cs:'',cnt:'',note:''};
+  var r2=function(n){return Math.round(n*10000)/10000;};
+  if(k==='sale'&&!(m.s||[]).some(function(r){return r&&(r[0]||r[1]||r[2]);})){
+    var sc=P.S.itemsSum>0?P.S.total/P.S.itemsSum:1,rows=[],its=P.S.items;
+    its.slice(0,its.length>5?4:5).forEach(function(it){rows.push([it.name,String(it.qty),String(r2(it.qty?it.amt*sc/it.qty:0))]);});
+    if(its.length>5){var rest=0;its.slice(4).forEach(function(it){rest+=it.amt*sc;});rows.push(['Baaki items ('+(its.length-4)+')','1',String(r2(rest))]);}
+    m.s=rows;
+  }
+  if(k==='exp'&&!(m.e||[]).some(Boolean)){m.e=[1,2,3,4,5].map(function(i){var v=P.X.b['e'+i];return v?String(r2(v)):'';});}
+  if(k==='cash'&&!m.op&&!m.oi&&!m.oo&&!m.cs){
+    m.cs=P.S.pay.cash?String(r2(P.S.pay.cash)):'';
+    m.op=P.C.opening?String(r2(P.C.opening)):'';
+    m.oi=(P.C.recovery+P.C.otherIn)?String(r2(P.C.recovery+P.C.otherIn)):'';
+    m.oo=P.R.refund?String(r2(P.R.refund)):'';
+  }
+  D.daily[date]=m;save();
+}
+
+// ── UI ──
+function drSetMode(k,mode){
+  var date=drDate();
+  if(mode==='manual'&&DR_MODES[k]!=='manual')drPrefill(k,date);
+  DR_MODES[k]=mode;try{localStorage.setItem('bf_dr_mode_'+k,mode);}catch(e){}
+  drFillManual(date);drRender();
+  toast(mode==='manual'?'✍️ Manual mode ON':'🤖 Auto mode ON','ts');
+}
+function drFlush(){clearTimeout(_drSaveT);_drSaveT=null;save();}
+window.addEventListener('pagehide',function(){if(_drSaveT)drFlush();});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&_drSaveT)drFlush();});
+function drManualChanged(){drCollectManual();drRender();}
+function drChangeDate(){var el=document.getElementById('dr-date');if(el&&!el.value)el.value=td();drFillManual(drDate());drRender();}
+function drToday(){document.getElementById('dr-date').value=td();drChangeDate();}
+function showDaily(){
+  drLoadModes();
+  var el=document.getElementById('dr-date');if(el&&!el.value)el.value=td();
+  drFillManual(drDate());drRender();
+}
+function drCard(l,v,c,sub){
+  return'<div style="background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.08)"><div style="font-size:10px;color:#64748B;font-weight:600">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+c+'">'+v+'</div>'+(sub?'<div style="font-size:9.5px;color:#94A3B8">'+sub+'</div>':'')+'</div>';
+}
+function drRender(){
+  var date=drDate(),d=drData(date),M=DR_MODES,P=d.P;
+  var isToday=date===td(),dl=isToday?'Aaj':fd(date);
+  // toggles + containers
+  ['sale','exp','cash'].forEach(function(k){
+    var man=M[k]==='manual',tg=document.getElementById('drtg-'+k);
+    if(tg)tg.querySelectorAll('span').forEach(function(s){s.className=(s.getAttribute('data-m')===M[k])?'on':'';});
+    if(k==='sale'){document.getElementById('dr-sale-auto').style.display=man?'none':'block';document.getElementById('dr-sale-man').style.display=man?'table':'none';}
+    if(k==='exp'){document.getElementById('dr-exp-auto').style.display=man?'none':'block';document.getElementById('dr-exp-man').style.display=man?'table':'none';}
+    if(k==='cash'){
+      document.querySelectorAll('#dr-cash .dr-c-auto').forEach(function(e){e.style.display=man?'none':'';});
+      document.querySelectorAll('#dr-cash .dr-c-man').forEach(function(e){e.style.display=man?'':'none';});
+    }
+  });
+  // summary cards
+  var pc=d.profit>=0?'#16A34A':'#DC2626';
+  document.getElementById('dr-sum').innerHTML=
+    drCard('💰 '+dl+' ki Bikri',rs(d.totalSale),'#16A34A',P.S.bills+' bill')
+    +drCard('💸 Kul Kharcha',rs(d.totalExp),'#DC2626','')
+    +drCard((d.profit>=0?'📈':'📉')+' Net Profit/Loss',(d.profit>=0?'+':'')+rs(d.profit),pc,d.basis==='real'?'Asli (bhav ke hisaab se)':'Estimate')
+    +drCard('🏦 Closing Cash',rs(d.closing),'#1A3A6B','');
+  // Bikri auto table
+  var sa='';
+  if(!d.items.length&&M.sale==='auto'){
+    sa='<div style="padding:16px;text-align:center;color:#94A3B8;font-size:12px">'+(isToday?'Aaj':'Is din')+' koi Sale Bill nahi bana. Sale Bill page se bill banao — yahan khud aa jayega.</div>';
+  }else if(M.sale==='auto'){
+    sa='<table class="dt"><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr>';
+    d.items.forEach(function(i){sa+='<tr><td>'+drEsc(i.name)+'</td><td style="text-align:center">'+i.qty+'</td><td style="text-align:right">'+rs(Math.round(i.rate*100)/100)+'</td><td style="text-align:right;font-weight:700">'+rs(Math.round(i.amt))+'</td></tr>';});
+    if(d.discount>0.5)sa+='<tr><td colspan="3" style="color:#B45309">Discount (−)</td><td style="text-align:right;color:#B45309;font-weight:700">−'+rs(Math.round(d.discount))+'</td></tr>';
+    sa+='</table>';
+  }
+  document.getElementById('dr-sale-auto').innerHTML=sa;
+  // Bikri manual row totals
+  var mt=0;
+  for(var i=1;i<=5;i++){var row=document.getElementById('dr-r'+i),inp=row.querySelectorAll('input'),t=drNum(inp[1].value)*drNum(inp[2].value);row.querySelector('.dr-tot').textContent=rs(t);mt+=t;}
+  document.getElementById('dr-total').textContent=rs(d.totalSale);
+  // Kharcha auto
+  var ea='';
+  if(M.exp==='auto'){
+    ea='<table class="dt"><tr><th>Kharcha</th><th style="text-align:right">Amount (₹)</th></tr>';
+    [1,2,3,4,5].forEach(function(i){ea+='<tr><td>'+DR_EL['e'+i]+'</td><td style="text-align:right;font-weight:700">'+rs(d.exp['e'+i])+'</td></tr>';});
+    ea+='</table>';
+    if(d.expList.length){
+      ea+='<div style="padding:6px 12px 8px;font-size:10px;color:#64748B;line-height:1.7;border-top:1px dashed #E2E8F0">'
+        +d.expList.map(function(x){return'▪ '+drEsc(x.t)+' — <b>'+rs(x.a)+'</b>';}).join('<br>')+'</div>';
+    }else ea+='<div style="padding:8px 12px;font-size:11px;color:#94A3B8">Koi kharcha entry nahi (Expense page se daalo)</div>';
+  }
+  document.getElementById('dr-exp-auto').innerHTML=ea;
+  document.getElementById('dr-exp').textContent=rs(d.totalExp);
+  // Return / Exchange
+  var ra='';
+  if(!d.returns.length)ra='<div style="padding:10px 12px;font-size:11px;color:#94A3B8">Koi Return/Exchange nahi</div>';
+  else{
+    ra='<table class="dt"><tr><th>Type</th><th>Item</th><th style="text-align:right">Amount</th></tr>';
+    d.returns.forEach(function(r){ra+='<tr><td>'+(r.type==='Return'?'↩️ Return':'🔄 Exchange')+'</td><td>'+drEsc(r.item)+(r.customer?'<div style="font-size:9.5px;color:#94A3B8">'+drEsc(r.customer)+'</div>':'')+'</td><td style="text-align:right;font-weight:700">'+rs(r.amount||0)+'</td></tr>';});
+    ra+='</table>';
+  }
+  document.getElementById('dr-ret').innerHTML=ra;
+  // Cash closing
+  document.getElementById('dr-open-a').textContent=rs(d.opening);
+  document.getElementById('dr-r-cash').textContent=rs(d.cashSale);
+  document.getElementById('dr-recov').textContent=rs(d.recovery);
+  document.getElementById('dr-oi-a').textContent=rs(d.otherIn);
+  document.getElementById('dr-sub-in').textContent=rs(d.subIn);
+  document.getElementById('dr-r-exp').textContent=rs(d.totalExp);
+  document.getElementById('dr-ret-out').textContent=rs(d.refund);
+  document.getElementById('dr-sub-out').textContent=rs(d.subOut);
+  document.getElementById('dr-closing').textContent=rs(d.closing);
+  var pel=document.getElementById('dr-profit');pel.textContent=(d.profit>=0?'+':'')+rs(d.profit);pel.style.color=pc;
+  var pn=d.basis==='real'?'Asli profit = Bikri − Maal ki laagat − Chalu kharcha (Stock Purchase/Capex profit se alag).':'Estimate = Bikri − Kharcha (Manual mode me bhav ka hisaab nahi hota).';
+  if(d.missing.length)pn+=' ⚠️ In items ka kharid-bhav stock me nahi hai, profit adhoora: '+drEsc(d.missing.slice(0,4).join(', '))+(d.missing.length>4?'…':'');
+  document.getElementById('dr-profit-note').textContent='';document.getElementById('dr-profit-note').innerHTML=pn;
+  // Galla gin
+  var df=document.getElementById('dr-diff'),dr=document.getElementById('dr-diff-row');
+  if(d.diff===null){df.textContent='— (gin ke upar likho)';df.style.color='#94A3B8';dr.style.background='';}
+  else if(Math.abs(d.diff)<0.5){df.textContent='✅ Bilkul sahi';df.style.color='#16A34A';dr.style.background='#F0FDF4';}
+  else if(d.diff>0){df.textContent='➕ Zyada '+rs(Math.round(d.diff));df.style.color='#B45309';dr.style.background='#FFFBEB';}
+  else{df.textContent='⚠️ Kam '+rs(Math.round(-d.diff));df.style.color='#DC2626';dr.style.background='#FEF2F2';}
+  // Payment split
+  var pays=[['💵 Cash','cash'],['📱 UPI','upi'],['💳 Card','card'],['📋 Udhar','udhar']],ph='<table class="dt">';
+  pays.forEach(function(p){ph+='<tr><td>'+p[0]+'</td><td style="text-align:right;font-weight:700">'+rs(d.pay[p[1]]||0)+'</td></tr>';});
+  ph+='</table><div style="padding:6px 12px 8px;font-size:10px;color:#64748B">Sale Bills se. UPI/Card bank me jaata hai, isliye Cash Closing me nahi judta. Udhar ki wasooli Cash Closing me alag dikhti hai.</div>';
+  document.getElementById('dr-pay').innerHTML=ph;
+}
+
+// ── PRINT & WHATSAPP ──
+function drModeTag(d){
+  var n=function(k){return d.modes[k]==='manual'?'✍️':'🤖';};
+  return'Bikri '+n('sale')+' · Kharcha '+n('exp')+' · Cash '+n('cash');
+}
 function printDaily(){
-  var d=getDailyData();
-  var existing=document.getElementById('drPrintOv');if(existing)existing.remove();
-  var saleRows=d.items.length>0
-    ? d.items.map(function(i){return'<tr><td style="padding:7px 8px;border-bottom:1px solid #e8eaf6">'+i.naam+'</td><td style="padding:7px 8px;border-bottom:1px solid #e8eaf6;text-align:center">'+i.qty+'</td><td style="padding:7px 8px;border-bottom:1px solid #e8eaf6;text-align:right">'+rs(i.rate)+'</td><td style="padding:7px 8px;border-bottom:1px solid #e8eaf6;text-align:right;font-weight:800;color:#16A34A">'+rs(i.tot)+'</td></tr>';}).join('')
-    : '<tr><td colspan="4" style="padding:10px;text-align:center;color:#94A3B8">Koi bikri entry nahi</td></tr>';
-
-  var html='<div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
-    // Header
-    +'<div style="background:#1A3A6B;padding:18px;text-align:center;border-radius:10px 10px 0 0;">'
-    +'<div style="font-size:20px;font-weight:900;color:#FFD700;letter-spacing:1px">🛍️ BHAGYA FASHION</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">Chhatikuda Chawk, Odisha</div>'
-    +'<div style="font-size:13px;font-weight:700;color:#fff;margin-top:6px;background:rgba(255,255,255,.15);padding:5px 12px;border-radius:20px;display:inline-block">📅 DAILY REPORT — '+fd(td())+'</div>'
-    +'</div>'
-    // Sale table
-    +'<div style="background:#e8f5e9;padding:8px 12px;font-weight:700;font-size:13px;color:#16A34A;">💰 Aaj ki Bikri</div>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
-    +'<thead><tr style="background:#1A3A6B;"><th style="padding:8px;text-align:left;color:#FFD700;">Item</th><th style="padding:8px;text-align:center;color:#FFD700;">Qty</th><th style="padding:8px;text-align:right;color:#FFD700;">Rate</th><th style="padding:8px;text-align:right;color:#FFD700;">Total</th></tr></thead>'
-    +'<tbody>'+saleRows+'</tbody>'
-    +'<tfoot><tr style="background:#e8f5e9;"><td colspan="3" style="padding:9px 8px;font-weight:800;color:#16A34A;">KUL BIKRI</td><td style="padding:9px 8px;text-align:right;font-weight:900;font-size:15px;color:#16A34A;">'+rs(d.totalSale)+'</td></tr></tfoot>'
-    +'</table>'
-    // Expenses
-    +'<div style="background:#fee2e2;padding:8px 12px;font-weight:700;font-size:13px;color:#DC2626;margin-top:2px;">💸 Aaj ka Kharcha</div>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
-    +(d.exp.e1>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f5f5f5">Maal Kharidi</td><td style="padding:7px 8px;text-align:right;color:#DC2626;font-weight:700;">'+rs(d.exp.e1)+'</td></tr>':'')
-    +(d.exp.e2>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f5f5f5">Salary/Wages</td><td style="padding:7px 8px;text-align:right;color:#DC2626;font-weight:700;">'+rs(d.exp.e2)+'</td></tr>':'')
-    +(d.exp.e3>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f5f5f5">Bijli/Paani</td><td style="padding:7px 8px;text-align:right;color:#DC2626;font-weight:700;">'+rs(d.exp.e3)+'</td></tr>':'')
-    +(d.exp.e4>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f5f5f5">Transport</td><td style="padding:7px 8px;text-align:right;color:#DC2626;font-weight:700;">'+rs(d.exp.e4)+'</td></tr>':'')
-    +(d.exp.e5>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f5f5f5">Anya Kharcha</td><td style="padding:7px 8px;text-align:right;color:#DC2626;font-weight:700;">'+rs(d.exp.e5)+'</td></tr>':'')
-    +'<tr style="background:#fee2e2;"><td style="padding:9px 8px;font-weight:800;color:#DC2626;">KUL KHARCHA</td><td style="padding:9px 8px;text-align:right;font-weight:900;font-size:15px;color:#DC2626;">'+rs(d.totalExp)+'</td></tr>'
-    +'</table>'
-    // Cash closing
-    +'<div style="background:#EEF2FF;padding:8px 12px;font-weight:700;font-size:13px;color:#1A3A6B;margin-top:2px;">🏦 Cash Closing</div>'
-    +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
-    +'<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0">Opening Cash</td><td style="padding:7px 8px;text-align:right;font-weight:700;">'+rs(d.opening)+'</td></tr>'
-    +'<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0">Cash Sale</td><td style="padding:7px 8px;text-align:right;font-weight:700;color:#16A34A;">'+rs(d.totalSale)+'</td></tr>'
-    +(d.otherIn>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0">Anya Cash In</td><td style="padding:7px 8px;text-align:right;font-weight:700;color:#16A34A;">'+rs(d.otherIn)+'</td></tr>':'')
-    +'<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0">Kul Kharcha</td><td style="padding:7px 8px;text-align:right;font-weight:700;color:#DC2626;">-'+rs(d.totalExp)+'</td></tr>'
-    +(d.otherOut>0?'<tr><td style="padding:7px 8px;border-bottom:1px solid #f0f0f0">Anya Cash Out</td><td style="padding:7px 8px;text-align:right;font-weight:700;color:#DC2626;">-'+rs(d.otherOut)+'</td></tr>':'')
-    +'</table>'
-    +'<div style="background:#FEF9C3;padding:12px 14px;display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:#1A3A6B;border-top:2px solid #F59E0B;">'
-    +'<span>🏦 CLOSING CASH</span><span>'+rs(d.closing)+'</span></div>'
-    +'<div style="background:'+(d.profit>=0?'#FFD700':'#DC2626')+';padding:14px;display:flex;justify-content:space-between;font-size:18px;font-weight:900;color:'+(d.profit>=0?'#1A3A6B':'#fff')+';">'
-    +'<span>'+(d.profit>=0?'📈':'📉')+' NET PROFIT/LOSS</span><span>'+(d.profit>=0?'+':'')+rs(d.profit)+'</span></div>'
-    +'<div style="background:#1A3A6B;color:rgba(255,255,255,.8);text-align:center;padding:12px;border-radius:0 0 10px 10px;font-size:11px;">'
-    +'Bhagya Fashion — Daily Report — Generated by App</div>'
-    +'</div>';
-
-  var ov=document.createElement('div');ov.id='drPrintOv';
-  ov.style.cssText='position:fixed;inset:0;background:#fff;z-index:9999;overflow:auto;';
-  ov.innerHTML='<div id="drPrintBtns" style="display:flex;gap:8px;padding:10px;background:#1A3A6B;position:sticky;top:0;">'
-    +'<button onclick="window.print()" style="flex:1;padding:11px;background:#FFD700;color:#1A3A6B;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">🖨️ Print Karo</button>'
-    +'<button onclick="shareDaily()" style="flex:1;padding:11px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">📲 WhatsApp</button>'
-    +'<button onclick="document.getElementById(\'drPrintOv\').remove()" style="padding:11px 14px;background:#DC2626;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer">✕</button>'
-    +'</div>'
-    +'<div style="padding:14px;">'+html+'</div>';
-  document.body.appendChild(ov);
-}
-
-function shareDaily(){
-  var d=getDailyData();
-  var line='━━━━━━━━━━━━━━━━━━━━';
-  var saleItems=d.items.length>0
-    ? d.items.map(function(i){return'▪️ *'+i.naam+'* × '+i.qty+' = *'+rs(i.tot)+'*';}).join('\n')
-    : '(koi entry nahi)';
-  var msg='🛍️ *BHAGYA FASHION*\n📍 Chhatikuda Chawk, Odisha\n'+line+'\n\n'
-    +'📅 *DAILY REPORT — '+fd(td())+'*\n'+line+'\n\n'
-    +'💰 *Aaj ki Bikri:*\n'+saleItems+'\n'
-    +'➡️ *Kul Bikri: '+rs(d.totalSale)+'*\n\n'
-    +'💸 *Aaj ka Kharcha:*\n'
-    +(d.exp.e1>0?'▪️ Maal Kharidi: '+rs(d.exp.e1)+'\n':'')
-    +(d.exp.e2>0?'▪️ Salary: '+rs(d.exp.e2)+'\n':'')
-    +(d.exp.e3>0?'▪️ Bijli/Paani: '+rs(d.exp.e3)+'\n':'')
-    +(d.exp.e4>0?'▪️ Transport: '+rs(d.exp.e4)+'\n':'')
-    +(d.exp.e5>0?'▪️ Anya: '+rs(d.exp.e5)+'\n':'')
-    +'➡️ *Kul Kharcha: '+rs(d.totalExp)+'*\n\n'
-    +line+'\n'
-    +'🏦 *Closing Cash: '+rs(d.closing)+'*\n'
-    +(d.profit>=0?'📈':'📉')+' *NET PROFIT/LOSS: '+(d.profit>=0?'+':'')+rs(d.profit)+'*\n'
-    +line+'\n'
-    +'_Bhagya Fashion Business App_';
-  var ov=document.getElementById('drPrintOv');if(ov)ov.remove();
-  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
-}
-
-// DAILY REPORT CALC
-function calcDR(){
-  var rows=document.querySelectorAll('#pg-daily .dt tr[id^="dr-r"]');
-  var totalSale=0;
-  rows.forEach(function(row){
-    var inputs=row.querySelectorAll('input[type="number"]');
-    if(inputs.length<2)return;
-    var qty=parseFloat(inputs[0].value)||0;
-    var rate=parseFloat(inputs[1].value)||0;
-    var tot=qty*rate;
-    row.querySelector('.dr-tot').textContent=rs(tot);
-    totalSale+=tot;
-  });
-  document.getElementById('dr-total').textContent=rs(totalSale);
-  var exp=[1,2,3,4,5].reduce(function(a,i){var el=document.getElementById('dr-e'+i);return a+(el?parseFloat(el.value)||0:0);},0);
-  document.getElementById('dr-exp').textContent=rs(exp);
-  var opening=parseFloat(document.getElementById('dr-opening').value)||0;
-  var otherIn=parseFloat(document.getElementById('dr-other-in').value)||0;
-  var otherOut=parseFloat(document.getElementById('dr-other-out').value)||0;
-  var subIn=opening+totalSale+otherIn;
-  var subOut=exp+otherOut;
-  var closing=subIn-subOut;
-  document.getElementById('dr-r-cash').textContent=rs(totalSale);
-  document.getElementById('dr-r-exp').textContent=rs(exp);
-  document.getElementById('dr-sub-in').textContent=rs(subIn);
-  document.getElementById('dr-sub-out').textContent=rs(subOut);
-  document.getElementById('dr-closing').textContent=rs(closing);
-  var profit=totalSale-exp;
-  var pel=document.getElementById('dr-profit');
-  pel.textContent=(profit>=0?'+':'')+rs(profit);
-  pel.style.color=profit>=0?'var(--green)':'var(--red)';
-}
-
-// DAILY PRINT & SHARE
-function getDailyData(){
-  var rows=document.querySelectorAll('#pg-daily .dt tbody tr');
-  var items=[];var totalSale=0;
-  rows.forEach(function(row){
-    var inputs=row.querySelectorAll('input');
-    if(inputs.length<3)return;
-    var naam=inputs[0].value.trim();
-    var qty=parseFloat(inputs[1].value)||0;
-    var rate=parseFloat(inputs[2].value)||0;
-    var tot=qty*rate;
-    if(naam&&tot>0)items.push({name:naam,qty:qty,rate:rate,total:tot});
-    totalSale+=tot;
-  });
-  var exp=[1,2,3,4,5].reduce(function(a,i){var el=document.getElementById('dr-e'+i);return a+(el?parseFloat(el.value)||0:0);},0);
-  var opening=parseFloat((document.getElementById('dr-opening')||{}).value)||0;
-  var otherIn=parseFloat((document.getElementById('dr-other-in')||{}).value)||0;
-  var otherOut=parseFloat((document.getElementById('dr-other-out')||{}).value)||0;
-  var closing=opening+totalSale+otherIn-exp-otherOut;
-  var profit=totalSale-exp;
-  return{items:items,totalSale:totalSale,exp:exp,opening:opening,otherIn:otherIn,closing:closing,profit:profit};
-}
-function printDaily(){
-  var d=getDailyData();
+  var d=drData(drDate());
   var ex=document.getElementById('drPrintOv');if(ex)ex.remove();
-  var irows=d.items.length>0?d.items.map(function(i){
-    return '<tr><td style="padding:8px 10px;border-bottom:1px solid #e8eaf6;font-size:13px">'+i.name+'</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #e8eaf6;text-align:center;font-size:13px">'+i.qty+'</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #e8eaf6;text-align:right;font-size:13px">'+rs(i.rate)+'</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #e8eaf6;text-align:right;font-weight:800;color:#16A34A;font-size:13px">'+rs(i.total)+'</td></tr>';
-  }).join(''):'<tr><td colspan="4" style="padding:10px;text-align:center;color:#94A3B8;font-size:12px">Koi item enter nahi kiya</td></tr>';
-  var html='<div style="font-family:Arial,sans-serif;max-width:380px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
-    +'<div style="background:#1A3A6B;padding:18px;text-align:center;border-radius:10px 10px 0 0;">'
-    +'<div style="font-size:20px;font-weight:900;color:#FFD700;">🛍️ BHAGYA FASHION</div>'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">Chhatikuda Chawk, Odisha</div>'
-    +'</div>'
-    +'<div style="background:#EEF2FF;padding:10px 14px;display:flex;justify-content:space-between;font-size:13px;font-weight:700;">'
-    +'<span>📅 DAILY REPORT</span><span>'+fd(td())+'</span></div>'
-    +'<div style="background:#f0fdf4;padding:8px 14px;font-size:12px;font-weight:700;color:#16A34A;">💰 AAJI KI BIKRI</div>'
-    +'<table style="width:100%;border-collapse:collapse;">'
-    +'<thead><tr style="background:#1A3A6B;">'
-    +'<th style="padding:8px 10px;text-align:left;color:#FFD700;font-size:11px;">Item</th>'
-    +'<th style="padding:8px 10px;text-align:center;color:#FFD700;font-size:11px;">Qty</th>'
-    +'<th style="padding:8px 10px;text-align:right;color:#FFD700;font-size:11px;">Rate</th>'
-    +'<th style="padding:8px 10px;text-align:right;color:#FFD700;font-size:11px;">Total</th>'
-    +'</tr></thead><tbody>'+irows+'</tbody>'
-    +'<tfoot><tr style="background:#dcfce7;">'
-    +'<td colspan="3" style="padding:9px 10px;font-weight:800;font-size:13px;color:#16A34A;">KUL BIKRI</td>'
-    +'<td style="padding:9px 10px;text-align:right;font-weight:800;font-size:14px;color:#16A34A;">'+rs(d.totalSale)+'</td>'
-    +'</tr></tfoot></table>'
-    +'<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#fee2e2;font-size:14px;font-weight:800;margin-top:6px;">'
-    +'<span style="color:#DC2626;">💸 KUL KHARCHA</span><span style="color:#DC2626;">'+rs(d.exp)+'</span></div>'
-    +'<div style="padding:0 14px;border:1px solid #e8eaf6;margin-top:6px;">'
-    +'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e8eaf6;font-size:12px;"><span>Opening Cash</span><span>'+rs(d.opening)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e8eaf6;font-size:12px;"><span>Aaj ki Bikri</span><span style="color:#16A34A;font-weight:700;">+'+rs(d.totalSale)+'</span></div>'
-    +(d.otherIn>0?'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e8eaf6;font-size:12px;"><span>Anya Cash In</span><span style="color:#16A34A;">+'+rs(d.otherIn)+'</span></div>':'')
-    +'<div style="display:flex;justify-content:space-between;padding:7px 0;font-size:12px;"><span>Kul Kharcha</span><span style="color:#DC2626;font-weight:700;">-'+rs(d.exp)+'</span></div>'
-    +'</div>'
-    +'<div style="display:flex;justify-content:space-between;padding:14px;background:#FFD700;font-size:17px;font-weight:900;color:#1A3A6B;margin-top:6px;">'
-    +'<span>🏦 CLOSING CASH</span><span>'+rs(d.closing)+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;padding:13px 14px;background:'+(d.profit>=0?'#dcfce7':'#fee2e2')+';font-size:16px;font-weight:900;">'
-    +'<span style="color:'+(d.profit>=0?'#16A34A':'#DC2626')+'">NET PROFIT/LOSS</span>'
-    +'<span style="color:'+(d.profit>=0?'#16A34A':'#DC2626')+'">'+(d.profit>=0?'+':'')+rs(d.profit)+'</span></div>'
-    +'<div style="background:#1A3A6B;color:rgba(255,255,255,.7);text-align:center;padding:11px;border-radius:0 0 10px 10px;font-size:11px;">'
-    +'Bhagya Fashion — Daily Report | '+fd(td())+'</div>'
-    +'</div>';
+  var td_='padding:7px 10px;border-bottom:1px solid #e8eaf6;font-size:12px;';
+  var row=function(l,v,c,b){return'<div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #eef0f6;font-size:12px;'+(b?'font-weight:800;':'')+'"><span>'+l+'</span><span style="color:'+(c||'#111')+';font-weight:700">'+v+'</span></div>';};
+  var irows=d.items.length?d.items.map(function(i){
+    return'<tr><td style="'+td_+'">'+drEsc(i.name)+'</td><td style="'+td_+'text-align:center">'+i.qty+'</td><td style="'+td_+'text-align:right">'+rs(Math.round(i.rate*100)/100)+'</td><td style="'+td_+'text-align:right;font-weight:800;color:#16A34A">'+rs(Math.round(i.amt))+'</td></tr>';
+  }).join(''):'<tr><td colspan="4" style="padding:10px;text-align:center;color:#94A3B8;font-size:12px">Koi bikri entry nahi</td></tr>';
+  var html='<div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
+    +'<div style="background:#1A3A6B;padding:16px;text-align:center;border-radius:10px 10px 0 0;"><div style="font-size:20px;font-weight:900;color:#FFD700;">🛍️ BHAGYA FASHION</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">Chhatikuda Chawk, Odisha</div></div>'
+    +'<div style="background:#EEF2FF;padding:9px 14px;display:flex;justify-content:space-between;font-size:13px;font-weight:700;"><span>📅 DAILY REPORT</span><span>'+fd(d.date)+'</span></div>'
+    +'<div style="background:#f0fdf4;padding:7px 14px;font-size:12px;font-weight:700;color:#16A34A;">💰 BIKRI ('+d.bills+' bill)</div>'
+    +'<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#1A3A6B;"><th style="padding:7px 10px;text-align:left;color:#FFD700;font-size:11px;">Item</th><th style="padding:7px 10px;color:#FFD700;font-size:11px;">Qty</th><th style="padding:7px 10px;text-align:right;color:#FFD700;font-size:11px;">Rate</th><th style="padding:7px 10px;text-align:right;color:#FFD700;font-size:11px;">Total</th></tr></thead><tbody>'+irows+'</tbody></table>'
+    +(d.discount>0.5?row('Discount','−'+rs(Math.round(d.discount)),'#B45309'):'')
+    +'<div style="display:flex;justify-content:space-between;padding:9px 14px;background:#dcfce7;font-weight:900;font-size:14px;color:#16A34A"><span>KUL BIKRI</span><span>'+rs(d.totalSale)+'</span></div>'
+    +'<div style="background:#fee2e2;padding:7px 14px;font-size:12px;font-weight:700;color:#DC2626;margin-top:6px">💸 KHARCHA</div>';
+  [1,2,3,4,5].forEach(function(i){if(d.exp['e'+i]>0)html+=row(DR_EL['e'+i],rs(d.exp['e'+i]),'#DC2626');});
+  html+='<div style="display:flex;justify-content:space-between;padding:9px 14px;background:#fee2e2;font-weight:900;font-size:14px;color:#DC2626"><span>KUL KHARCHA</span><span>'+rs(d.totalExp)+'</span></div>';
+  if(d.returns.length){
+    html+='<div style="background:#FFF7ED;padding:7px 14px;font-size:12px;font-weight:700;color:#C2410C;margin-top:6px">↩️ RETURN / EXCHANGE</div>';
+    d.returns.forEach(function(r){html+=row((r.type==='Return'?'↩️ ':'🔄 ')+drEsc(r.item),rs(r.amount||0),'#C2410C');});
+  }
+  html+='<div style="background:#EEF2FF;padding:7px 14px;font-size:12px;font-weight:700;color:#1A3A6B;margin-top:6px">🏦 CASH CLOSING</div>'
+    +row('Opening Cash',rs(d.opening))
+    +row('Cash Sale','+'+rs(d.cashSale),'#16A34A')
+    +(d.recovery>0?row('Udhar Wasooli','+'+rs(d.recovery),'#16A34A'):'')
+    +(d.otherIn>0?row('Anya Cash In','+'+rs(d.otherIn),'#16A34A'):'')
+    +row('Kul Kharcha','−'+rs(d.totalExp),'#DC2626')
+    +(d.refund>0?row('Return Refund','−'+rs(d.refund),'#DC2626'):'')
+    +(d.otherOut>0?row('Anya Cash Out','−'+rs(d.otherOut),'#DC2626'):'')
+    +'<div style="display:flex;justify-content:space-between;padding:13px 14px;background:#FFD700;font-size:16px;font-weight:900;color:#1A3A6B"><span>🏦 CLOSING CASH</span><span>'+rs(d.closing)+'</span></div>';
+  if(d.count!==null){
+    var dd=d.diff,ds=Math.abs(dd)<0.5?'✅ Bilkul sahi':(dd>0?'➕ Zyada '+rs(Math.round(dd)):'⚠️ Kam '+rs(Math.round(-dd)));
+    html+=row('Galle me asli cash (gin ke)',rs(d.count))+row('Farak',ds,Math.abs(dd)<0.5?'#16A34A':(dd>0?'#B45309':'#DC2626'),true);
+  }
+  html+='<div style="display:flex;justify-content:space-between;padding:12px 14px;background:'+(d.profit>=0?'#dcfce7':'#fee2e2')+';font-size:15px;font-weight:900;color:'+(d.profit>=0?'#16A34A':'#DC2626')+'"><span>'+(d.profit>=0?'📈':'📉')+' NET PROFIT/LOSS</span><span>'+(d.profit>=0?'+':'')+rs(d.profit)+'</span></div>'
+    +(d.note?'<div style="padding:9px 14px;font-size:12px;background:#fffbeb;border-top:1px solid #fde68a"><b>📝 Note:</b> '+drEsc(d.note)+'</div>':'')
+    +'<div style="background:#1A3A6B;color:rgba(255,255,255,.75);text-align:center;padding:10px;border-radius:0 0 10px 10px;font-size:10px;">Bhagya Fashion — Daily Report | '+fd(d.date)+'<br>'+drModeTag(d)+'</div></div>';
   var ov=document.createElement('div');ov.id='drPrintOv';
   ov.style.cssText='position:fixed;inset:0;background:#fff;z-index:9999;overflow:auto;';
   ov.innerHTML='<div id="drPrintBtns" style="display:flex;gap:8px;padding:10px;background:#1A3A6B;position:sticky;top:0;">'
     +'<button onclick="window.print()" style="flex:1;padding:11px;background:#FFD700;color:#1A3A6B;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">🖨️ Print</button>'
-    +'<button onclick="shareDailyWA()" style="flex:1;padding:11px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">📲 WhatsApp</button>'
+    +'<button onclick="shareDaily()" style="flex:1;padding:11px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">📲 WhatsApp</button>'
     +'<button onclick="document.getElementById(\'drPrintOv\').remove()" style="padding:11px 14px;background:#DC2626;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer">✕</button>'
     +'</div><div style="padding:14px;">'+html+'</div>';
   document.body.appendChild(ov);
 }
-function shareDaily(){printDaily();}
-function shareDailyWA(){
-  var d=getDailyData();
-  var line='━━━━━━━━━━━━━━━━━━━━';
-  var items=d.items.length>0?d.items.map(function(i){return'▪️ *'+i.name+'* × '+i.qty+' = *'+rs(i.total)+'*';}).join('\n'):'(Koi item nahi)';
-  var msg='🛍️ *BHAGYA FASHION*\n📍 Chhatikuda Chawk, Odisha\n'+line+'\n\n'
-    +'📅 *DAILY REPORT — '+fd(td())+'*\n'+line+'\n\n'
-    +'💰 *AAJI KI BIKRI:*\n'+items+'\n\n'
-    +'🟢 *Kul Bikri: '+rs(d.totalSale)+'*\n'
-    +'🔴 *Kul Kharcha: '+rs(d.exp)+'*\n'
-    +line+'\n'
-    +'🏦 *Closing Cash: '+rs(d.closing)+'*\n'
-    +(d.profit>=0?'📈':'📉')+' *Net Profit/Loss: '+(d.profit>=0?'+':'')+rs(d.profit)+'*\n'
-    +line+'\n_Bhagya Fashion Daily Report_';
+function shareDaily(){
+  var d=drData(drDate()),line='━━━━━━━━━━━━━━━━━━━━';
+  var items=d.items.length?d.items.map(function(i){return'▪️ *'+i.name+'* × '+i.qty+' = *'+rs(Math.round(i.amt))+'*';}).join('\n'):'(koi entry nahi)';
+  var msg='🛍️ *BHAGYA FASHION*\n📍 Chhatikuda Chawk, Odisha\n'+line+'\n📅 *DAILY REPORT — '+fd(d.date)+'*\n'+line+'\n\n'
+    +'💰 *Bikri ('+d.bills+' bill):*\n'+items+'\n'
+    +(d.discount>0.5?'🏷️ Discount: −'+rs(Math.round(d.discount))+'\n':'')
+    +'➡️ *Kul Bikri: '+rs(d.totalSale)+'*\n';
+  var pm=[['💵 Cash','cash'],['📱 UPI','upi'],['💳 Card','card'],['📋 Udhar','udhar']].filter(function(p){return(d.pay[p[1]]||0)>0;}).map(function(p){return p[0]+' '+rs(d.pay[p[1]]);});
+  if(pm.length)msg+='('+pm.join(' | ')+')\n';
+  msg+='\n💸 *Kharcha:*\n';
+  var any=false;[1,2,3,4,5].forEach(function(i){if(d.exp['e'+i]>0){any=true;msg+='▪️ '+DR_EL['e'+i]+': '+rs(d.exp['e'+i])+'\n';}});
+  if(!any)msg+='(koi kharcha nahi)\n';
+  msg+='➡️ *Kul Kharcha: '+rs(d.totalExp)+'*\n';
+  if(d.returns.length){msg+='\n↩️ *Return/Exchange:*\n';d.returns.forEach(function(r){msg+='▪️ '+(r.type==='Return'?'Return':'Exchange')+' — '+r.item+(r.amount?' '+rs(r.amount):'')+'\n';});}
+  msg+='\n'+line+'\n🏦 Opening Cash: '+rs(d.opening)+'\n🏦 *Closing Cash: '+rs(d.closing)+'*\n';
+  if(d.count!==null){var dd=d.diff;msg+='🧮 Galle me gin ke: '+rs(d.count)+' — '+(Math.abs(dd)<0.5?'✅ Bilkul sahi':(dd>0?'➕ Zyada '+rs(Math.round(dd)):'⚠️ Kam '+rs(Math.round(-dd))))+'\n';}
+  msg+=(d.profit>=0?'📈':'📉')+' *Net Profit/Loss: '+(d.profit>=0?'+':'')+rs(d.profit)+'*\n';
+  if(d.note)msg+='\n📝 '+d.note+'\n';
+  msg+=line+'\n_Bhagya Fashion Daily Report_';
+  var ov=document.getElementById('drPrintOv');if(ov)ov.remove();
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
+
 function setDates(){
   var t=td();
   ['cashDate','eDate','uDate'].forEach(function(id){var el=document.getElementById(id);if(el&&!el.value)el.value=t;});
@@ -7444,7 +7610,7 @@ lrRenderAll();
   // STOCK ab is list mein NAHI hai — usko neeche alag, PER-ITEM tarike se sync kiya jaata
   // hai (stock_items map), taaki DO PHONE agar EK SAATH ALAG-ALAG item add karein to
   // ek doosre ka data OVERWRITE/CUT na ho — yahi "ek daalo ek katt jaata hai" ki asli wajah thi.
-  var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bf_d_cfbs","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
+  var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bf_d_cfbs","bf_d_returns","bf_d_daily","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
   var docRef = bfDb.collection("bhagya_sync").doc(CLOUD_DOC_ID);
   var justWroteFromCloud = false;
   var writeTimer = null;
