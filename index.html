@@ -1329,23 +1329,24 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 #pg-balance .bsrt b{display:block;font-size:14px;color:#1A3A6B}
 #pg-balance .bsrt small{font-size:9px;color:#64748B}
 </style>
-  <div class="bsh"><b>BHAGYA FASHION &amp; COLLECTION</b><small>Chhatiguda Chawk, Kalahandi, Odisha &nbsp;|&nbsp; Udyam: UDYAM-OD-15-0040406</small><small>BALANCE SHEET (Proprietorship — Miniketan)</small><span class="asn" id="bs-asondate">As on —</span></div>
+  <div class="bsh"><b>BHAGYA FASHION &amp; COLLECTION</b><small>Chhatiguda Chawk, Kalahandi, Odisha &nbsp;|&nbsp; Udyam: UDYAM-OD-15-0040406</small><small>BALANCE SHEET (Proprietorship — Miniketan)</small><small id="bs-period" style="color:#FFD700;font-weight:700">Business Commenced: 01/08/2026 &nbsp;|&nbsp; Financial Year 2026-27 &nbsp;|&nbsp; Provisional (Unaudited)</small><span class="asn" id="bs-asondate">As on —</span></div>
   <div id="bs-autofill-note" style="padding:9px 12px;margin-bottom:10px;background:var(--gray);color:#64748B;border-radius:10px;font-size:11px;font-weight:700;text-align:center">🔄 Auto-Fill ho raha hai...</div>
   <button class="btn bp" style="width:100%;margin-bottom:10px" onclick="autoFillBS()">🔄 App Data Se Abhi Auto-Fill Karein</button>
   <div class="bsleg"><div style="background:#DCFCE7;color:#166534"><b>🔄 AUTO</b> — App ke Stock/Cash/Udhar/Capital/Loan se khud bharta hai. Button dabakar 🔒 MANUAL bhi kar sakte hain.</div><div style="background:#FFF3E0;color:#9A3412"><b>✍️ MANUAL</b> — App ko pata nahi hota (Bank, Dukaan, Creditors...). Aap khud bharein.</div></div>
   <div class="two-col"><div>
-   <div class="bsc"><h3>ASSETS (Sampatti)</h3><div class="bss">A. FIXED ASSETS (Sthaayi Sampatti)</div><div class="bsr"><div class="bsl"><span>Dukaan / Property / Land</span><span class="bsm">✍️ MANUAL</span><small>Dukaan ki keemat ya security deposit</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Furniture, Rack & Fittings</span><span class="bsm">✍️ MANUAL</span><small>Kharidne ki keemat (cost)</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a2" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Computer / Billing Machine / Mobile</span><span class="bsm">✍️ MANUAL</span><small>Kharidne ki keemat (cost)</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a3" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>Fixed Assets Total</span><span id="bs-total-a">₹0</span></div><div class="bss">B. CURRENT ASSETS (Chalu Sampatti)</div><div class="bsr"><div class="bsl"><span>Cash in Hand</span><button type="button" id="bs-lock-b1" onclick="toggleBSLock('b1')" class="bsb">🔄 AUTO</button><small>Cash page ke Cash-IN minus Cash-OUT se</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Bank Balance</span><span class="bsm">✍️ MANUAL</span><small>Passbook / bank app ka balance dekh kar bharein</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b2" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Closing Stock (Maal)</span><button type="button" id="bs-lock-b3" onclick="toggleBSLock('b3')" class="bsb">🔄 AUTO</button><small>Stock page: Qty × Kharid Bhav</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b3" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Debtors (Udhar Dena)</span><button type="button" id="bs-lock-b4" onclick="toggleBSLock('b4')" class="bsb">🔄 AUTO</button><small>Udhar page ka baaki bakaya</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b4" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Staff Advance (Pending)</span><button type="button" id="bs-lock-b5" onclick="toggleBSLock('b5')" class="bsb">🔄 AUTO</button><small>Staff Advance jo salary se kata nahi</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b5" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>Current Assets Total</span><span id="bs-total-b">₹0</span></div>
+   <div class="bsc"><h3>ASSETS (Sampatti)</h3><div class="bss">A. FIXED ASSETS (Sthaayi Sampatti)</div><div class="bsr"><div class="bsl"><span>Dukaan / Property / Land</span><span class="bsm">✍️ MANUAL</span><small>Dukaan ki keemat ya security deposit</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Furniture, Rack & Fittings</span><span class="bsm">✍️ MANUAL</span><small>Kharidne ki keemat (cost)</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a2" placeholder="0" oninput="autoFillBS()"></div><div class="bsr"><div class="bsl"><span>Computer / Billing Machine / Mobile</span><span class="bsm">✍️ MANUAL</span><small>Kharidne ki keemat (cost)</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a3" placeholder="0" oninput="autoFillBS()"></div><div class="bsr"><div class="bsl"><span>Less: Depreciation (WDV)</span><button type="button" id="bs-lock-a4" onclick="toggleBSLock('a4')" class="bsb">🔄 AUTO</button><small>Furniture 10% + Computer 40% (Income Tax rate), 1 Aug se pro-rata</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-a4" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>Fixed Assets Total (Net Block)</span><span id="bs-total-a">₹0</span></div><div class="bss">B. CURRENT ASSETS (Chalu Sampatti)</div><div class="bsr"><div class="bsl"><span>Cash in Hand</span><button type="button" id="bs-lock-b1" onclick="toggleBSLock('b1')" class="bsb">🔄 AUTO</button><small>Cash page ke Cash-IN minus Cash-OUT se</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Bank Balance</span><span class="bsm">✍️ MANUAL</span><small>Passbook / bank app ka balance dekh kar bharein</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b2" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Closing Stock (Maal)</span><button type="button" id="bs-lock-b3" onclick="toggleBSLock('b3')" class="bsb">🔄 AUTO</button><small>Stock page: Qty × Kharid Bhav</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b3" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Debtors (Udhar Dena)</span><button type="button" id="bs-lock-b4" onclick="toggleBSLock('b4')" class="bsb">🔄 AUTO</button><small>Udhar page ka baaki bakaya</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b4" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Staff Advance (Pending)</span><button type="button" id="bs-lock-b5" onclick="toggleBSLock('b5')" class="bsb">🔄 AUTO</button><small>Staff Advance jo salary se kata nahi</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-b5" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>Current Assets Total</span><span id="bs-total-b">₹0</span></div>
     <div class="bsg"><span>TOTAL ASSETS</span><span id="bs-total-assets">₹0</span></div></div>
   </div><div>
-   <div class="bsc"><h3>CAPITAL &amp; LIABILITIES (Poonji aur Denadari)</h3><div class="bss">D. OWNER'S CAPITAL (Maalik ki Poonji)</div><div class="bsr"><div class="bsl"><span>Owner Capital (Net of Drawings)</span><button type="button" id="bs-lock-d1" onclick="toggleBSLock('d1')" class="bsb">🔄 AUTO</button><small>Capital Tracker: Deposit − Withdraw</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-d1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Net Profit (FY to date)</span><button type="button" id="bs-lock-d2" onclick="toggleBSLock('d2')" class="bsb">🔄 AUTO</button><small>1 April se ab tak: Sale − Maal Cost − Kharcha</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-d2" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>Capital Total</span><span id="bs-total-d">₹0</span></div><div class="bss">E. LONG TERM LIABILITIES (Lambi Udhari)</div><div class="bsr"><div class="bsl"><span>Bank / Mudra Loan</span><button type="button" id="bs-lock-e1" onclick="toggleBSLock('e1')" class="bsb">🔄 AUTO</button><small>Loan & ROI Tracker ka outstanding</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-e1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Personal / Family Loan</span><span class="bsm">✍️ MANUAL</span><small>Kisi se liya hua lamba karz</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-e2" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>LT Liabilities Total</span><span id="bs-total-e">₹0</span></div><div class="bss">F. CURRENT LIABILITIES (Chalu Denadari)</div><div class="bsr"><div class="bsl"><span>Creditors (Supplier ko dena)</span><span class="bsm">✍️ MANUAL</span><small>Wholesaler ka baaki payment</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-f1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Outstanding Expenses</span><span class="bsm">✍️ MANUAL</span><small>Bijli, kiraya, salary jo dena baaki hai</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-f2" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>CT Liabilities Total</span><span id="bs-total-f">₹0</span></div>
-    <div class="bsg"><span>TOTAL LIABILITIES</span><span id="bs-total-liab">₹0</span></div></div>
+   <div class="bsc"><h3>CAPITAL &amp; LIABILITIES (Poonji aur Denadari)</h3><div class="bss">D. OWNER'S CAPITAL (Maalik ki Poonji)</div><div class="bsr"><div class="bsl"><span>Owner Capital (Net of Drawings)</span><button type="button" id="bs-lock-d1" onclick="toggleBSLock('d1')" class="bsb">🔄 AUTO</button><small>Capital Tracker: Deposit − Withdraw</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-d1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Net Profit (1 Aug 2026 se, Depreciation ke baad)</span><button type="button" id="bs-lock-d2" onclick="toggleBSLock('d2')" class="bsb">🔄 AUTO</button><small>Sale − Maal Cost − Kharcha − Depreciation</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-d2" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>Capital Total</span><span id="bs-total-d">₹0</span></div><div class="bss">E. LONG TERM LIABILITIES (Lambi Udhari)</div><div class="bsr"><div class="bsl"><span>Bank / Mudra Loan</span><button type="button" id="bs-lock-e1" onclick="toggleBSLock('e1')" class="bsb">🔄 AUTO</button><small>Loan & ROI Tracker ka outstanding</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-e1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Personal / Family Loan</span><span class="bsm">✍️ MANUAL</span><small>Kisi se liya hua lamba karz</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-e2" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>LT Liabilities Total</span><span id="bs-total-e">₹0</span></div><div class="bss">F. CURRENT LIABILITIES (Chalu Denadari)</div><div class="bsr"><div class="bsl"><span>Creditors (Supplier ko dena)</span><span class="bsm">✍️ MANUAL</span><small>Wholesaler ka baaki payment</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-f1" placeholder="0" oninput="calcBS()"></div><div class="bsr"><div class="bsl"><span>Outstanding Expenses</span><span class="bsm">✍️ MANUAL</span><small>Bijli, kiraya, salary jo dena baaki hai</small></div><input class="bs-in bsi" type="number" inputmode="decimal" id="bs-f2" placeholder="0" oninput="calcBS()"></div><div class="bst"><span>CT Liabilities Total</span><span id="bs-total-f">₹0</span></div>
+    <div class="bsg"><span>TOTAL CAPITAL &amp; LIABILITIES</span><span id="bs-total-liab">₹0</span></div></div>
    <div id="bs-check" style="padding:12px;text-align:center;font-weight:700;font-size:13px;background:var(--gray);color:#64748B;border-radius:10px;margin-bottom:12px">— Data enter karein —</div>
    <div id="bs-recon" style="display:none;padding:12px;font-size:11.5px;line-height:1.7;background:#FFF7ED;color:#9A3412;border-radius:10px;margin-bottom:12px"></div>
    <div class="bsc"><h3>💎 NET WORTH &amp; RATIOS</h3>
     <div class="cr"><span class="cr-lbl">Total Assets</span><span class="cr-amt" id="bs-nw-assets" style="color:var(--green)">₹0</span></div>
-    <div class="cr"><span class="cr-lbl">Total Liabilities (Loan+Creditors)</span><span class="cr-amt" id="bs-nw-liab" style="color:var(--red)">₹0</span></div>
+    <div class="cr"><span class="cr-lbl">Outside Liabilities (Loan + Creditors + Outstanding Exp.)</span><span class="cr-amt" id="bs-nw-liab" style="color:var(--red)">₹0</span></div>
     <div class="cr tot"><span class="cr-lbl"><b>NET WORTH</b></span><span class="cr-amt" style="font-size:17px" id="bs-networth">₹0</span></div>
     <div class="bsrt"><div><b id="bs-r-cr">—</b><small>Current Ratio</small></div><div><b id="bs-r-wc">—</b><small>Working Capital</small></div><div><b id="bs-r-de">—</b><small>Debt : Equity</small></div></div></div>
+   <div class="bsc"><h3>📅 MONTH-WISE HISAAB (Trading &amp; P&amp;L)</h3><div id="bs-monthly" style="overflow-x:auto;padding:6px"></div></div>
    <button class="btn bg2" style="width:100%" onclick="pdfBalance()">📄 Balance Sheet PDF (CA / Officer ke liye)</button>
   </div></div>
 </div>
@@ -2498,7 +2499,7 @@ function delActivityLogEntry(docId){
     .catch(function(e){toast('❌ Delete nahi ho paya, internet check karein','te');console.warn(e);});
 }
 // Stock lock variables
-var _stUnlocked=false,_pendingNav=null;
+var _stUnlocked=false,_bsUnlocked=false,_pendingNav=null;
 var _alUnlocked=false;
 
 // ── STOCK PASSWORD FUNCTIONS (global scope) ──
@@ -2506,6 +2507,20 @@ function checkStPwd(){
   var inp=document.getElementById('stPwdIn'),err=document.getElementById('stPwdErr');
   if(!inp)return;
   var val=(inp.value||'').replace(/\D/g,'');
+  if(_pendingNav==='balance'){
+    if(val==='454062'){
+      _bsUnlocked=true;
+      var ovb=document.getElementById('stockLockOv');if(ovb)ovb.style.display='none';
+      _pendingNav=null;
+      toast('✅ Balance Sheet unlock!','ts');
+      setTimeout(function(){go('balance');},100);
+    }else{
+      if(err){err.style.display='block';err.textContent='❌ Galat Password!';}
+      if(inp)inp.value='';
+      setTimeout(function(){if(err)err.style.display='none';try{inp.focus();}catch(x){}},2500);
+    }
+    return;
+  }
   if(val==='977761'||val===(localStorage.getItem('bf_opin')||'977761')){
     localStorage.setItem('bf_opin','977761');
     _stUnlocked=true;
@@ -2954,7 +2969,7 @@ function go(name){
   }
   // 🔐 OWNER PASSWORD LOCK
   var _protectedPages={stock:'📦 Stock Section',cashflow:'🔄 Cash Flow',balance:'📒 Balance Sheet',profit:'📈 Profit & Reports',salary:'👨‍💼 Salary Section',inventory:'🔍 Inventory Verification',capital:'🪙 Capital Tracker',loan:'🏦 Loan & ROI Tracker'};
-  if(_protectedPages[name]&&!((_role||'')==='owner'||_stUnlocked===true)){
+  if(_protectedPages[name]&&!(name==='balance'?((_role||'')==='owner'||_bsUnlocked===true):((_role||'')==='owner'||_stUnlocked===true))){
     _pendingNav=name;
     var _ptitle=_protectedPages[name];
     var _ov=document.getElementById('stockLockOv');
@@ -5021,12 +5036,19 @@ function autoFillCF(){
   ids.forEach(function(k){var el=document.getElementById(k);if(el){el.value=sums[k]||'';el.readOnly=true;el.style.background='#f1f5f9';}});
   var op=document.getElementById('cf-opening');if(op){op.value=Math.round(opening)||'';op.readOnly=true;op.style.background='#f1f5f9';}
   var yr=m.substring(0,4),mk=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var startYM=BF_START.substring(0,7),preIn=0,preOut=0;
+  (D.cash||[]).forEach(function(c){
+    if(!c.date||c.date.substring(0,7)>=startYM)return;
+    if(c.type==='income')preIn+=c.amount||0;else if(c.type==='expense')preOut+=c.amount||0;
+  });
   mk.forEach(function(k,i){
     var ym=yr+'-'+String(i+1).padStart(2,'0'),inn=0,out=0;
-    (D.cash||[]).forEach(function(c){if(c.date&&c.date.substring(0,7)===ym){if(c.type==='income')inn+=c.amount||0;else if(c.type==='expense')out+=c.amount||0;}});
+    // Business 1 Aug 2026 se shuru — usse pehle ke mahine table me 0 dikhao (data neeche Pre-launch me)
+    if(ym>=startYM){(D.cash||[]).forEach(function(c){if(c.date&&c.date.substring(0,7)===ym){if(c.type==='income')inn+=c.amount||0;else if(c.type==='expense')out+=c.amount||0;}});}
     var a=document.getElementById('mt-'+k+'-in'),b=document.getElementById('mt-'+k+'-out');
     if(a){a.value=inn||'';a.readOnly=true;}if(b){b.value=out||'';b.readOnly=true;}
   });
+  window._cfPre={inn:preIn,out:preOut};
   calcCF();calcMonthly();bfCfApplyModeUI();
 }
 function calcMonthly(){
@@ -5039,6 +5061,16 @@ function calcMonthly(){
     row.querySelector('.mt-bal').style.color=bal>=0?'var(--green)':'var(--red)';
     tIn+=inV;tOut+=outV;tBal+=bal;
   });
+  var pre=window._cfPre||{inn:0,out:0};
+  if(_cfMode!=='manual'){tIn+=pre.inn;tOut+=pre.out;tBal+=pre.inn-pre.out;}
+  var tbl=document.querySelector('.mtbl'),pr=document.getElementById('cfPreRow');
+  if(tbl&&_cfMode!=='manual'&&(pre.inn||pre.out)){
+    var lastRow=document.getElementById('mt-total-in');lastRow=lastRow&&lastRow.closest('tr');
+    if(!pr&&lastRow){pr=document.createElement('tr');pr.id='cfPreRow';pr.innerHTML='<td style="text-align:center;font-size:11px;color:#B45309;font-weight:700">Pre-launch<br><span style="font-size:9px;font-weight:400">(1 Aug se pehle)</span></td><td id="cfPreIn" style="text-align:center;font-size:12px"></td><td id="cfPreOut" style="text-align:center;font-size:12px"></td><td id="cfPreBal" style="text-align:center;font-size:12px;font-weight:700"></td>';lastRow.parentNode.insertBefore(pr,lastRow);}
+    var q=function(i,v){var e=document.getElementById(i);if(e)e.textContent=v;};
+    q('cfPreIn',rs(pre.inn));q('cfPreOut',rs(pre.out));q('cfPreBal',rs(pre.inn-pre.out));
+    var pb=document.getElementById('cfPreBal');if(pb)pb.style.color=(pre.inn-pre.out)>=0?'var(--green)':'var(--red)';
+  }else{var o=document.getElementById('cfPreRow');if(o)o.remove();}
   var ti=document.getElementById('mt-total-in');if(ti)ti.textContent=rs(tIn);
   var to=document.getElementById('mt-total-out');if(to)to.textContent=rs(tOut);
   var tb=document.getElementById('mt-total-bal');if(tb){tb.textContent=rs(tBal);tb.style.color=tBal>=0?'var(--green)':'var(--red)';}
@@ -5290,10 +5322,61 @@ function calcAll(){
   window._plData={rev:rev,cogs:cogs,opex:opex,dep:dep,intr:intr,tax:tax,gross:gross,ebitda:ebitda,ebit:ebit,pbt:pbt,net:net};
 }
 
+
+// ══ BALANCE SHEET — CA FORMAT HELPERS (commencement, depreciation, month-wise) ══
+var BF_START='2026-08-01'; // Business commencement date
+function bfBsStart(){var t=td(),y=parseInt(t.substring(0,4),10),m=parseInt(t.substring(5,7),10),fy=m>=4?y:y-1,fs=fy+'-04-01';return BF_START>fs?BF_START:fs;}
+function bfBsDepCalc(){
+  var g=function(id){var e=document.getElementById(id);return e?parseFloat(e.value)||0:0;};
+  var days=Math.max(0,Math.round((new Date(td())-new Date(bfBsStart()))/86400000)+1);
+  return Math.round((g('bs-a2')*0.10+g('bs-a3')*0.40)*days/365); // Income Tax WDV: Furniture 10%, Computer 40%
+}
+function bfBsMonthly(){
+  var s=bfBsStart(),t=td(),y=+s.substring(0,4),m=+s.substring(5,7),ey=+t.substring(0,4),em=+t.substring(5,7);
+  var mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],rows=[],T={rev:0,cogs:0,opex:0};
+  while(y<ey||(y===ey&&m<=em)){
+    var ym=y+'-'+(m<10?'0':'')+m,p=bfPnL(ym+'-01',ym+'-31');
+    rows.push({m:mn[m-1]+' '+y,rev:p.rev,cogs:p.cogs,gp:p.rev-p.cogs,opex:p.opex,np:p.rev-p.cogs-p.opex});
+    T.rev+=p.rev;T.cogs+=p.cogs;T.opex+=p.opex;
+    m++;if(m>12){m=1;y++;}
+  }
+  var b=window._bsData||{},depv=parseFloat((document.getElementById('bs-a4')||{}).value)||0;
+  window._bsMonthly={rows:rows,T:T,dep:depv};
+  var el=document.getElementById('bs-monthly');if(!el)return;
+  var td_='padding:5px 6px;border-bottom:1px solid #eef2fa;text-align:right;font-size:11px;white-space:nowrap';
+  var h='<table style="width:100%;border-collapse:collapse"><tr style="background:#EAF0FB;color:#1A3A6B;font-size:10px"><th style="padding:5px 6px;text-align:left">Mahina</th><th>Sale</th><th>Maal Cost</th><th>Kharcha</th><th>Net</th></tr>';
+  rows.forEach(function(r){h+='<tr><td style="'+td_+';text-align:left;font-weight:700">'+r.m+'</td><td style="'+td_+'">'+rs(r.rev)+'</td><td style="'+td_+'">'+rs(r.cogs)+'</td><td style="'+td_+'">'+rs(r.opex)+'</td><td style="'+td_+';font-weight:700;color:'+(r.np>=0?'#16A34A':'#DC2626')+'">'+rs(r.np)+'</td></tr>';});
+  var npT=T.rev-T.cogs-T.opex;
+  h+='<tr style="background:#FFF8DC;font-weight:800"><td style="'+td_+';text-align:left">Total</td><td style="'+td_+'">'+rs(T.rev)+'</td><td style="'+td_+'">'+rs(T.cogs)+'</td><td style="'+td_+'">'+rs(T.opex)+'</td><td style="'+td_+'">'+rs(npT)+'</td></tr>';
+  h+='<tr><td colspan="4" style="'+td_+';text-align:left">Less: Depreciation (provisional)</td><td style="'+td_+'">'+rs(depv)+'</td></tr>';
+  h+='<tr style="background:#0B1F44;color:#FFD700;font-weight:900"><td colspan="4" style="'+td_+';text-align:left;color:#FFD700;border:none">NET PROFIT (Balance Sheet me jata hai)</td><td style="'+td_+';color:#FFD700;border:none">'+rs(npT-depv)+'</td></tr></table>';
+  el.innerHTML=h;
+}
+function bfBsAnnexure(){
+  var cap=[];try{cap=JSON.parse(localStorage.getItem('bhagya_capital_entries')||'[]');}catch(e){}
+  var dep=cap.filter(function(x){return x.type==='deposit';}).reduce(function(q,x){return q+Number(x.amount||0);},0);
+  var wd=cap.filter(function(x){return x.type==='withdraw';}).reduce(function(q,x){return q+Number(x.amount||0);},0);
+  var b=window._bsData||{},M=window._bsMonthly||{rows:[],T:{rev:0,cogs:0,opex:0},dep:0};
+  var c='padding:5px 8px;border-bottom:1px solid #d9e1f2;font-size:11px;',r=c+'text-align:right;';
+  var hd='<tr style="background:#EAF0FB;-webkit-print-color-adjust:exact;font-weight:800;color:#1A3A6B">';
+  var cap_t='<table style="width:100%;border-collapse:collapse;border:1px solid #d9e1f2">'+hd+'<td colspan="2" style="'+c+'">ANNEXURE 1 — PROPRIETOR\'S CAPITAL ACCOUNT</td></tr>'
+   +'<tr><td style="'+c+'">Capital Introduced (Capital Tracker)</td><td style="'+r+'">'+rs(dep)+'</td></tr>'
+   +'<tr><td style="'+c+'">Less: Drawings (Withdrawals)</td><td style="'+r+'">'+rs(wd)+'</td></tr>'
+   +'<tr><td style="'+c+'">Add: Net Profit for the period</td><td style="'+r+'">'+rs(b.d2||0)+'</td></tr>'
+   +'<tr style="background:#FFF8DC;-webkit-print-color-adjust:exact;font-weight:800"><td style="'+c+'">Closing Capital</td><td style="'+r+'">'+rs(dep-wd+(b.d2||0))+'</td></tr></table>';
+  var m_t='<table style="width:100%;border-collapse:collapse;border:1px solid #d9e1f2">'+hd+'<td colspan="6" style="'+c+'">ANNEXURE 2 — MONTH-WISE TRADING &amp; PROFIT/LOSS</td></tr>'
+   +hd+'<td style="'+c+'">Month</td><td style="'+r+'">Sales</td><td style="'+r+'">Cost of Goods</td><td style="'+r+'">Gross Profit</td><td style="'+r+'">Expenses</td><td style="'+r+'">Net</td></tr>';
+  M.rows.forEach(function(x){m_t+='<tr><td style="'+c+'">'+x.m+'</td><td style="'+r+'">'+rs(x.rev)+'</td><td style="'+r+'">'+rs(x.cogs)+'</td><td style="'+r+'">'+rs(x.gp)+'</td><td style="'+r+'">'+rs(x.opex)+'</td><td style="'+r+'">'+rs(x.np)+'</td></tr>';});
+  m_t+='<tr style="background:#FFF8DC;-webkit-print-color-adjust:exact;font-weight:800"><td style="'+c+'">Total</td><td style="'+r+'">'+rs(M.T.rev)+'</td><td style="'+r+'">'+rs(M.T.cogs)+'</td><td style="'+r+'">'+rs(M.T.rev-M.T.cogs)+'</td><td style="'+r+'">'+rs(M.T.opex)+'</td><td style="'+r+'">'+rs(M.T.rev-M.T.cogs-M.T.opex)+'</td></tr>'
+   +'<tr><td colspan="5" style="'+c+'">Less: Depreciation (provisional)</td><td style="'+r+'">'+rs(M.dep)+'</td></tr>'
+   +'<tr style="background:#0B1F44;-webkit-print-color-adjust:exact"><td colspan="5" style="'+c+'color:#FFD700;font-weight:900">NET PROFIT / (LOSS)</td><td style="'+r+'color:#FFD700;font-weight:900">'+rs(M.T.rev-M.T.cogs-M.T.opex-M.dep)+'</td></tr></table>';
+  return '<div style="margin-top:12px;display:grid;grid-template-columns:1fr;gap:10px">'+cap_t+m_t+'</div>';
+}
+
 // ── calcBS (redesigned) ──
 function calcBS(){
   var bsv=function(id){var el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
-  var a=bsv('bs-a1')+bsv('bs-a2')+bsv('bs-a3');
+  var a=bsv('bs-a1')+bsv('bs-a2')+bsv('bs-a3')-bsv('bs-a4'); // Net Block = Cost − Depreciation
   var b=bsv('bs-b1')+bsv('bs-b2')+bsv('bs-b3')+bsv('bs-b4')+bsv('bs-b5');
   var totalA=a+b, d=bsv('bs-d1')+bsv('bs-d2'), e=bsv('bs-e1')+bsv('bs-e2'), f=bsv('bs-f1')+bsv('bs-f2');
   var totalL=d+e+f, diff=totalA-totalL, outside=e+f, netWorth=totalA-outside;
@@ -5321,12 +5404,13 @@ function calcBS(){
       var dep=cap.filter(function(x){return x.type==='deposit';}).reduce(function(q,x){return q+Number(x.amount||0);},0);
       var cIn=(D.cash||[]).filter(function(c){return c.type==='income'&&/capital|deposit|invest|loan|karz/i.test(c.desc||'');}).reduce(function(q,c){return q+(c.amount||0);},0);
       rc.style.display='block';
-      rc.innerHTML='<b>🔎 Hisaab Milan — gap kahan hai</b><br>• Capital+Loan+Udhari: <b>'+rs(totalL)+'</b> | Assets: <b>'+rs(totalA)+'</b> | Gap: <b>'+rs(Math.abs(diff))+'</b><br>• Capital Tracker Deposit <b>'+rs(dep)+'</b> vs Cash page Capital Cash-IN <b>'+rs(cIn)+'</b> → fark <b>'+rs(dep-cIn)+'</b> (fark ho to Cash page me Cash-IN bhi daalein)<br>• Capital ka paisa jahan lagaya wahan bharein: Bank Balance, Fixed Assets (Furniture/Dukaan), Creditors. Jab tak ye khaali hain, gap rahega.';
+      rc.innerHTML='<b>🔎 Hisaab Milan — gap kahan hai</b><br>• Capital+Loan+Udhari: <b>'+rs(totalL)+'</b> | Assets: <b>'+rs(totalA)+'</b> | Gap: <b>'+rs(Math.abs(diff))+'</b><br>• Capital Tracker Deposit <b>'+rs(dep)+'</b> vs Cash page Capital Cash-IN <b>'+rs(cIn)+'</b> → fark <b>'+rs(dep-cIn)+'</b> (fark ho to Cash page me Cash-IN bhi daalein)<br>• Gap ke aam karan: (1) Maal/Furniture udhar liya par Creditors me entry nahi, (2) Bank/Cash me paisa aaya par Capital/Loan entry nahi, (3) Stock ya Cash entry galat. Karan milne tak PDF me ye <b>Difference in Books</b> dikhega — ise apni taraf se adjust ya plug na karein.';
     }
   }
   window._bsData={a:a,b:b,totalA:totalA,d:d,e:e,f:f,totalL:totalL,netWorth:netWorth,diff:diff,
-    a1:bsv('bs-a1'),a2:bsv('bs-a2'),a3:bsv('bs-a3'),b1:bsv('bs-b1'),b2:bsv('bs-b2'),b3:bsv('bs-b3'),b4:bsv('bs-b4'),b5:bsv('bs-b5'),
+    a4:bsv('bs-a4'),a1:bsv('bs-a1'),a2:bsv('bs-a2'),a3:bsv('bs-a3'),b1:bsv('bs-b1'),b2:bsv('bs-b2'),b3:bsv('bs-b3'),b4:bsv('bs-b4'),b5:bsv('bs-b5'),
     d1:bsv('bs-d1'),d2:bsv('bs-d2'),e1:bsv('bs-e1'),e2:bsv('bs-e2'),f1:bsv('bs-f1'),f2:bsv('bs-f2'),cr:cr,de:de};
+  if(typeof bfBsMonthly==='function')bfBsMonthly();
 }
 
 // ── CASH FLOW / BALANCE SHEET — MANUAL ENTRY PERSISTENCE ──
@@ -5337,7 +5421,7 @@ function calcBS(){
 // save hota hai, aur page khulte hi wahi se wapas load ho jaata hai — kabhi gaayab nahi hoga.
 var CF_FIELD_IDS=['cf-sale','cf-recovery','cf-loan-in','cf-other-in','cf-purchase','cf-salary','cf-rent','cf-bijli','cf-emi','cf-other-out','cf-opening'];
 var MT_FIELD_IDS=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].reduce(function(a,m){a.push('mt-'+m+'-in','mt-'+m+'-out');return a;},[]);
-var BS_FIELD_IDS=['bs-a1','bs-a2','bs-a3','bs-b1','bs-b2','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1','bs-e2','bs-f1','bs-f2'];
+var BS_FIELD_IDS=['bs-a1','bs-a2','bs-a3','bs-a4','bs-b1','bs-b2','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1','bs-e2','bs-f1','bs-f2'];
 function bfCfBsSaveField(id,val){
   if(!D.cfbs)D.cfbs={};
   D.cfbs[id]=val;
@@ -5379,10 +5463,11 @@ function bfCfBsRestore(){
 
 // ── MANUAL/AUTO LOCK for Balance Sheet fields ──
 // Locked field = user chose Manual entry, Auto-Fill won't overwrite it.
-var BS_AUTO_FIELDS=['bs-b1','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1'];
-function bsGetLocks(){try{return JSON.parse(localStorage.getItem('bf_bs_manual_locks')||'[]');}catch(e){return [];}}
+var BS_AUTO_FIELDS=['bs-a4','bs-b1','bs-b3','bs-b4','bs-b5','bs-d1','bs-d2','bs-e1'];
+function bsGetLocks(){try{return JSON.parse(localStorage.getItem('bf_bs_manual_locks')||'[]').filter(function(x){return String(x).indexOf('bs-')===0;});}catch(e){return [];}}
 function bsSetLocks(arr){localStorage.setItem('bf_bs_manual_locks',JSON.stringify(arr));}
 function toggleBSLock(fieldId){
+  if(String(fieldId).indexOf('bs-')!==0)fieldId='bs-'+fieldId; // FIX: button 'b1' bhejta tha, par check 'bs-b1' se hota tha — isliye AUTO/MANUAL kaam nahi karta tha
   var locks=bsGetLocks();
   var idx=locks.indexOf(fieldId);
   if(idx>=0){locks.splice(idx,1);toast('🔄 '+fieldId+' ab Auto se bharegi','ts');}
@@ -5400,7 +5485,7 @@ function toggleBSLock(fieldId){
 function renderBSLockUI(){
   var locks=bsGetLocks();
   BS_AUTO_FIELDS.forEach(function(id){
-    var btn=document.getElementById('bs-lock-'+id);
+    var btn=document.getElementById('bs-lock-'+id.replace('bs-',''));
     if(!btn)return;
     var isLocked=locks.indexOf(id)>=0;
     if(isLocked){
@@ -5445,8 +5530,10 @@ function autoFillBS(){
     // Net Profit (Year) = is saal ki Sales − is saal ke Expenses
     var _t=td(),_y=parseInt(_t.substring(0,4),10),_m=parseInt(_t.substring(5,7),10);
     var _fy=_m>=4?_y:_y-1; // Indian Financial Year: 1 April se
-    var _py=bfPnL(_fy+'-04-01',(_fy+1)+'-03-31');
-    var netProfitYear=_py.rev-_py.cogs-_py.opex;
+    var _py=bfPnL(bfBsStart(),(_fy+1)+'-03-31');
+    var _a4el=document.getElementById('bs-a4');
+    var depUse=(bsGetLocks().indexOf('bs-a4')>=0)?(parseFloat(_a4el&&_a4el.value)||0):bfBsDepCalc();
+    var netProfitYear=_py.rev-_py.cogs-_py.opex-depUse;
 
     // Bank Loan = Loan & ROI Tracker outstanding (Term Loans + CC/OD), live global lrDB use karo
     var loanTotal=0;
@@ -5463,6 +5550,7 @@ function autoFillBS(){
       if(bsGetLocks().indexOf(id)>=0)return; // manual-locked, skip
       var el=document.getElementById(id);if(el)el.value=Math.round(v);
     };
+    setv('bs-a4',depUse);
     setv('bs-b1',cashInHand);
     setv('bs-b3',stockVal);
     setv('bs-b4',debtors);
@@ -5573,26 +5661,26 @@ function pdfBalance(){
   var hd=function(t){return'<tr style="background:#EAF0FB;-webkit-print-color-adjust:exact"><td colspan="3" style="padding:6px 8px;font-size:10.5px;font-weight:800;color:#1A3A6B;letter-spacing:.4px">'+t+'</td></tr>';};
   var gt=function(l,v){return'<tr style="background:#0B1F44;-webkit-print-color-adjust:exact"><td colspan="2" style="padding:9px 8px;color:#FFD700;font-weight:900;font-size:13px">'+l+'</td><td style="padding:9px 8px;text-align:right;color:#FFD700;font-weight:900;font-size:14px">'+R(v)+'</td></tr>';};
   var diff=b.diff||0, sus=Math.abs(diff)>=1;
-  var left=hd('A. FIXED ASSETS')+tr('Land / Shop Property',b.a1||0,'Manual')+tr('Furniture, Racks & Fittings',b.a2||0,'Manual')+tr('Computer / Equipment',b.a3||0,'Manual')+tr('Total Fixed Assets',b.a||0,'',1,'#FFF8DC')
+  var left=hd('A. FIXED ASSETS')+tr('Land / Shop Property',b.a1||0,'Manual')+tr('Furniture, Racks & Fittings',b.a2||0,'Manual')+tr('Computer / Equipment',b.a3||0,'Manual')+tr('Less: Depreciation (provisional, WDV)',-(b.a4||0),'Auto')+tr('Total Fixed Assets (Net Block)',b.a||0,'',1,'#FFF8DC')
    +hd('B. CURRENT ASSETS')+tr('Cash in Hand',b.b1||0,'Cash Book')+tr('Bank Balance',b.b2||0,'Manual')+tr('Closing Stock (at cost)',b.b3||0,'Stock Reg.')+tr('Sundry Debtors',b.b4||0,'Udhar Reg.')+tr('Staff Advances',b.b5||0,'Advance Reg.')+tr('Total Current Assets',b.b||0,'',1,'#FFF8DC')
-   +(sus&&diff<0?tr('Difference in Books (under reconciliation)',-diff,'Suspense',0,'#FEF2F2'):'')+gt('TOTAL',Math.max(b.totalA||0,b.totalL||0));
-  var right=hd('D. PROPRIETOR\'S CAPITAL')+tr('Capital Introduced (net of drawings)',b.d1||0,'Capital Tracker')+tr('Net Profit — FY '+fy+'-'+String(fy+1).slice(2),b.d2||0,'P&amp;L')+tr('Total Capital',b.d||0,'',1,'#FFF8DC')
+   +(sus&&diff<0?tr('Difference in Books (under reconciliation)',-diff,'Suspense',0,'#FEF2F2'):'')+gt('TOTAL ASSETS',Math.max(b.totalA||0,b.totalL||0));
+  var right=hd('D. PROPRIETOR\'S CAPITAL')+tr('Capital Introduced less Drawings',b.d1||0,'Capital Tracker')+tr('Add: Net Profit (from 01/08/2026, after Dep.)',b.d2||0,'P&amp;L')+tr('Total Capital',b.d||0,'',1,'#FFF8DC')
    +hd('E. LONG TERM LIABILITIES')+tr('Bank / Mudra Loan',b.e1||0,'Loan Tracker')+tr('Personal / Family Loan',b.e2||0,'Manual')+tr('Total LT Liabilities',b.e||0,'',1,'#FFF8DC')
    +hd('F. CURRENT LIABILITIES')+tr('Sundry Creditors',b.f1||0,'Manual')+tr('Outstanding Expenses',b.f2||0,'Manual')+tr('Total Current Liabilities',b.f||0,'',1,'#FFF8DC')
-   +(sus&&diff>0?tr('Difference in Books (under reconciliation)',diff,'Suspense',0,'#FEF2F2'):'')+gt('TOTAL',Math.max(b.totalA||0,b.totalL||0));
+   +(sus&&diff>0?tr('Difference in Books (under reconciliation)',diff,'Suspense',0,'#FEF2F2'):'')+gt('TOTAL CAPITAL & LIABILITIES',Math.max(b.totalA||0,b.totalL||0));
   var html='<div style="font-family:Arial,sans-serif;padding:6px;-webkit-print-color-adjust:exact">'
    +'<div style="text-align:center;border:2px solid #D4A93A;border-radius:10px;padding:14px;background:#F8FAFF">'
    +'<div style="font-size:20px;font-weight:900;color:#0B1F44;letter-spacing:1px">BHAGYA FASHION &amp; COLLECTION</div>'
    +'<div style="font-size:11px;color:#475569;margin-top:3px">Chhatiguda Chawk, Kalahandi, Odisha — 766110</div>'
    +'<div style="font-size:11px;color:#475569">Proprietor: Miniketan &nbsp;|&nbsp; Udyam Reg. No.: UDYAM-OD-15-0040406</div>'
    +'<div style="margin:10px auto 0;display:inline-block;background:#0B1F44;color:#FFD700;font-weight:800;font-size:13px;padding:5px 22px;border-radius:20px">BALANCE SHEET AS ON '+fd(td()).toUpperCase()+'</div>'
-   +'<div style="font-size:10px;color:#64748B;margin-top:6px">Financial Year '+fy+'-'+String(fy+1).slice(2)+' &nbsp;|&nbsp; Amounts in Indian Rupees (₹)</div></div>'
+   +'<div style="font-size:10px;color:#64748B;margin-top:6px">Financial Year '+fy+'-'+String(fy+1).slice(2)+' &nbsp;|&nbsp; Business commenced 01/08/2026 &nbsp;|&nbsp; Provisional / Unaudited &nbsp;|&nbsp; Amounts in Indian Rupees (₹)</div></div>'
    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">'
    +'<div><div style="background:#1A3A6B;color:#FFD700;padding:8px;font-weight:800;font-size:12px;border-radius:6px 6px 0 0;-webkit-print-color-adjust:exact">ASSETS (Sampatti)</div><table style="width:100%;border-collapse:collapse;border:1px solid #d9e1f2">'+left+'</table></div>'
    +'<div><div style="background:#1A3A6B;color:#FFD700;padding:8px;font-weight:800;font-size:12px;border-radius:6px 6px 0 0;-webkit-print-color-adjust:exact">CAPITAL &amp; LIABILITIES</div><table style="width:100%;border-collapse:collapse;border:1px solid #d9e1f2">'+right+'</table></div></div>'
    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;text-align:center">'
    +[['Net Worth',R(b.netWorth||0)],['Working Capital',R((b.b||0)-(b.f||0))],['Current Ratio',b.cr||'—'],['Debt : Equity',b.de||'—']].map(function(x){return'<div style="background:#EAF0FB;border-radius:8px;padding:8px 2px;-webkit-print-color-adjust:exact"><div style="font-size:14px;font-weight:900;color:#0B1F44">'+x[1]+'</div><div style="font-size:9px;color:#64748B">'+x[0]+'</div></div>';}).join('')+'</div>'
-   +'<div style="font-size:9.5px;color:#64748B;margin-top:10px;line-height:1.5"><b>Notes:</b> 1) Stock is valued at cost price. 2) Cash, Stock, Debtors, Advances, Capital and Loan are taken from the books maintained in the Bhagya Fashion app; Bank Balance, Fixed Assets and Creditors are entered by the proprietor from records/vouchers. 3) Net Profit = Sales − Cost of goods − Operating expenses, from 1 April of the Financial Year.'+(sus?' 4) A difference of '+R(Math.abs(diff))+' is shown as "Difference in Books" pending reconciliation.':'')+'</div>'
+   +bfBsAnnexure()+'<div style="font-size:9.5px;color:#64748B;margin-top:10px;line-height:1.5"><b>Notes:</b> 1) Stock is valued at cost price. 2) Cash, Stock, Debtors, Advances, Capital and Loan are taken from the books maintained in the Bhagya Fashion app; Bank Balance, Fixed Assets and Creditors are entered by the proprietor from records/vouchers. 3) Business commenced on 01/08/2026; Net Profit = Sales − Cost of goods − Operating expenses − Depreciation, from commencement. 4) Depreciation is provisional (Income Tax WDV rates: Furniture 10%, Computer 40%, pro-rata from commencement); final figure to be decided by the CA at year-end (31/03). 5) Statements are provisional/unaudited, prepared from the records of the proprietor.'+(sus?' 6) A difference of '+R(Math.abs(diff))+' is shown as "Difference in Books" pending reconciliation.':'')+'</div>'
    +'<div style="display:flex;justify-content:space-between;margin-top:46px;font-size:11px;color:#0B1F44"><div style="text-align:center;width:42%"><div style="border-top:1.5px solid #0B1F44;padding-top:5px"><b>Proprietor</b><br>Miniketan<br><span style="color:#64748B;font-size:9.5px">Date: ____________</span></div></div><div style="text-align:center;width:42%"><div style="border-top:1.5px solid #0B1F44;padding-top:5px"><b>Chartered Accountant</b><br>Name / M. No.: ______________<br><span style="color:#64748B;font-size:9.5px">UDIN: ______________ &nbsp; Date: ________</span></div></div></div>'
    +'<div style="text-align:center;font-size:9px;color:#94A3B8;margin-top:14px">Generated by Bhagya Fashion Ultimate App — '+fd(td())+'</div></div>';
   _openPDF('📒 Balance Sheet PDF',html);
