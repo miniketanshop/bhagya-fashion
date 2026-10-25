@@ -1211,6 +1211,26 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
       <button class="btn bp" onclick="saveExp()">💾 Expense Save</button>
     </div>
   </div>
+  <div class="card" id="expRepCard">
+    <div class="ch"><h3>📑 Reports — PDF &amp; WhatsApp</h3></div>
+    <div class="cb">
+      <div class="fr" style="margin-bottom:10px">
+        <div class="fg"><label class="fl">Mahina Chuno</label><input class="fi" id="eRepM" type="month"></div>
+        <div class="fg"><label class="fl">Saal Chuno</label><select class="fi" id="eRepY"></select></div>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:#DC2626;margin:6px 0 5px">1️⃣ Is Mahine ka Expense</div>
+      <div class="fr" style="gap:8px;margin-bottom:10px"><button class="btn bp" onclick="pdfExpMonth()">📄 PDF</button><button class="btn" style="background:#25D366;color:#fff" onclick="waExpMonth()">📲 WhatsApp</button></div>
+      <div style="font-size:11px;font-weight:800;color:#DC2626;margin:6px 0 5px">2️⃣ 1 Saal ka Expense</div>
+      <div class="fr" style="gap:8px;margin-bottom:10px"><button class="btn bp" onclick="pdfExpYear()">📄 PDF</button><button class="btn" style="background:#25D366;color:#fff" onclick="waExpYear()">📲 WhatsApp</button></div>
+      <div style="font-size:11px;font-weight:800;color:#16A34A;margin:6px 0 5px">3️⃣ Is Mahine ki Sale</div>
+      <div class="fr" style="gap:8px;margin-bottom:10px"><button class="btn bp" onclick="pdfSaleMonth()">📄 PDF</button><button class="btn" style="background:#25D366;color:#fff" onclick="waSaleMonth()">📲 WhatsApp</button></div>
+      <div style="font-size:11px;font-weight:800;color:#1A3A6B;margin:6px 0 5px">4️⃣ 1 Saal ki Salary</div>
+      <div class="fr" style="gap:8px;margin-bottom:10px"><button class="btn bp" onclick="pdfSalYear()">📄 PDF</button><button class="btn" style="background:#25D366;color:#fff" onclick="waSalYear()">📲 WhatsApp</button></div>
+      <div style="font-size:11px;font-weight:800;color:#EA580C;margin:6px 0 5px">⭐ Extra: Mahine ka Poora Hisaab (Sale − Kharcha − Salary = Profit)</div>
+      <div class="fr" style="gap:8px"><button class="btn bp" onclick="pdfFullMonth()">📄 PDF</button><button class="btn" style="background:#25D366;color:#fff" onclick="waFullMonth()">📲 WhatsApp</button></div>
+      <div class="dr-info" style="margin-top:10px">🤖 Sab figures Sale bills, Expense, Salary aur Advance ki entries se <b>AUTO</b> aate hain. PDF: 📄 dabao → Print → <b>Save as PDF</b>.</div>
+    </div>
+  </div>
   <div id="expList"><div class="empty"><div class="ei">💸</div><p>Koi expense nahi</p></div></div>
 </div>
 
@@ -4891,13 +4911,14 @@ function saveExp(){
 }
 function showExp(){
   document.getElementById('eDate').value=td();
+  try{erInitReports();}catch(_e){}
   var t=td(),m=t.substring(0,7);
   document.getElementById('eTod').textContent=rs(D.expenses.filter(function(e){return e.date===t;}).reduce(function(a,e){return a+e.amount;},0));
   document.getElementById('eMon').textContent=rs(D.expenses.filter(function(e){return e.date&&e.date.startsWith(m);}).reduce(function(a,e){return a+e.amount;},0));
-  var recent=D.expenses.slice().reverse().slice(0,20);
+  var _allE=D.expenses.slice().reverse();var recent=_expAll?_allE:_allE.slice(0,20);
   var div=document.getElementById('expList');
   if(!recent.length){div.innerHTML='<div class="empty"><div class="ei">💸</div><p>Koi expense nahi</p></div>';return;}
-  div.innerHTML=recent.map(function(e){var orig=D.expenses.indexOf(e);return'<div class="er"><div class="ei">'+e.cat.split(' ')[0]+'</div><div style="flex:1"><div style="font-size:12px;font-weight:600">'+e.desc+'</div><div style="font-size:10px;color:#94A3B8">'+e.cat+' · '+fd(e.date)+'</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:var(--red)">'+rs(e.amount)+'</div><button class="btn bd" style="padding:5px 8px;font-size:10px;margin-top:3px" onclick="delExp('+orig+')">🗑️</button></div></div>';}).join('');
+  div.innerHTML=recent.map(function(e){var orig=D.expenses.indexOf(e);return'<div class="er"><div class="ei">'+e.cat.split(' ')[0]+'</div><div style="flex:1"><div style="font-size:12px;font-weight:600">'+e.desc+'</div><div style="font-size:10px;color:#94A3B8">'+e.cat+' · '+fd(e.date)+'</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:var(--red)">'+rs(e.amount)+'</div><button class="btn bd" style="padding:5px 8px;font-size:10px;margin-top:3px" onclick="delExp('+orig+')">🗑️</button></div></div>';}).join('')+(_allE.length>20?'<button class="btn" style="background:#EEF2FF;color:#1A3A6B;margin-top:8px" onclick="toggleExpAll()">'+(_expAll?'⬆️ Kam dikhao (20)':'📋 Sab '+_allE.length+' expense dikhao')+'</button>':'');
 }
 function delExp(i){
   var e=D.expenses[i];if(!e)return;
@@ -4909,6 +4930,220 @@ function delExp(i){
   if(ci>=0)D.cash.splice(ci,1);
   D.expenses.splice(i,1);save();showExp();toast('🗑️ Deleted!');
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPENSE PAGE REPORTS — PDF + WhatsApp (Mahina / Saal / Sale / Salary)
+//  Sab data app ke andar ki entries se AUTO aata hai.
+// ═══════════════════════════════════════════════════════════════
+var _ER_MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function erEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function erMonthKey(){var v=(document.getElementById('eRepM')||{}).value;return v||td().substring(0,7);}
+function erYearKey(){var v=(document.getElementById('eRepY')||{}).value;return v||td().substring(0,4);}
+function erMName(ym){var p=ym.split('-');return _ER_MN[(+p[1])-1]+' '+p[0];}
+function erPrevMonth(ym){var p=ym.split('-'),y=+p[0],m=+p[1]-1;if(m<1){m=12;y--;}return y+'-'+String(m).padStart(2,'0');}
+function erDesc(e){return e.desc||e.note||'-';}
+function erExpList(prefix){return(D.expenses||[]).filter(function(e){return e.date&&e.date.indexOf(prefix)===0;}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});}
+function erSaleList(prefix){return(D.sales||[]).filter(function(s){return s.date&&s.date.indexOf(prefix)===0;});}
+function erSum(arr,f){return arr.reduce(function(a,x){return a+(f?f(x):(x.amount||0));},0);}
+function erGroup(arr,keyFn,valFn){var o={};arr.forEach(function(x){var k=keyFn(x);if(!o[k])o[k]={key:k,amt:0,n:0};o[k].amt+=valFn(x);o[k].n++;});return Object.keys(o).map(function(k){return o[k];}).sort(function(a,b){return b.amt-a.amt;});}
+function erIsSalary(e){return /salary|vetan|tankhwah/i.test(e.cat||'');}
+function erPct(a,b){return b>0?Math.round(a*1000/b)/10:0;}
+function erDaysIn(ym){var p=ym.split('-');return new Date(+p[0],+p[1],0).getDate();}
+function erDaysElapsed(ym){var t=td();if(t.substring(0,7)===ym)return +t.substring(8,10);return erDaysIn(ym);}
+function erRetAmt(prefix){return erSum((D.returns||[]).filter(function(r){return r.date&&r.date.indexOf(prefix)===0&&/return/i.test(r.type||'Return');}));}
+
+// ── PDF building blocks ──
+var _erTH='padding:8px 7px;background:#1A3A6B;color:#FFD700;font-size:11px;text-align:left;';
+var _erTD='padding:7px;border-bottom:1px solid #E2E8F0;font-size:11.5px;';
+function erBox(label,val,color,bg){return'<div style="flex:1;min-width:120px;background:'+(bg||'#F1F5F9')+';border-radius:9px;padding:10px 12px;"><div style="font-size:10px;color:#64748B;font-weight:600">'+label+'</div><div style="font-size:18px;font-weight:900;color:'+(color||'#1A3A6B')+'">'+val+'</div></div>';}
+function erBoxes(arr){return'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">'+arr.join('')+'</div>';}
+function erH(t){return'<div style="font-size:13px;font-weight:800;color:#1A3A6B;margin:16px 0 6px;border-left:4px solid #FFD700;padding-left:8px">'+t+'</div>';}
+function erTable(head,rows,aligns,foot){
+  var h='<table style="width:100%;border-collapse:collapse"><thead><tr>'+head.map(function(x,i){return'<th style="'+_erTH+'text-align:'+(aligns[i]||'left')+'">'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  if(!rows.length)h+='<tr><td colspan="'+head.length+'" style="'+_erTD+'text-align:center;color:#94A3B8">Koi entry nahi</td></tr>';
+  rows.forEach(function(r,ri){h+='<tr style="background:'+(ri%2?'#F8FAFF':'#fff')+'">'+r.map(function(c,i){return'<td style="'+_erTD+'text-align:'+(aligns[i]||'left')+'">'+c+'</td>';}).join('')+'</tr>';});
+  if(foot)h+='<tr style="background:#FEF9C3;font-weight:900">'+foot.map(function(c,i){return'<td style="padding:8px 7px;font-size:12px;border-top:2px solid #F59E0B;text-align:'+(aligns[i]||'left')+'">'+c+'</td>';}).join('')+'</tr>';
+  return h+'</tbody></table>';
+}
+function erBar(p,color){return'<div style="background:#E2E8F0;border-radius:4px;height:7px;width:100%"><div style="background:'+(color||'#DC2626')+';height:7px;border-radius:4px;width:'+Math.min(100,p)+'%"></div></div>';}
+function erWrap(subtitle,period,inner){
+  return _hdr(subtitle)+'<div style="padding:6px 4px 14px"><div style="text-align:center;font-size:13px;font-weight:800;color:#1A3A6B;margin-top:12px">'+period+'</div>'+inner
+   +'<div style="text-align:center;font-size:10px;color:#94A3B8;margin-top:18px;border-top:1px dashed #CBD5E1;padding-top:8px">Bhagya Fashion &amp; Collection | Chhatikuda Chawk, Kalahandi, Odisha | Ph: 9777454061<br>Ye report app ki entries se auto bani hai — '+fd(td())+'</div></div>';
+}
+function erRs(n){return n<0?'-'+rs(Math.abs(n)):rs(n);}
+function erWA(msg){window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');}
+var _erLine='━━━━━━━━━━━━━━━━━━━━';
+function erWAHead(title,period){return'🛍️ *BHAGYA FASHION*\nChhatikuda Chawk, Odisha\n'+_erLine+'\n'+title+'\n📅 '+period+'\n'+_erLine+'\n';}
+function erWAFoot(){return'\n'+_erLine+'\n_Bhagya Fashion App | '+fd(td())+'_';}
+
+// ═══ 1) IS MAHINE KA EXPENSE ═══
+function _erMonthExpData(){
+  var ym=erMonthKey(),list=erExpList(ym),tot=erSum(list);
+  var prevTot=erSum(erExpList(erPrevMonth(ym)));
+  var cats=erGroup(list,function(e){return e.cat||'Other';},function(e){return e.amount||0;});
+  var opex=erSum(list.filter(bfIsOpex)),nonOpex=tot-opex;
+  var days=erDaysElapsed(ym);
+  return{ym:ym,list:list,tot:tot,prevTot:prevTot,cats:cats,opex:opex,nonOpex:nonOpex,days:days,avg:days?tot/days:0};
+}
+function pdfExpMonth(){
+  var d=_erMonthExpData();if(!d.list.length){toast('⚠️ '+erMName(d.ym)+' me koi expense nahi','te');return;}
+  var diff=d.tot-d.prevTot;
+  var inner=erBoxes([erBox('Kul Kharcha',rs(d.tot),'#DC2626','#FEE2E2'),erBox('Entries',d.list.length,'#1A3A6B'),erBox('Roz ka Average',rs(Math.round(d.avg)),'#EA580C','#FFF7ED'),erBox('Pichhle Mahine se',(diff>=0?'▲ ':'▼ ')+rs(Math.abs(diff)),diff>0?'#DC2626':'#16A34A',diff>0?'#FEF2F2':'#F0FDF4')])
+   +erBoxes([erBox('Operating Kharcha',rs(d.opex)),erBox('Purchase/Capex (Maal, Furniture)',rs(d.nonOpex))])
+   +erH('📊 Category ke hisab se')
+   +erTable(['Category','Entries','Amount','%',''],d.cats.map(function(c){var p=erPct(c.amt,d.tot);return[erEsc(c.key),c.n,rs(c.amt),p+'%','<div style="width:70px">'+erBar(p)+'</div>'];}),['left','center','right','right','left'],['<b>TOTAL</b>',d.list.length,rs(d.tot),'100%',''])
+   +erH('🧾 Poori Expense List (date wise)')
+   +erTable(['Date','Category','Kya tha','Amount'],d.list.map(function(e){return[fd(e.date),erEsc(e.cat),erEsc(erDesc(e)),'<b style="color:#DC2626">'+rs(e.amount)+'</b>'];}),['left','left','left','right'],['','','<b>KUL</b>',rs(d.tot)]);
+  _openPDF('Mahine ka Expense',erWrap('EXPENSE REPORT','Mahina: '+erMName(d.ym),inner));
+}
+function waExpMonth(){
+  var d=_erMonthExpData();if(!d.list.length){toast('⚠️ '+erMName(d.ym)+' me koi expense nahi','te');return;}
+  var diff=d.tot-d.prevTot;
+  var m=erWAHead('💸 *MAHINE KA EXPENSE REPORT*','Mahina: *'+erMName(d.ym)+'*');
+  m+='\n💰 *Kul Kharcha: '+rs(d.tot)+'*\n🧾 Entries: '+d.list.length+'\n📆 Roz ka avg: '+rs(Math.round(d.avg))+'\n'+(diff>=0?'🔺':'🔻')+' Pichhle mahine se: '+(diff>=0?'+':'-')+rs(Math.abs(diff))+'\n';
+  m+='\n📊 *Category wise:*\n'+d.cats.map(function(c){return'• '+c.key+': *'+rs(c.amt)+'* ('+erPct(c.amt,d.tot)+'%)';}).join('\n');
+  var top=d.list.slice().sort(function(a,b){return b.amount-a.amount;}).slice(0,8);
+  m+='\n\n🔝 *Sabse bade kharche:*\n'+top.map(function(e,i){return(i+1)+'. '+erDesc(e)+' ('+fd(e.date)+') — '+rs(e.amount);}).join('\n');
+  erWA(m+erWAFoot());
+}
+
+// ═══ 2) 1 SAAL KA EXPENSE ═══
+function _erYearExpData(){
+  var y=erYearKey(),list=erExpList(y),tot=erSum(list);
+  var months=erGroup(list,function(e){return e.date.substring(0,7);},function(e){return e.amount||0;}).sort(function(a,b){return a.key<b.key?-1:1;});
+  var cats=erGroup(list,function(e){return e.cat||'Other';},function(e){return e.amount||0;});
+  var opex=erSum(list.filter(bfIsOpex));
+  return{y:y,list:list,tot:tot,months:months,cats:cats,opex:opex,nonOpex:tot-opex,avg:months.length?tot/months.length:0};
+}
+function pdfExpYear(){
+  var d=_erYearExpData();if(!d.list.length){toast('⚠️ '+d.y+' me koi expense nahi','te');return;}
+  var mx=d.months.reduce(function(a,b){return b.amt>a.amt?b:a;},d.months[0]);
+  var top=d.list.slice().sort(function(a,b){return b.amount-a.amount;}).slice(0,10);
+  var inner=erBoxes([erBox('Saal ka Kul Kharcha',rs(d.tot),'#DC2626','#FEE2E2'),erBox('Entries',d.list.length),erBox('Mahine ka Average',rs(Math.round(d.avg)),'#EA580C','#FFF7ED'),erBox('Sabse Zyada Mahina',erMName(mx.key)+'<div style="font-size:11px">'+rs(mx.amt)+'</div>','#DC2626')])
+   +erBoxes([erBox('Operating Kharcha',rs(d.opex)),erBox('Purchase/Capex',rs(d.nonOpex))])
+   +erH('📅 Mahine wise Expense')
+   +erTable(['Mahina','Entries','Amount','%',''],d.months.map(function(m){var p=erPct(m.amt,d.tot);return[erMName(m.key),m.n,rs(m.amt),p+'%','<div style="width:70px">'+erBar(p)+'</div>'];}),['left','center','right','right','left'],['<b>TOTAL</b>',d.list.length,rs(d.tot),'100%',''])
+   +erH('📊 Category wise Expense')
+   +erTable(['Category','Entries','Amount','%'],d.cats.map(function(c){return[erEsc(c.key),c.n,rs(c.amt),erPct(c.amt,d.tot)+'%'];}),['left','center','right','right'],['<b>TOTAL</b>',d.list.length,rs(d.tot),'100%'])
+   +erH('🔝 Top 10 Bade Kharche')
+   +erTable(['Date','Category','Kya tha','Amount'],top.map(function(e){return[fd(e.date),erEsc(e.cat),erEsc(erDesc(e)),'<b style="color:#DC2626">'+rs(e.amount)+'</b>'];}),['left','left','left','right']);
+  _openPDF('Saal ka Expense',erWrap('YEARLY EXPENSE REPORT','Saal: '+d.y+(d.y==='2026'?' (Business shuru: 01/08/2026)':''),inner));
+}
+function waExpYear(){
+  var d=_erYearExpData();if(!d.list.length){toast('⚠️ '+d.y+' me koi expense nahi','te');return;}
+  var m=erWAHead('💸 *SAAL KA EXPENSE REPORT*','Saal: *'+d.y+'*');
+  m+='\n💰 *Kul Kharcha: '+rs(d.tot)+'*\n🧾 Entries: '+d.list.length+'\n📆 Mahine ka avg: '+rs(Math.round(d.avg))+'\n';
+  m+='\n📅 *Mahine wise:*\n'+d.months.map(function(x){return'• '+erMName(x.key)+': *'+rs(x.amt)+'*';}).join('\n');
+  m+='\n\n📊 *Category wise:*\n'+d.cats.map(function(c){return'• '+c.key+': *'+rs(c.amt)+'* ('+erPct(c.amt,d.tot)+'%)';}).join('\n');
+  erWA(m+erWAFoot());
+}
+
+// ═══ 3) IS MAHINE KI SALE ═══
+function _erMonthSaleData(){
+  var ym=erMonthKey(),list=erSaleList(ym),tot=erSum(list,function(s){return s.total||0;});
+  var prevTot=erSum(erSaleList(erPrevMonth(ym)),function(s){return s.total||0;});
+  var pm=erGroup(list,function(s){return(s.payMode||'cash').toLowerCase();},function(s){return s.total||0;});
+  var days=erGroup(list,function(s){return s.date;},function(s){return s.total||0;}).sort(function(a,b){return a.key<b.key?-1:1;});
+  var items={},qty=0;
+  list.forEach(function(s){(s.items||[]).forEach(function(it){var k=it.name||'?';if(!items[k])items[k]={name:k,q:0,amt:0};items[k].q+=(it.qty||0);items[k].amt+=(it.total||0);qty+=(it.qty||0);});});
+  var topItems=Object.keys(items).map(function(k){return items[k];}).sort(function(a,b){return b.amt-a.amt;}).slice(0,10);
+  var pl=bfPnL(ym+'-01',ym+'-31');
+  var ret=erRetAmt(ym);
+  var best=days.length?days.reduce(function(a,b){return b.amt>a.amt?b:a;},days[0]):null;
+  return{ym:ym,list:list,tot:tot,prevTot:prevTot,pm:pm,days:days,topItems:topItems,qty:qty,pl:pl,ret:ret,best:best,avgBill:list.length?tot/list.length:0};
+}
+var _erPMN={cash:'💵 Cash',upi:'📱 UPI',card:'💳 Card',udhar:'📋 Udhar'};
+function pdfSaleMonth(){
+  var d=_erMonthSaleData();if(!d.list.length){toast('⚠️ '+erMName(d.ym)+' me koi sale nahi','te');return;}
+  var diff=d.tot-d.prevTot,pl=d.pl,gross=pl.rev-pl.cogs,net=gross-pl.opex;
+  var inner=erBoxes([erBox('Kul Sale',rs(d.tot),'#16A34A','#DCFCE7'),erBox('Bills',d.list.length),erBox('Average Bill',rs(Math.round(d.avgBill)),'#EA580C','#FFF7ED'),erBox('Pichhle Mahine se',(diff>=0?'▲ ':'▼ ')+rs(Math.abs(diff)),diff>=0?'#16A34A':'#DC2626',diff>=0?'#F0FDF4':'#FEF2F2')])
+   +erBoxes([erBox('Maal Bika (pieces)',d.qty),erBox('Best Din',d.best?fd(d.best.key)+'<div style="font-size:11px">'+rs(d.best.amt)+'</div>':'-','#16A34A'),erBox('Return (is mahine)',rs(d.ret),'#DC2626')])
+   +erH('💳 Payment Mode wise')
+   +erTable(['Mode','Bills','Amount','%'],d.pm.map(function(p){return[_erPMN[p.key]||erEsc(p.key),p.n,rs(p.amt),erPct(p.amt,d.tot)+'%'];}),['left','center','right','right'],['<b>TOTAL</b>',d.list.length,rs(d.tot),'100%'])
+   +erH('📆 Din wise Sale')
+   +erTable(['Date','Bills','Sale'],d.days.map(function(x){return[fd(x.key),x.n,'<b style="color:#16A34A">'+rs(x.amt)+'</b>'];}),['left','center','right'],['<b>KUL</b>',d.list.length,rs(d.tot)])
+   +erH('🏆 Top 10 Items (kamai ke hisab se)')
+   +erTable(['Item','Qty','Amount'],d.topItems.map(function(i){return[erEsc(i.name),i.q,rs(i.amt)];}),['left','center','right'])
+   +erH('📈 Sale vs Kharcha (is mahine)')
+   +erTable(['Detail','Amount'],[['Kul Sale',rs(pl.rev)],['− Maal ki Cost (COGS)',rs(pl.cogs)],['<b>Gross Profit</b>','<b>'+rs(gross)+'</b>'],['− Operating Kharcha',rs(pl.opex)],['<b>Net Profit (approx)</b>','<b style="color:'+(net>=0?'#16A34A':'#DC2626')+'">'+rs(net)+'</b>']],['left','right'])
+   +(pl.missing.length?'<div style="font-size:10px;color:#B45309;background:#FFFBEB;padding:7px;border-radius:6px;margin-top:6px">⚠️ In items ka buy price stock me nahi hai, isliye profit approx hai: '+erEsc(pl.missing.slice(0,8).join(', '))+'</div>':'');
+  _openPDF('Mahine ki Sale',erWrap('SALE REPORT','Mahina: '+erMName(d.ym),inner));
+}
+function waSaleMonth(){
+  var d=_erMonthSaleData();if(!d.list.length){toast('⚠️ '+erMName(d.ym)+' me koi sale nahi','te');return;}
+  var diff=d.tot-d.prevTot,pl=d.pl,net=pl.rev-pl.cogs-pl.opex;
+  var m=erWAHead('🧾 *MAHINE KI SALE REPORT*','Mahina: *'+erMName(d.ym)+'*');
+  m+='\n💰 *Kul Sale: '+rs(d.tot)+'*\n🧾 Bills: '+d.list.length+' | Avg bill: '+rs(Math.round(d.avgBill))+'\n📦 Maal bika: '+d.qty+' pcs\n'+(diff>=0?'🔺':'🔻')+' Pichhle mahine se: '+(diff>=0?'+':'-')+rs(Math.abs(diff))+'\n';
+  if(d.best)m+='🏅 Best din: '+fd(d.best.key)+' — '+rs(d.best.amt)+'\n';
+  m+='\n💳 *Payment mode:*\n'+d.pm.map(function(p){return'• '+(_erPMN[p.key]||p.key)+': *'+rs(p.amt)+'* ('+p.n+' bill)';}).join('\n');
+  m+='\n\n🏆 *Top items:*\n'+d.topItems.slice(0,5).map(function(i,k){return(k+1)+'. '+i.name+' — '+i.q+' pcs, '+rs(i.amt);}).join('\n');
+  m+='\n\n📈 *Sale − Maal Cost − Kharcha:*\nNet (approx): *'+erRs(net)+'*';
+  erWA(m+erWAFoot());
+}
+
+// ═══ 4) 1 SAAL KI SALARY ═══
+function _erYearSalData(){
+  var y=erYearKey(),list=erExpList(y).filter(erIsSalary),tot=erSum(list);
+  var months=erGroup(list,function(e){return e.date.substring(0,7);},function(e){return e.amount||0;}).sort(function(a,b){return a.key<b.key?-1:1;});
+  var ppl=erGroup(list,function(e){return erDesc(e).trim().toLowerCase();},function(e){return e.amount||0;});
+  var adv=(D.advances||[]).filter(function(a){return a.date&&a.date.indexOf(y)===0;});
+  var advTot=erSum(adv),advPend=erSum(adv.filter(function(a){return a.status==='pending';}));
+  var allExp=erSum(erExpList(y));
+  return{y:y,list:list,tot:tot,months:months,ppl:ppl,adv:adv,advTot:advTot,advPend:advPend,allExp:allExp,avg:months.length?tot/months.length:0};
+}
+function _erStaffName(a){var s=(D.staff||[]).find(function(x){return String(x.id)===String(a.staffId);});return s?s.name:'Staff';}
+function pdfSalYear(){
+  var d=_erYearSalData();if(!d.list.length&&!d.adv.length){toast('⚠️ '+d.y+' me koi salary entry nahi','te');return;}
+  var inner=erBoxes([erBox('Saal ki Kul Salary',rs(d.tot),'#1A3A6B','#EEF2FF'),erBox('Entries',d.list.length),erBox('Mahine ka Average',rs(Math.round(d.avg)),'#EA580C','#FFF7ED'),erBox('Total Kharche me %',erPct(d.tot,d.allExp)+'%','#DC2626','#FEF2F2')])
+   +erH('📅 Mahine wise Salary')
+   +erTable(['Mahina','Entries','Amount','%',''],d.months.map(function(m){var p=erPct(m.amt,d.tot);return[erMName(m.key),m.n,rs(m.amt),p+'%','<div style="width:70px">'+erBar(p,'#1A3A6B')+'</div>'];}),['left','center','right','right','left'],['<b>TOTAL</b>',d.list.length,rs(d.tot),'100%',''])
+   +erH('👨‍💼 Staff wise Salary (description ke hisab se)')
+   +erTable(['Naam / Description','Baar','Amount'],d.ppl.map(function(p){return[erEsc(p.key.replace(/\b\w/g,function(c){return c.toUpperCase();})),p.n,rs(p.amt)];}),['left','center','right'],['<b>TOTAL</b>',d.list.length,rs(d.tot)])
+   +erH('🧾 Poori Salary List')
+   +erTable(['Date','Kisko / Kya','Amount'],d.list.map(function(e){return[fd(e.date),erEsc(erDesc(e)),'<b>'+rs(e.amount)+'</b>'];}),['left','left','right'],['','<b>KUL</b>',rs(d.tot)])
+   +(d.adv.length?erH('💳 Staff Advance (is saal)')+erBoxes([erBox('Total Advance Diya',rs(d.advTot)),erBox('Abhi Pending (katna baaki)',rs(d.advPend),'#DC2626','#FEF2F2')])
+     +erTable(['Date','Staff','Reason','Amount','Status'],d.adv.map(function(a){return[fd(a.date),erEsc(_erStaffName(a)),erEsc(a.reason||''),rs(a.amount),a.status==='paid'?'✅ Kata':'⏳ Pending'];}),['left','left','left','right','left']):'')
+   +'<div style="font-size:10px;color:#64748B;background:#EEF2FF;padding:8px;border-radius:6px;margin-top:10px">ℹ️ Salary = Expense page me <b>👨‍💼 Salary</b> category ki entries. Advance alag se Staff Advance section se aaya hai.</div>';
+  _openPDF('Saal ki Salary',erWrap('YEARLY SALARY REPORT','Saal: '+d.y,inner));
+}
+function waSalYear(){
+  var d=_erYearSalData();if(!d.list.length&&!d.adv.length){toast('⚠️ '+d.y+' me koi salary entry nahi','te');return;}
+  var m=erWAHead('👨‍💼 *SAAL KI SALARY REPORT*','Saal: *'+d.y+'*');
+  m+='\n💰 *Kul Salary: '+rs(d.tot)+'*\n🧾 Entries: '+d.list.length+'\n📆 Mahine ka avg: '+rs(Math.round(d.avg))+'\n';
+  m+='\n📅 *Mahine wise:*\n'+d.months.map(function(x){return'• '+erMName(x.key)+': *'+rs(x.amt)+'*';}).join('\n');
+  m+='\n\n👤 *Staff wise:*\n'+d.ppl.map(function(p){return'• '+p.key.replace(/\b\w/g,function(c){return c.toUpperCase();})+': *'+rs(p.amt)+'* ('+p.n+' baar)';}).join('\n');
+  if(d.adv.length)m+='\n\n💳 *Advance:* '+rs(d.advTot)+' (pending '+rs(d.advPend)+')';
+  erWA(m+erWAFoot());
+}
+
+// ═══ EXTRA) MAHINE KA POORA HISAAB (Sale + Expense + Salary + Profit) ═══
+function _erFullData(){var s=_erMonthSaleData(),e=_erMonthExpData();var sal=erSum(e.list.filter(erIsSalary));return{s:s,e:e,sal:sal,ym:s.ym};}
+function pdfFullMonth(){
+  var f=_erFullData(),pl=f.s.pl,gross=pl.rev-pl.cogs,net=gross-pl.opex;
+  if(!f.s.list.length&&!f.e.list.length){toast('⚠️ '+erMName(f.ym)+' me koi entry nahi','te');return;}
+  var inner=erBoxes([erBox('Kul Sale',rs(f.s.tot),'#16A34A','#DCFCE7'),erBox('Kul Kharcha',rs(f.e.tot),'#DC2626','#FEE2E2'),erBox('Salary',rs(f.sal),'#1A3A6B','#EEF2FF'),erBox('Net Profit (approx)',rs(net),net>=0?'#16A34A':'#DC2626',net>=0?'#F0FDF4':'#FEF2F2')])
+   +erH('📋 Hisaab')
+   +erTable(['Detail','Amount'],[['Kul Sale ('+f.s.list.length+' bills)',rs(pl.rev)],['− Maal ki Cost (COGS)',rs(pl.cogs)],['<b>Gross Profit</b>','<b>'+rs(gross)+'</b>'],['− Operating Kharcha (Salary '+rs(f.sal)+' included)',rs(pl.opex)],['<b>Net Profit (approx)</b>','<b style="color:'+(net>=0?'#16A34A':'#DC2626')+'">'+rs(net)+'</b>'],['Purchase/Capex (profit me nahi gina)',rs(pl.nonOpex)]],['left','right'])
+   +erH('💸 Category wise Kharcha')
+   +erTable(['Category','Amount','%'],f.e.cats.map(function(c){return[erEsc(c.key),rs(c.amt),erPct(c.amt,f.e.tot)+'%'];}),['left','right','right'],['<b>TOTAL</b>',rs(f.e.tot),'100%']);
+  _openPDF('Mahine ka Poora Hisaab',erWrap('MONTHLY SUMMARY','Mahina: '+erMName(f.ym),inner));
+}
+function waFullMonth(){
+  var f=_erFullData(),pl=f.s.pl,net=pl.rev-pl.cogs-pl.opex;
+  if(!f.s.list.length&&!f.e.list.length){toast('⚠️ '+erMName(f.ym)+' me koi entry nahi','te');return;}
+  var m=erWAHead('📊 *MAHINE KA POORA HISAAB*','Mahina: *'+erMName(f.ym)+'*');
+  m+='\n🟢 Sale: *'+rs(f.s.tot)+'* ('+f.s.list.length+' bills)\n🔴 Kharcha: *'+rs(f.e.tot)+'*\n👨‍💼 Salary: *'+rs(f.sal)+'*\n📦 Maal Cost: '+rs(pl.cogs)+'\n\n💎 *Net Profit (approx): '+erRs(net)+'*\n'+(net>=0?'✅ Mahina profit me hai':'⚠️ Mahina loss me hai');
+  erWA(m+erWAFoot());
+}
+
+// ── Reports card setup (month + year picker) ──
+function erInitReports(){
+  var m=document.getElementById('eRepM');if(m&&!m.value)m.value=td().substring(0,7);
+  var y=document.getElementById('eRepY');
+  if(y){var cur=+td().substring(0,4),keep=y.value||String(cur),h='';for(var i=2026;i<=Math.max(cur,2026);i++)h+='<option value="'+i+'">'+i+'</option>';y.innerHTML=h;y.value=keep;if(y.value!==keep)y.value=String(cur);}
+}
+var _expAll=false;
+function toggleExpAll(){_expAll=!_expAll;showExp();}
 
 // CASH FLOW PRINT & SHARE
 function printCashFlow(){
