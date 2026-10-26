@@ -8276,5 +8276,306 @@ lrRenderAll();
 })();
 </script>
 
+
+<!-- ═══════════ 🎬 PPT-STYLE ANIMATION PACK (Bhagya Fashion) ═══════════ -->
+<style id="bfaCss">
+/* Entrance animations — PowerPoint naam ke saath. fill-mode:backwards => khatam hone par transform hat jata hai (modals/fixed elements safe) */
+@keyframes bfa-fade{from{opacity:0}to{opacity:1}}
+@keyframes bfa-flyB{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
+@keyframes bfa-flyT{from{opacity:0;transform:translateY(-60px)}to{opacity:1;transform:none}}
+@keyframes bfa-flyL{from{opacity:0;transform:translateX(-80px)}to{opacity:1;transform:none}}
+@keyframes bfa-flyR{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:none}}
+@keyframes bfa-zoom{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+@keyframes bfa-bounce{0%{opacity:0;transform:translateY(-70px)}55%{opacity:1;transform:translateY(12px)}75%{transform:translateY(-6px)}90%{transform:translateY(2px)}100%{transform:none}}
+@keyframes bfa-wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes bfa-wipeUp{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes bfa-float{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes bfa-split{from{opacity:0;clip-path:inset(0 50% 0 50%)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes bfa-grow{from{opacity:0;transform:scale(.6,.6)}60%{transform:scale(1.08)}to{opacity:1;transform:none}}
+@keyframes bfa-spin{from{opacity:0;transform:rotate(-360deg) scale(.2)}to{opacity:1;transform:none}}
+@keyframes bfa-flip{from{opacity:0;transform:perspective(600px) rotateX(-90deg)}to{opacity:1;transform:none}}
+@keyframes bfa-swivel{from{opacity:0;transform:perspective(600px) rotateY(-90deg)}to{opacity:1;transform:none}}
+@keyframes bfa-drop{0%{opacity:0;transform:translateY(-120px) rotate(-8deg)}60%{opacity:1;transform:translateY(8px) rotate(2deg)}100%{transform:none}}
+@keyframes bfa-blur{from{opacity:0;filter:blur(12px)}to{opacity:1;filter:blur(0)}}
+@keyframes bfa-curtain{from{opacity:0;transform:scaleY(0);transform-origin:top}to{opacity:1;transform:none;transform-origin:top}}
+@keyframes bfa-peek{from{opacity:0;transform:translateX(-100%)}to{opacity:1;transform:none}}
+@keyframes bfa-rise{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+/* Emphasis (loop nahi, ek baar) */
+@keyframes bfa-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes bfa-teeter{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes bfa-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes bfa-colorpulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}50%{box-shadow:0 0 0 6px rgba(220,38,38,.35)}}
+@keyframes bfa-spinE{to{transform:rotate(360deg)}}
+.bfa-in{animation-name:var(--bfa-name);animation-duration:var(--bfa-dur,.55s);animation-delay:var(--bfa-delay,0s);animation-timing-function:cubic-bezier(.22,1,.36,1);animation-fill-mode:backwards;}
+.bfa-em{animation-duration:.9s;animation-delay:var(--bfa-delay,0s);animation-timing-function:ease-in-out;animation-fill-mode:none;}
+.bfa-em-pulse{animation-name:bfa-pulse}
+.bfa-em-teeter{animation-name:bfa-teeter}
+.bfa-em-shake{animation-name:bfa-shake}
+.bfa-em-color{animation-name:bfa-colorpulse;animation-iteration-count:2}
+.bfa-em-spin{animation-name:bfa-spinE;animation-duration:.8s}
+@media (prefers-reduced-motion:reduce){.bfa-in,.bfa-em{animation:none!important}}
+/* Control panel */
+#bfaFab{position:fixed;left:12px;bottom:72px;width:46px;height:46px;border-radius:50%;background:#1A3A6B;color:#FFD700;border:2px solid #FFD700;font-size:22px;z-index:88;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:0}
+#bfaOv{display:none;position:fixed;inset:0;z-index:9700;background:rgba(8,15,42,.6);align-items:flex-end;justify-content:center}
+#bfaOv.show{display:flex}
+#bfaBox{background:#fff;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px 14px 22px;animation:su .3s ease}
+#bfaBox h3{color:#1A3A6B;font-size:16px;font-weight:800;margin-bottom:2px}
+#bfaBox .sub{font-size:11px;color:#64748B;margin-bottom:12px}
+.bfaRow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #E2E8F0;font-size:12px;font-weight:600;color:#1E293B}
+.bfaRow span.nm{flex:1;min-width:0}
+.bfaRow select{flex:0 0 150px;padding:7px 6px;border:1.5px solid #CBD5E1;border-radius:8px;font-size:12px;font-family:inherit;background:#fff;color:#1E293B}
+.bfaBtn{border:none;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.bfaTop{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.bfaTop .bfaBtn{flex:1;min-width:90px}
+.bfaPrev{background:#F1F5F9;border:none;border-radius:8px;padding:7px 9px;cursor:pointer;font-size:13px}
+</style>
+
+<button id="bfaFab" title="PPT Animation Settings" onclick="bfaOpen()">🎬</button>
+<div id="bfaOv" onclick="if(event.target===this)bfaClose()"><div id="bfaBox"></div></div>
+
+<script>
+(function(){
+'use strict';
+/* ── 20 ENTRANCE ANIMATIONS (PowerPoint style) ── */
+var ANIMS=[
+ ['fade','Fade (धीरे से आए)','bfa-fade'],
+ ['flyB','Fly In – नीचे से','bfa-flyB'],
+ ['flyT','Fly In – ऊपर से','bfa-flyT'],
+ ['flyL','Fly In – बाएँ से','bfa-flyL'],
+ ['flyR','Fly In – दाएँ से','bfa-flyR'],
+ ['zoom','Zoom','bfa-zoom'],
+ ['bounce','Bounce','bfa-bounce'],
+ ['wipe','Wipe – बाएँ से','bfa-wipe'],
+ ['wipeUp','Wipe – नीचे से ऊपर','bfa-wipeUp'],
+ ['float','Float In','bfa-float'],
+ ['split','Split','bfa-split'],
+ ['grow','Grow & Turn','bfa-grow'],
+ ['spin','Spin','bfa-spin'],
+ ['flip','Flip (ऊपर से पलटे)','bfa-flip'],
+ ['swivel','Swivel','bfa-swivel'],
+ ['drop','Drop (गिरे)','bfa-drop'],
+ ['blur','Blur Focus','bfa-blur'],
+ ['curtain','Curtain','bfa-curtain'],
+ ['peek','Peek In','bfa-peek'],
+ ['rise','Rise Up','bfa-rise']
+];
+var AMAP={};ANIMS.forEach(function(a){AMAP[a[0]]=a;});
+
+/* ── HAR TAB KA DEFAULT ANIMATION + SPECIAL (emphasis) EFFECT ──
+   cards = bade box/cards | stats = chhote number box | rows = list/table rows | btns = buttons
+   em = emphasis effect (count-up number, pulse etc.) */
+var TABS={
+ dash:      {n:'📊 Dashboard',   cards:'zoom',   stats:'bounce', rows:'fade',  btns:'flyB',  em:{count:1,pulseSel:'.sc.r .sv'}},
+ sale:      {n:'🧾 Sale Bill',   cards:'flyT',   stats:'grow',   rows:'fade',  btns:'zoom',  em:{teeter:'.btn.bp, .btn.bg2'}},
+ calc:      {n:'🧮 Calculator',  cards:'float',  stats:'wipe',   rows:'wipe',  btns:'float', em:{count:1,pulseSel:'.cr-amt'}},
+ stock:     {n:'📦 Stock',       cards:'flyB',   stats:'flyB',   rows:'wipeUp',btns:'flyB',  em:{pulseSel:'.sc.r .sv'}},
+ daily:     {n:'📅 Daily',       cards:'flip',   stats:'flip',   rows:'peek',  btns:'fade',  em:{count:1}},
+ cash:      {n:'💵 Cash',        cards:'flyR',   stats:'bounce', rows:'flyR',  btns:'float', em:{count:1,pulseSel:'.cval'}},
+ udhar:     {n:'📋 Udhar',       cards:'fade',   stats:'zoom',   rows:'fade',  btns:'fade',  em:{count:1,colorSel:'.sc.r'}},
+ expense:   {n:'💸 Expense',     cards:'split',  stats:'wipe',   rows:'flyR',  btns:'zoom',  em:{count:1}},
+ cashflow:  {n:'🔄 Cash Flow',   cards:'wipe',   stats:'wipe',   rows:'wipe',  btns:'float', em:{count:1,pulseSel:'.tr-total'}},
+ balance:   {n:'📒 Balance Sheet',cards:'split', stats:'split',  rows:'fade',  btns:'float', em:{count:1,teeter:'.bst, .bsc'}},
+ profit:    {n:'📈 Profit',      cards:'wipeUp', stats:'zoom',   rows:'wipeUp',btns:'float', em:{count:1,pulseSel:'.sc.g .sv'}},
+ salary:    {n:'👨‍💼 Salary',     cards:'float',  stats:'float',  rows:'float', btns:'zoom',  em:{count:1}},
+ report:    {n:'📊 Report',      cards:'flyR',   stats:'wipe',   rows:'fade',  btns:'fade',  em:{pulseSel:'.sc .sv'}},
+ activitylog:{n:'🕵️ Activity Log',cards:'wipe',  stats:'flyL',   rows:'flyL',  btns:'fade',  em:{}},
+ inventory: {n:'🔍 Inventory',   cards:'zoom',   stats:'fade',   rows:'fade',  btns:'zoom',  em:{count:1,spinSel:'.si'}},
+ custdb:    {n:'👥 Customer DB', cards:'flip',   stats:'flip',   rows:'fade',  btns:'float', em:{spinSel:'.si'}},
+ capital:   {n:'🪙 Capital Tracker',cards:'bounce',stats:'grow', rows:'wipe',  btns:'float', em:{count:1}},
+ loan:      {n:'🏦 Loan & ROI',  cards:'fade',   stats:'spin',   rows:'fade',  btns:'float', em:{count:1,pulseSel:'.lr-stat .val'}}
+};
+/* Jo tabs upar list mein nahi (Staff, Target, EMI, Purchase...) unke liye ye default */
+var DEFAULT_T={cards:'flyB',stats:'zoom',rows:'fade',btns:'float',em:{}};
+
+/* ── SELECTORS ── */
+var SEL={
+ cards:'.card, .lr-card, .stat-row, .hcard',
+ stats:'.sc, .lr-stat, .stat-box, .cbox, .cr',
+ rows:'tbody tr, .bsr, .bsl, .ai, .lr-guide-step, .rb, .item, .li',
+ btns:'.btn, .calc-mbtn, .lr-btn-primary, .btn-primary, .type-btn'
+};
+var SPEED={slow:1.7,normal:1,fast:.6};
+var KEY='bfAnimCfg_v1';
+var cfg={on:true,speed:'normal',tab:{},em:true};
+try{var sv=JSON.parse(localStorage.getItem(KEY)||'null');if(sv&&typeof sv==='object'){cfg.on=sv.on!==false;cfg.speed=sv.speed||'normal';cfg.tab=sv.tab||{};cfg.em=sv.em!==false;}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}}
+
+function tabCfg(id){return TABS[id]||DEFAULT_T;}
+/* user ka chuna hua animation (tab-wide) ya default */
+function animFor(id,kind){
+  var u=cfg.tab[id];
+  if(u==='off')return null;
+  if(u&&AMAP[u])return AMAP[u][2];
+  var c=tabCfg(id);return AMAP[c[kind]||'fade'][2];
+}
+
+var timers=[];
+function clearTimers(){timers.forEach(clearTimeout);timers=[];}
+
+function inModal(el){return !!el.closest('.mbg,.pmbg,#bfaOv,#stockLockOv,#alLockOv');}
+
+function applyIn(els,anim,baseDelay,step,maxN){
+  var n=0,dur=.55*SPEED[cfg.speed];
+  els.forEach(function(el){
+    if(n>=maxN)return;
+    if(inModal(el))return;
+    if(el.offsetParent===null&&getComputedStyle(el).position!=='fixed')return; /* chhupe hue skip */
+    el.style.setProperty('--bfa-name',anim);
+    el.style.setProperty('--bfa-dur',dur+'s');
+    el.style.setProperty('--bfa-delay',(baseDelay+n*step*SPEED[cfg.speed])+'s');
+    el.classList.remove('bfa-in');void el.offsetWidth;el.classList.add('bfa-in');
+    (function(e,t){timers.push(setTimeout(function(){e.classList.remove('bfa-in');},t));})(el,(dur+baseDelay+n*step*SPEED[cfg.speed])*1000+200);
+    n++;
+  });
+  return n;
+}
+
+function emph(els,cls,delay){
+  els.forEach(function(el,i){
+    if(inModal(el)||el.offsetParent===null)return;
+    el.style.setProperty('--bfa-delay',(delay+i*.08)+'s');
+    el.classList.remove('bfa-em','bfa-em-pulse','bfa-em-teeter','bfa-em-shake','bfa-em-color','bfa-em-spin');
+    void el.offsetWidth;el.classList.add('bfa-em',cls);
+    timers.push(setTimeout(function(){el.classList.remove('bfa-em',cls);},(delay+i*.08+2)*1000));
+  });
+}
+
+/* Count-up: ₹1,234 jaise numbers 0 se upar chadhte hain */
+function countUp(root){
+  var els=root.querySelectorAll('.sv, .cr-amt, .cval, .amount, .lr-stat .val, .tr-total');
+  var k=0;
+  els.forEach(function(el){
+    if(k>14||inModal(el)||el.offsetParent===null||el.children.length)return;
+    var t=el.textContent;
+    var m=t.match(/^([^\d\-]*-?)([\d,]+(?:\.\d+)?)(.*)$/);
+    if(!m)return;
+    var raw=m[2].replace(/,/g,'');var end=parseFloat(raw);
+    if(!isFinite(end)||end<=0||end>1e12)return;
+    var dec=(raw.split('.')[1]||'').length;
+    var pre=m[1],suf=m[3];var start=performance.now(),dur=900*SPEED[cfg.speed],last=null;
+    k++;
+    (function(el,end,dec,pre,suf,orig){
+      function fmt(v){var s=dec?v.toFixed(dec):Math.round(v).toString();
+        var p=s.split('.');
+        /* Indian grouping agar original mein comma tha */
+        if(/,/.test(orig)){var x=p[0],l=x.slice(-3),r=x.slice(0,-3);if(r)l=r.replace(/\B(?=(\d{2})+(?!\d))/g,',')+','+l;p[0]=l;}
+        return pre+p.join('.')+suf;}
+      function step(now){
+        /* agar app ne beech mein value badal di to ruk jao */
+        if(last!==null&&el.textContent!==last)return;
+        var p=Math.min(1,(now-start)/dur),e=1-Math.pow(1-p,3);
+        if(p>=1){if(last===null||el.textContent===last)el.textContent=orig;return;}
+        last=fmt(end*e);el.textContent=last;requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })(el,end,dec,pre,suf,t);
+  });
+}
+
+function play(id){
+  if(!cfg.on)return;
+  var pg=document.getElementById('pg-'+id);if(!pg)return;
+  clearTimers();
+  var cards=[].slice.call(pg.querySelectorAll(SEL.cards));
+  var stats=[].slice.call(pg.querySelectorAll(SEL.stats));
+  var rows=[].slice.call(pg.querySelectorAll(SEL.rows));
+  var btns=[].slice.call(pg.querySelectorAll(SEL.btns));
+  /* nested elements double animate na ho: sirf top-level cards */
+  cards=cards.filter(function(c){return !c.parentElement.closest(SEL.cards);});
+  stats=stats.filter(function(c){return !c.parentElement.closest(SEL.stats)&&!c.closest('.cbox')||c.matches('.cbox');});
+  var a1=animFor(id,'cards'),a2=animFor(id,'stats'),a3=animFor(id,'rows'),a4=animFor(id,'btns');
+  var d=0;
+  if(a1){d+=applyIn(cards,a1,0,.08,14)*.08;}
+  if(a2)applyIn(stats,a2,.12,.07,18);
+  if(a3)applyIn(rows,a3,.2,.04,24);
+  if(a4)applyIn(btns,a4,.25,.05,16);
+  if(!cfg.em)return;
+  var em=tabCfg(id).em||{};
+  var u=cfg.tab[id];if(u==='off')return;
+  timers.push(setTimeout(function(){
+    if(em.count)countUp(pg);
+    if(em.pulseSel)emph([].slice.call(pg.querySelectorAll(em.pulseSel)),'bfa-em-pulse',.9);
+    if(em.teeter)emph([].slice.call(pg.querySelectorAll(em.teeter)),'bfa-em-teeter',1.1);
+    if(em.colorSel)emph([].slice.call(pg.querySelectorAll(em.colorSel)),'bfa-em-color',.9);
+    if(em.spinSel)emph([].slice.call(pg.querySelectorAll(em.spinSel)),'bfa-em-spin',.8);
+  },180));
+}
+
+/* ── Tab badalte hi animation: .pg ki 'active' class watch karte hain (go(), back-button, sab ke liye chalega) ── */
+var lastId=null;
+function activeId(){var a=document.querySelector('.pg.active');return a?a.id.replace('pg-',''):null;}
+var pending=null;
+function onChange(){
+  var id=activeId();
+  if(!id||id===lastId)return;
+  lastId=id;
+  clearTimeout(pending);
+  pending=setTimeout(function(){play(id);},90); /* app apna data bharne ke baad */
+}
+var pgs=document.querySelectorAll('.pg');
+var mo=new MutationObserver(onChange);
+pgs.forEach(function(p){mo.observe(p,{attributes:true,attributeFilter:['class']});});
+lastId=activeId();
+
+/* Dynamic rows: list baad mein bhar jaye (Stock/Udhar/Bills) to nayi rows bhi animate hon */
+var rowTimer=null,seen=new WeakSet();
+var mo2=new MutationObserver(function(muts){
+  if(!cfg.on)return;
+  var id=activeId();if(!id||id!==lastId)return;
+  var pg=document.getElementById('pg-'+id);if(!pg)return;
+  var fresh=[];
+  muts.forEach(function(m){m.addedNodes.forEach(function(n){
+    if(n.nodeType!==1||seen.has(n))return;
+    if(n.matches&&n.matches('tr, .ai, .item, .li, .bsr')){fresh.push(n);}
+    else if(n.querySelectorAll){n.querySelectorAll('tr, .ai, .item, .li').forEach(function(x){fresh.push(x);});}
+  });});
+  if(!fresh.length)return;
+  fresh=fresh.filter(function(x){return !seen.has(x)&&pg.contains(x);});
+  fresh.forEach(function(x){seen.add(x);});
+  clearTimeout(rowTimer);
+  rowTimer=setTimeout(function(){var a=animFor(id,'rows');if(a)applyIn(fresh,a,0,.04,30);},40);
+});
+document.querySelectorAll('.pg').forEach(function(p){mo2.observe(p,{childList:true,subtree:true});});
+
+/* ── SETTINGS PANEL ── */
+function opts(sel){
+  var h='<option value="">⭐ Default (mera chuna hua)</option><option value="off"'+(sel==='off'?' selected':'')+'>🚫 Animation Off</option>';
+  ANIMS.forEach(function(a){h+='<option value="'+a[0]+'"'+(sel===a[0]?' selected':'')+'>'+a[1]+'</option>';});
+  return h.replace('<option value="">','<option value=""'+(!sel?' selected':'')+'>');
+}
+function render(){
+  var box=document.getElementById('bfaBox');if(!box)return;
+  var h='<h3>🎬 PPT Animation Settings</h3><div class="sub">Har tab ke liye animation chuniye — turant apply ho jata hai</div>';
+  h+='<div class="bfaTop">'
+   +'<button class="bfaBtn" style="background:'+(cfg.on?'#16A34A':'#DC2626')+';color:#fff" onclick="bfaToggle()">'+(cfg.on?'✅ Animation ON':'⛔ Animation OFF')+'</button>'
+   +'<button class="bfaBtn" style="background:'+(cfg.em?'#1A3A6B':'#94A3B8')+';color:#FFD700" onclick="bfaEm()">🔢 Count-up/Pulse: '+(cfg.em?'ON':'OFF')+'</button>'
+   +'</div><div class="bfaTop">'
+   +['slow','normal','fast'].map(function(s){return '<button class="bfaBtn" style="background:'+(cfg.speed===s?'#F59E0B':'#F1F5F9')+';color:#1E293B" onclick="bfaSpeed(\''+s+'\')">'+({slow:'🐢 Slow',normal:'🚶 Normal',fast:'⚡ Fast'})[s]+'</button>';}).join('')
+   +'</div>';
+  Object.keys(TABS).forEach(function(id){
+    h+='<div class="bfaRow"><span class="nm">'+TABS[id].n+'</span><select onchange="bfaSet(\''+id+'\',this.value)">'+opts(cfg.tab[id])+'</select><button class="bfaPrev" title="Preview" onclick="bfaPrev(\''+id+'\')">▶</button></div>';
+  });
+  h+='<div class="bfaTop" style="margin-top:14px"><button class="bfaBtn" style="background:#FEE2E2;color:#DC2626" onclick="bfaReset()">↺ Sab Default Karo</button><button class="bfaBtn" style="background:#1A3A6B;color:#FFD700" onclick="bfaClose()">✔ Done</button></div>';
+  box.innerHTML=h;
+}
+window.bfaOpen=function(){render();document.getElementById('bfaOv').classList.add('show');};
+window.bfaClose=function(){document.getElementById('bfaOv').classList.remove('show');};
+window.bfaToggle=function(){cfg.on=!cfg.on;save();render();};
+window.bfaEm=function(){cfg.em=!cfg.em;save();render();};
+window.bfaSpeed=function(s){cfg.speed=s;save();render();};
+window.bfaSet=function(id,v){if(v)cfg.tab[id]=v;else delete cfg.tab[id];save();};
+window.bfaReset=function(){cfg.tab={};cfg.speed='normal';cfg.on=true;cfg.em=true;save();render();};
+window.bfaPrev=function(id){
+  /* Us tab par jakar animation dikhao */
+  bfaClose();
+  if(typeof go==='function'){
+    if(activeId()===id){lastId=null;play(id);}else{go(id);}
+  }
+};
+window.bfaReplay=function(){var id=activeId();if(id)play(id);};
+})();
+</script>
+<!-- ═══════════ END ANIMATION PACK ═══════════ -->
+
 </body>
 </html>
