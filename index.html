@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1A3A6B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Bhagya Fashion — Ultimate App</title>
@@ -693,6 +693,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 <!-- Firebase Cloud Sync (Bhagya Fashion) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   var bfFirebaseConfig = {
     apiKey: "AIzaSyCSEVLVXsWxkH3TwAc9Xwz3leXPs8Zk_H0",
@@ -1849,6 +1850,8 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   <div class="card"><div class="ch"><h3>🛍️ Category Wise Sale</h3></div><div class="cb" id="catChart"><div class="empty"><p>Report generate karo</p></div></div></div>
   <div class="card"><div class="ch"><h3>💸 Expense Breakdown</h3></div><div class="cb" id="expChart"><div class="empty"><p>Report generate karo</p></div></div></div>
   <button class="btn bg2" onclick="backupData()" style="margin-top:6px">📥 Data Backup</button>
+  <button class="btn bo" onclick="restoreData()" style="margin-top:6px">♻️ Backup se Restore</button>
+  <button class="btn bo" onclick="bfSignOut()" style="margin-top:6px">🚪 Logout</button>
 </div>
 
 <!-- ═══ SALARY ═══ -->
@@ -1894,6 +1897,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   <div class="card"><div class="ch"><h3>🛍️ Category Wise</h3></div><div class="cb" id="r2Cat"><div class="empty"><p>Report banao</p></div></div></div>
   <div class="card"><div class="ch"><h3>💸 Expense Breakdown</h3></div><div class="cb" id="r2Exp2"><div class="empty"><p>Report banao</p></div></div></div>
   <button class="btn bg2" onclick="backupData()">📥 Data Backup (JSON)</button>
+  <button class="btn bo" onclick="restoreData()">♻️ Backup se Restore</button>
 </div>
 
 <div class="pg" id="pg-activitylog">
@@ -2523,12 +2527,17 @@ var _stUnlocked=false,_bsUnlocked=false,_pendingNav=null;
 var _alUnlocked=false;
 
 // ── STOCK PASSWORD FUNCTIONS (global scope) ──
+function bfUid(){return Date.now()*1000+Math.floor(Math.random()*1000);}
+function bfWaNum(p){var d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;return d;}
+function bfReturnRestock(t,item){if(!t||t.value!=='Return')return;var si=D.stock.find(function(x){return bfNormName(x.name)===bfNormName(item);});if(!si)return;var q=parseInt(prompt('\uD83D\uDCE6 "'+si.name+'" stock mein kitne piece wapas jodne hain? (0 = mat jodo)','1'),10);if(q>0){si.qty=(si.qty||0)+q;bfLogActivity('Stock','Edit',si.name+' \u2014 Return se wapas juda: +'+q);}}
+function bfEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function bfOwnerPinOk(v){var p=localStorage.getItem('bf_opin')||'';if(!p||!v)return false;if(Date.now()<parseInt(localStorage.getItem('bf_pinlock')||'0',10)){toast('\uD83D\uDD12 5 galat PIN \u2014 5 minute baad try karein','te');return false;}if(v===p){localStorage.setItem('bf_pinfail','0');return true;}var n=parseInt(localStorage.getItem('bf_pinfail')||'0',10)+1;localStorage.setItem('bf_pinfail',String(n));if(n>=5){localStorage.setItem('bf_pinlock',String(Date.now()+300000));localStorage.setItem('bf_pinfail','0');}return false;}
 function checkStPwd(){
   var inp=document.getElementById('stPwdIn'),err=document.getElementById('stPwdErr');
   if(!inp)return;
   var val=(inp.value||'').replace(/\D/g,'');
   if(_pendingNav==='balance'){
-    if(val==='454062'){
+    if(bfOwnerPinOk(val)){
       _bsUnlocked=true;
       var ovb=document.getElementById('stockLockOv');if(ovb)ovb.style.display='none';
       _pendingNav=null;
@@ -2541,15 +2550,14 @@ function checkStPwd(){
     }
     return;
   }
-  if(val==='977761'||val===(localStorage.getItem('bf_opin')||'977761')){
-    localStorage.setItem('bf_opin','977761');
+  if(bfOwnerPinOk(val)){
     _stUnlocked=true;
     var ov=document.getElementById('stockLockOv');if(ov)ov.style.display='none';
     var nav=_pendingNav||'stock';_pendingNav=null;
     toast('✅ Stock unlock!','ts');
     setTimeout(function(){go(nav);},100);
   }else{
-    if(err){err.style.display='block';err.textContent='❌ Galat! Password: 977761';}
+    if(err){err.style.display='block';err.textContent='❌ Galat Password!';}
     if(inp)inp.value='';
     setTimeout(function(){if(err)err.style.display='none';try{inp.focus();}catch(x){}},2500);
   }
@@ -2562,7 +2570,7 @@ function checkAlPwd(){
   var inp=document.getElementById('alPwdIn'),err=document.getElementById('alPwdErr');
   if(!inp)return;
   var val=(inp.value||'').replace(/\D/g,'');
-  if(val==='454061'){
+  if(bfOwnerPinOk(val)){
     _alUnlocked=true;
     var ov=document.getElementById('alLockOv');if(ov)ov.style.display='none';
     toast('✅ Activity Log unlock!','ts');
@@ -2664,7 +2672,7 @@ function save(){
 function td(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 // ══ FIX: ek hi jagah se Profit/COGS/Opex nikalne ke helpers (Dashboard, Profit, Trend, Balance Sheet sab yahi use karte hain) ══
 function bfFindStock(it){var si=null;if(it.stockId)si=D.stock.find(function(x){return x.id===it.stockId;});if(!si){var bn=bfNormName(it.name);si=D.stock.find(function(x){return bfNormName(x.name)===bn;});}return si;}
-function bfItemBuy(it){var si=bfFindStock(it);return si?(si.buyPrice||0):0;}
+function bfItemBuy(it){if(it&&it.cost!==undefined)return it.cost;var si=bfFindStock(it);return si?(si.buyPrice||0):0;}
 function bfSaleCogs(sl){var c=0;(sl.items||[]).forEach(function(it){c+=bfItemBuy(it)*(it.qty||0);});return c;}
 // Opex = sirf chalu kharcha. Stock Purchase / Capex (furniture, interior) profit se ALAG hain
 function bfIsOpex(e){return !/purchase|capex|fixed asset|kharida/i.test(e.cat||'');}
@@ -2673,9 +2681,10 @@ function bfPnL(from,to){
   var exps=D.expenses.filter(function(e){return(!from||e.date>=from)&&(!to||e.date<=to);});
   var rev=0,cogs=0,miss={};
   sales.forEach(function(x){rev+=(x.total||0);(x.items||[]).forEach(function(it){var b=bfItemBuy(it);if(!b)miss[it.name||'?']=1;cogs+=b*(it.qty||0);});});
+  var retAmt=(D.returns||[]).filter(function(r){return r.type==='Return'&&(!from||r.date>=from)&&(!to||r.date<=to);}).reduce(function(a,r){return a+(r.amount||0);},0);
   var opex=0,nonOpex=0;
   exps.forEach(function(e){if(bfIsOpex(e))opex+=(e.amount||0);else nonOpex+=(e.amount||0);});
-  return{rev:rev,cogs:cogs,opex:opex,nonOpex:nonOpex,missing:Object.keys(miss),salesCount:sales.length,expCount:exps.length};
+  return{rev:rev-retAmt,retAmt:retAmt,cogs:cogs,opex:opex,nonOpex:nonOpex,missing:Object.keys(miss),salesCount:sales.length,expCount:exps.length};
 }
 function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 // Naam ko "normalize" karo taaki "Dress 620432" aur "Dress620432" ya "dress 620432 "
@@ -2964,7 +2973,7 @@ var _pageHistory = ['dash'];
 var _currentPage = 'dash';
 
 function go(name){
-  // 🔐 ACTIVITY LOG PIN LOCK (fixed PIN: 454061)
+  // 🔐 ACTIVITY LOG PIN LOCK (Owner PIN)
   if(name==='activitylog' && _alUnlocked!==true){
     var _alOv=document.getElementById('alLockOv');
     if(!_alOv){
@@ -3361,16 +3370,16 @@ function printOldBill(billNo){
 function delSaleBill(billNo){
   var pin=prompt('🔒 Ye Bill delete karne ke liye Owner PIN daalen:');
   if(pin===null)return;
-  if(pin.trim()!=='454061'){toast('❌ Galat PIN! Delete nahi hua.','te');return;}
+  if(!bfOwnerPinOk(pin.trim())){toast('❌ Galat PIN! Delete nahi hua.','te');return;}
   var s=D.sales.find(function(x){return x.billNo===billNo;});
   if(!s){toast('❌ Bill nahi mila!','te');return;}
   if(!confirm('❗ Pakka Bill #'+billNo+' ('+(s.customer||'Walk-in')+' — '+rs(s.total)+') delete karna hai?\nStock wapas jud jayega aur Cash/Udhar entry bhi hat jayegi.'))return;
-  D.sales=D.sales.filter(function(x){return x.billNo!==billNo;});
+  var _sx=D.sales.indexOf(s);if(_sx>=0)D.sales.splice(_sx,1);
   // FIX: bill delete par Cash, Udhar aur Stock ka asar bhi wapas karo
   var _tag='(Bill #'+billNo+')';
   for(var _k=D.cash.length-1;_k>=0;_k--){var _d=D.cash[_k].desc||'';if(_d.indexOf('Sale - ')===0&&_d.slice(-_tag.length)===_tag){D.cash.splice(_k,1);break;}}
-  D.udhar=D.udhar.filter(function(u){return u.note!=='Bill #'+billNo;});
-  (s.items||[]).forEach(function(it){var si=bfFindStock(it);if(si)si.qty=(si.qty||0)+(it.qty||0);});
+  var _ux=D.udhar.findIndex(function(u){return u.note==='Bill #'+billNo;});if(_ux>=0)D.udhar.splice(_ux,1);
+  (s.items||[]).forEach(function(it){var si=bfFindStock(it);if(si)si.qty=(si.qty||0)+(it.deducted!==undefined?it.deducted:(it.qty||0));});
   if(typeof bfLogActivity==='function')bfLogActivity('Sale Bill','Delete','Bill #'+billNo+' — '+(s.customer||'Walk-in')+' — '+rs(s.total)+' ('+fd(s.date)+')');
   save();showDash();
   toast('🗑️ Bill #'+billNo+' delete ho gaya!','ts');
@@ -3433,7 +3442,7 @@ function pickStockSearch(idx){
 function addItem(){
   var name=document.getElementById('iName').value.trim();
   var price=parseFloat(document.getElementById('iPrice').value)||0;
-  var qty=parseInt(document.getElementById('iQty').value)||1;
+  var qty=Math.max(1,parseInt(document.getElementById('iQty').value)||1);
   var stockId=document.getElementById('iStockId').value||'';
   if(!name){toast('❌ Item naam likhein!','te');return;}
   if(price<=0){toast('❌ Price daalen!','te');return;}
@@ -3445,26 +3454,26 @@ function renderItems(){
   var c=document.getElementById('itemsList');
   if(!billItems.length){c.innerHTML='';document.getElementById('billTotalDiv').style.display='none';return;}
   c.innerHTML='<div style="margin-bottom:12px">'+billItems.map(function(item,i){
-    return'<div class="bi-row"><div style="flex:1"><div style="font-size:12px;font-weight:600">'+item.name+'</div><div style="font-size:11px;color:#94A3B8">'+rs(item.price)+' × '+item.qty+'</div></div><div style="display:flex;align-items:center;gap:7px"><div style="font-size:13px;font-weight:700;color:var(--green)">'+rs(item.total)+'</div><button class="btn bd" onclick="removeItem('+i+')">✕</button></div></div>';
+    return'<div class="bi-row"><div style="flex:1"><div style="font-size:12px;font-weight:600">'+bfEsc(item.name)+'</div><div style="font-size:11px;color:#94A3B8">'+rs(item.price)+' × '+item.qty+'</div></div><div style="display:flex;align-items:center;gap:7px"><div style="font-size:13px;font-weight:700;color:var(--green)">'+rs(item.total)+'</div><button class="btn bd" onclick="removeItem('+i+')">✕</button></div></div>';
   }).join('')+'</div>';
   document.getElementById('billTotalDiv').style.display='block';calcBill();
 }
 function removeItem(i){billItems.splice(i,1);renderItems();}
 function calcBill(){
   var sub=billItems.reduce(function(a,i){return a+i.total;},0);
-  var disc=parseFloat(document.getElementById('disc').value)||0;
+  var disc=Math.min(100,Math.max(0,parseFloat(document.getElementById('disc').value)||0));
   document.getElementById('bSub').textContent=rs(sub);
   document.getElementById('bTotal').textContent=rs(sub-(sub*disc/100));
 }
 var _lastSavedBillObj=null;
 function finalizeBill(){
   var sub=billItems.reduce(function(a,i){return a+i.total;},0);
-  var disc=parseFloat(document.getElementById('disc').value)||0;
-  var total=sub-(sub*disc/100);
+  var disc=Math.min(100,Math.max(0,parseFloat(document.getElementById('disc').value)||0));
+  var total=Math.round((sub-(sub*disc/100))*100)/100;
   var pm=document.getElementById('payMode').value;
   var bill={billNo:D.bc++,date:td(),customer:document.getElementById('cName').value.trim()||'Walk-in',phone:document.getElementById('cPhone').value.trim(),items:billItems.slice(),subtotal:sub,discount:disc,total:total,payMode:pm};
   D.sales.push(bill);
-  if(pm==='udhar')D.udhar.push({id:Date.now(),name:bill.customer,phone:bill.phone,amount:total,remaining:total,date:td(),note:'Bill #'+bill.billNo});
+  if(pm==='udhar')D.udhar.push({id:bfUid(),name:bill.customer,phone:bill.phone,amount:total,remaining:total,date:td(),note:'Bill #'+bill.billNo});
   D.cash.push({date:td(),desc:'Sale - '+bill.customer+' (Bill #'+bill.billNo+')',type:pm==='udhar'?'pending':'income',amount:total});
   var _stockMissed=[];
   billItems.forEach(function(bi){
@@ -3476,7 +3485,7 @@ function finalizeBill(){
     }
     if(si){
       var before=si.qty||0;
-      si.qty=Math.max(0,before-bi.qty);
+      si.qty=Math.max(0,before-bi.qty);bi.deducted=before-si.qty;bi.cost=si.buyPrice||0;
       if(typeof bfLogActivity==='function')bfLogActivity('Stock','Edit',si.name+' — Sale se minus hua (Bill #'+bill.billNo+'): '+before+' → '+si.qty+' (Sold: '+bi.qty+')');
     }else{
       _stockMissed.push(bi.name);
@@ -3647,7 +3656,7 @@ function waShareText(){
     +'┈┈┈┈┈┈┈┈┈┈┈┈┈\n'
     +'✨ ଭାଗ୍ୟ ଫ୍ୟାଶନକୁ ଆସିବା ପାଇଁ ଧନ୍ୟବାଦ! 🙏\n'
     +'🔄 ପୁଣି ଥରେ ଆସିବାକୁ ନିଶ୍ଚିତ ହୁଅନ୍ତୁ ☺️';
-  window.open('https://wa.me/'+(b.phone||'')+'?text='+encodeURIComponent(msg),'_blank');
+  window.open('https://wa.me/'+bfWaNum(b.phone)+'?text='+encodeURIComponent(msg),'_blank');
 }
 function doScreenshot(){
   var ov=document.createElement('div');
@@ -4157,7 +4166,7 @@ function showCustomerDB(){
     var itemsPreview=c.items.slice(-5).reverse().join(', ');
     var repeatTag=c.visits>1?'<span style="background:#DCFCE7;color:#16A34A;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:6px">🔁 Repeat</span>':'';
     var msg=encodeURIComponent('Namaste '+c.name+' ji.🙏 Bhagya Fashion mein aapka swagat hai. Bhagya Fashion mein — bacchon, ladkiyon, ladkon aur mens and womens ke liye har tarah ki dress hain. Aap ise apne parivar ke saath aa sakte hain.🛍️\n📍 Chhatikuda Chawk, Kalahandi, Odisha\n┈┈┈┈┈┈┈┈┈┈┈┈┈\nନମସ୍କାର '+c.name+'। 🙏 Bhagya Fashion ରେ ଆପଣଙ୍କୁ ସ୍ୱାଗତ। ଭାଗ୍ୟ ଫ୍ୟାଶନ ରେ — kids, girls, boys, mens ଏବଂ womens ସମସ୍ତ ପ୍ରକାରର ଡ୍ରେସ୍ ଉପଲବ୍ଧ ଅଛି। ଆପଣମାନେ ପରିବାର ସହିତ ପରିଦର୍ଶନ କରିପାରିବେ।🛍️\n📍 ଛତିଗୁଡା ଚକ୍, କଳାହାଣ୍ଡି, ଓଡିଶା।');
-    var waBtn=c.phone?'<button onclick="window.open(\'https://wa.me/'+c.phone+'?text='+msg+'\',\'_blank\')" style="background:#059669;border:none;border-radius:8px;padding:6px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px">📱 WhatsApp Bhejo</button>':'';
+    var waBtn=c.phone?'<button onclick="window.open(\'https://wa.me/'+bfWaNum(c.phone)+'?text='+msg+'\',\'_blank\')" style="background:#059669;border:none;border-radius:8px;padding:6px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px">📱 WhatsApp Bhejo</button>':'';
     return '<div style="padding:11px 12px;border-bottom:1px solid #f0f4ff">'
       +'<div style="display:flex;justify-content:space-between;align-items:start">'
       +'<div><b style="font-size:13px;color:#1A3A6B">'+c.name+'</b>'+repeatTag
@@ -4210,7 +4219,7 @@ function delStock(i){
   var item=D.stock[i];
   if(!item){toast('❌ Item nahi mila!','te');return;}
   var nama=item.name;
-  bfLogActivity('Stock','Delete',nama+' (Qty: '+(item.qty||0)+', Buy: '+(item.buy||0)+', Sell: '+(item.sell||0)+')');
+  bfLogActivity('Stock','Delete',nama+' (Qty: '+(item.qty||0)+', Buy: '+(item.buyPrice||0)+', Sell: '+(item.sellPrice||0)+')');
   D.stock.splice(i,1);
   save();
   showStock();
@@ -4798,7 +4807,7 @@ function saveUdhar(){
     var cb=document.getElementById('uCancelBtn');if(cb)cb.style.display='none';
     toast('✅ Udhar update ho gaya!','ts');
   }else{
-    D.udhar.push({id:Date.now(),name:name,phone:phone,amount:amt,remaining:amt,date:date,note:note});
+    D.udhar.push({id:bfUid(),name:name,phone:phone,amount:amt,remaining:amt,date:date,note:note});
     toast('✅ Udhar saved! '+name+' - '+rs(amt),'ts');
   }
   save();document.getElementById('uName').value='';document.getElementById('uPhone').value='';document.getElementById('uAmt').value='';document.getElementById('uNote').value='';
@@ -4842,7 +4851,7 @@ function showUdhar(){
   document.getElementById('uCount').textContent=f.length;
   var div=document.getElementById('udharList');
   if(!f.length){div.innerHTML='<div class="empty"><div class="ei">✅</div><p>Koi udhar baaki nahi!</p></div>';return;}
-  div.innerHTML=f.map(function(u){var orig=D.udhar.indexOf(u);return'<div class="uc"><div style="flex:1"><div style="font-size:13px;font-weight:700">👤 '+u.name+'</div>'+(u.phone?'<div style="font-size:11px;color:#64748B">📱 '+u.phone+'</div>':'')+'<div style="font-size:11px;color:#64748B">'+fd(u.date)+(u.note?' · '+u.note:'')+'</div><div style="font-size:11px;color:#94A3B8">Total: '+rs(u.amount)+'</div></div><div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--red)">'+rs(u.remaining)+'</div><button class="btn bs2" style="width:auto;padding:6px 10px;font-size:11px;margin-top:5px" onclick="openPay('+orig+')">💵 Pay</button>'+(u.phone?'<br><a href="tel:'+u.phone+'" style="font-size:11px;color:var(--royal2);display:block;margin-top:3px">📞 Call</a>':'')+'<div style="margin-top:5px"><button onclick="editUdhar('+orig+')" style="background:#EFF6FF;border:none;border-radius:6px;padding:5px 8px;color:#1A3A6B;font-size:11px;cursor:pointer;margin-right:4px">✏️</button><button onclick="delUdhar('+orig+')" style="background:#FEF2F2;border:none;border-radius:6px;padding:5px 8px;color:#DC2626;font-size:11px;cursor:pointer">🗑️</button></div></div></div>';}).join('');
+  div.innerHTML=f.map(function(u){var orig=D.udhar.indexOf(u);return'<div class="uc"><div style="flex:1"><div style="font-size:13px;font-weight:700">👤 '+bfEsc(u.name)+'</div>'+(u.phone?'<div style="font-size:11px;color:#64748B">📱 '+u.phone+'</div>':'')+'<div style="font-size:11px;color:#64748B">'+fd(u.date)+(u.note?' · '+u.note:'')+'</div><div style="font-size:11px;color:#94A3B8">Total: '+rs(u.amount)+'</div></div><div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--red)">'+rs(u.remaining)+'</div><button class="btn bs2" style="width:auto;padding:6px 10px;font-size:11px;margin-top:5px" onclick="openPay('+orig+')">💵 Pay</button>'+(u.phone?'<br><a href="tel:'+u.phone+'" style="font-size:11px;color:var(--royal2);display:block;margin-top:3px">📞 Call</a>':'')+'<div style="margin-top:5px"><button onclick="editUdhar('+orig+')" style="background:#EFF6FF;border:none;border-radius:6px;padding:5px 8px;color:#1A3A6B;font-size:11px;cursor:pointer;margin-right:4px">✏️</button><button onclick="delUdhar('+orig+')" style="background:#FEF2F2;border:none;border-radius:6px;padding:5px 8px;color:#DC2626;font-size:11px;cursor:pointer">🗑️</button></div></div></div>';}).join('');
 }
 function openPay(i){
   _uIdx=i;var u=D.udhar[i];
@@ -4855,6 +4864,7 @@ function doUdharPay(){
   var amt=parseFloat(document.getElementById('uPayAmt').value)||0;
   if(amt<=0){toast('❌ Amount daalen!','te');return;}
   var u=D.udhar[_uIdx];
+  if(amt>(u.remaining||0)){amt=u.remaining||0;if(amt<=0){toast('✅ Ye udhar pehle se poora chuka hai','ts');return;}toast('ℹ️ Sirf baaki rakam '+rs(amt)+' li gayi','ts');}
   u.remaining=Math.max(0,u.remaining-amt);
   D.cash.push({date:td(),desc:'Udhar payment - '+u.name,type:'income',amount:amt});
   save();closeM('uPayModal');showUdhar();showCash();
@@ -5384,12 +5394,30 @@ function genReport(fromId,toId,saleId,expId,profitId,catId,expChId){
   if(expEl)expEl.innerHTML=Object.keys(expC).length===0?'<div class="empty"><p>Data nahi</p></div>':Object.entries(expC).sort(function(a,b){return b[1]-a[1];}).map(function(e){return'<div class="chi"><div class="chl"><span>'+e[0]+'</span><span style="color:var(--red)">'+rs(e[1])+'</span></div><div class="cht"><div class="chf" style="width:'+(e[1]/maxE*100)+'%;background:linear-gradient(90deg,var(--red),#f87171)"></div></div></div>';}).join('');
   toast('📊 Report ready!','ts');
 }
+var BF_EXTRA_KEYS=['bhagya_capital_entries','bhagya_custom_markets','bhagya_custom_people','bhagya_loan_roi_tracker_v1'];
 function backupData(){
-  var d=JSON.stringify(D,null,2);
+  var ex={};BF_EXTRA_KEYS.forEach(function(k){var v=localStorage.getItem(k);if(v!==null)ex[k]=v;});
+  var d=JSON.stringify({_bfBackup:2,savedAt:new Date().toISOString(),D:D,extra:ex},null,2);
   var b=new Blob([d],{type:'application/json'});
   var u=URL.createObjectURL(b);
   var a=document.createElement('a');a.href=u;a.download='BhagyaFashion_Backup_'+td()+'.json';a.click();
   toast('📥 Backup saved!','ts');
+}
+function restoreData(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=function(){var f=inp.files[0];if(!f)return;var r=new FileReader();
+    r.onload=function(){try{
+      var o=JSON.parse(r.result),nd=o._bfBackup?o.D:o,ex=o.extra||{};
+      if(!nd||!Array.isArray(nd.sales))throw 0;
+      if(!confirm('♻️ Restore: '+nd.sales.length+' bills, '+(nd.stock||[]).length+' stock items.\nPehle abhi ka data ek Backup file mein save hoga, phir ye data lagega. Pakka?'))return;
+      backupData();
+      Object.keys(nd).forEach(function(k){D[k]=nd[k];});
+      Object.keys(ex).forEach(function(k){if(ex[k]!=null)localStorage.setItem(k,typeof ex[k]==='string'?ex[k]:JSON.stringify(ex[k]));});
+      save();bfLogActivity('Backup','Edit','Restore file se data wapas liya ('+nd.sales.length+' bills)');
+      toast('✅ Restore ho gaya — app reload ho raha hai','ts');setTimeout(function(){location.reload();},1800);
+    }catch(e){toast('❌ Ye valid Backup file nahi hai','te');}};
+    r.readAsText(f);};
+  inp.click();
 }
 
 // ── PROFIT: AUTO vs MANUAL MODE ──
@@ -6027,11 +6055,11 @@ function goPage(pg){
   else if(pg==='pwdsettings')loadPwdSettings();
 }
 // ─ Customer ─
-function addCustomer(){var n=(document.getElementById('c-name')||{}).value||'';if(!n.trim()){toast('❌ Naam daalo!','te');return;}initExtra();D.customers.push({id:Date.now(),name:n.trim(),phone:(document.getElementById('c-phone')||{}).value||'',addr:(document.getElementById('c-addr')||{}).value||'',added:td(),totalBought:0});save();['c-name','c-phone','c-addr'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showCustomers();toast('✅ Customer saved!','ts');}
+function addCustomer(){var n=(document.getElementById('c-name')||{}).value||'';if(!n.trim()){toast('❌ Naam daalo!','te');return;}initExtra();D.customers.push({id:bfUid(),name:n.trim(),phone:(document.getElementById('c-phone')||{}).value||'',addr:(document.getElementById('c-addr')||{}).value||'',added:td(),totalBought:0});save();['c-name','c-phone','c-addr'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showCustomers();toast('✅ Customer saved!','ts');}
 function showCustomers(){initExtra();var q=((document.getElementById('c-search')||{}).value||'').toLowerCase();var list=D.customers.filter(function(c){return c.name.toLowerCase().includes(q)||(c.phone||'').includes(q);});var cnt=document.getElementById('c-count');if(cnt)cnt.textContent=list.length+' customers';var el=document.getElementById('c-list');if(!el)return;if(!list.length){el.innerHTML='<div class="empty"><p>Koi customer nahi</p></div>';return;}el.innerHTML=list.map(function(c){var i=D.customers.indexOf(c);return'<div style="padding:11px 12px;border-bottom:1px solid #f0f4ff;display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:13px;color:#1A3A6B">'+c.name+'</b><div style="font-size:11px;color:#64748B">'+(c.phone||'—')+' | '+(c.addr||'—')+'</div><div style="font-size:11px;color:#16A34A">Total: '+rs(c.totalBought||0)+'</div></div><button onclick="delCust('+i+')" style="background:#DC2626;border:none;border-radius:8px;padding:8px 11px;color:#fff;font-size:14px;cursor:pointer">🗑️</button></div>';}).join('');}
 function delCust(i){requireOwner('Customer delete?',function(){initExtra();var c=D.customers[i];if(c)bfLogActivity('Customer','Delete',c.name||'Customer');D.customers.splice(i,1);save();showCustomers();toast('🗑️ Deleted!','ts');});}
 // ─ Staff ─
-function addStaff(){var n=(document.getElementById('st-name')||{}).value||'';if(!n.trim()){toast('❌ Naam daalo!','te');return;}initExtra();D.staff.push({id:Date.now(),name:n.trim(),salary:parseFloat((document.getElementById('st-sal')||{}).value)||0,role:(document.getElementById('st-role')||{}).value||'Helper',added:td()});save();['st-name','st-sal','st-role'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});loadStaffPage();toast('✅ Staff added!','ts');}
+function addStaff(){var n=(document.getElementById('st-name')||{}).value||'';if(!n.trim()){toast('❌ Naam daalo!','te');return;}initExtra();D.staff.push({id:bfUid(),name:n.trim(),salary:parseFloat((document.getElementById('st-sal')||{}).value)||0,role:(document.getElementById('st-role')||{}).value||'Helper',added:td()});save();['st-name','st-sal','st-role'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});loadStaffPage();toast('✅ Staff added!','ts');}
 function loadStaffPage(){initExtra();var d=document.getElementById('att-date');if(d)d.textContent=fd(td());var el=document.getElementById('att-list');if(!el)return;if(!D.staff.length){el.innerHTML='<div class="empty"><p>Pehle staff add karo</p></div>';return;}var today=td();var clr={present:'#16A34A',half:'#EA580C',absent:'#DC2626'};var lbl={present:'✅ Present',half:'½ Half',absent:'❌ Absent'};el.innerHTML=D.staff.map(function(s,i){var att=D.attendance.find(function(a){return a.staffId===s.id&&a.date===today;})||{status:'absent'};return'<div style="padding:11px;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><div><b style="font-size:13px;color:#1A3A6B">'+s.name+'</b> <span style="font-size:11px;color:#64748B">'+s.role+'</span><br><span style="font-size:11px;color:#64748B">'+rs(s.salary||0)+'/mo</span></div><span style="font-size:11px;font-weight:700;color:'+clr[att.status]+'">'+lbl[att.status]+'</span></div><div style="display:flex;gap:5px">'+['present','half','absent'].map(function(st){return'<button onclick="markAtt('+s.id+',\''+st+'\')" style="flex:1;padding:7px 4px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;background:'+(att.status===st?clr[st]:'#f0f4ff')+';color:'+(att.status===st?'#fff':'#475569')+'">'+lbl[st]+'</button>';}).join('')+'<button onclick="delStaff('+i+')" style="padding:7px 9px;border:none;border-radius:7px;background:#fee2e2;color:#DC2626;font-size:13px;cursor:pointer">🗑️</button></div></div>';}).join('');}
 function markAtt(sid,status){initExtra();var today=td();var idx=D.attendance.findIndex(function(a){return a.staffId===sid&&a.date===today;});if(idx>=0)D.attendance[idx].status=status;else D.attendance.push({staffId:sid,date:today,status:status});save();loadStaffPage();toast('✅ Attendance marked!','ts');}
 function delStaff(i){requireOwner('Staff delete?',function(){initExtra();var s=D.staff[i];if(s)bfLogActivity('Staff','Delete',s.name||'Staff');D.staff.splice(i,1);save();loadStaffPage();toast('🗑️ Removed!','ts');});}
@@ -6192,20 +6220,20 @@ function calcSalary(){initExtra();var m=(document.getElementById('sal-month')||{
 function saveTarget(){initExtra();D.targets={daily:parseFloat((document.getElementById('tgt-daily')||{}).value)||0,monthly:parseFloat((document.getElementById('tgt-monthly')||{}).value)||0};save();showTarget();}
 function showTarget(){initExtra();var t=D.targets||{daily:0,monthly:0};var tde=document.getElementById('tgt-daily');if(tde&&!tde.value&&t.daily)tde.value=t.daily;var tme=document.getElementById('tgt-monthly');if(tme&&!tme.value&&t.monthly)tme.value=t.monthly;var today=td(),m=today.substring(0,7);var tSale=D.sales.filter(function(s){return s.date===today;}).reduce(function(a,s){return a+s.total;},0);var mSale=D.sales.filter(function(s){return s.date&&s.date.startsWith(m);}).reduce(function(a,s){return a+s.total;},0);function bar(sale,target,eid){var pct=target>0?Math.min(100,Math.round(sale/target*100)):0;var color=pct>=100?'#16A34A':pct>=60?'#EA580C':'#DC2626';var el=document.getElementById(eid);if(!el)return;el.innerHTML='<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:6px"><span>Sale: <b style="color:#16A34A">'+rs(sale)+'</b></span><span>Target: <b>'+rs(target)+'</b></span></div><div style="background:#f0f4ff;border-radius:20px;height:20px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,'+color+',#22c55e);border-radius:20px;display:flex;align-items:center;justify-content:center">'+(pct>8?'<span style="font-size:11px;font-weight:700;color:#fff">'+pct+'%</span>':'')+'</div></div><div style="text-align:center;font-size:12px;font-weight:700;color:'+color+';margin-top:5px">'+(pct>=100?'🎉 Target Pura!':target>0?rs(Math.max(0,target-sale))+' aur chahiye!':'Target set nahi')+'</div>';}bar(tSale,t.daily||0,'tgt-today');bar(mSale,t.monthly||0,'tgt-month');}
 // ─ Payment Mode ─
-function addPayment(){var amt=parseFloat((document.getElementById('pm-amt')||{}).value)||0;if(!amt){toast('❌ Amount daalo!','te');return;}initExtra();D.payments.push({id:Date.now(),date:(document.getElementById('pm-date')||{}).value||td(),amount:amt,mode:(document.getElementById('pm-mode')||{}).value||'Cash',customer:(document.getElementById('pm-cust')||{}).value||''});save();var ae=document.getElementById('pm-amt');if(ae)ae.value='';var ce=document.getElementById('pm-cust');if(ce)ce.value='';showPayments();toast('✅ Payment saved!','ts');}
+function addPayment(){var amt=parseFloat((document.getElementById('pm-amt')||{}).value)||0;if(!amt){toast('❌ Amount daalo!','te');return;}initExtra();D.payments.push({id:bfUid(),date:(document.getElementById('pm-date')||{}).value||td(),amount:amt,mode:(document.getElementById('pm-mode')||{}).value||'Cash',customer:(document.getElementById('pm-cust')||{}).value||''});save();var ae=document.getElementById('pm-amt');if(ae)ae.value='';var ce=document.getElementById('pm-cust');if(ce)ce.value='';showPayments();toast('✅ Payment saved!','ts');}
 function showPayments(){initExtra();var today=td();var tp=D.payments.filter(function(p){return p.date===today;});var modes={Cash:0,UPI:0,Card:0,Udhar:0};tp.forEach(function(p){modes[p.mode]=(modes[p.mode]||0)+p.amount;});var icons={Cash:'💵',UPI:'📱',Card:'💳',Udhar:'📋'};var total=tp.reduce(function(a,p){return a+p.amount;},0);var te=document.getElementById('pm-today');if(te){if(!tp.length)te.innerHTML='<div class="empty"><p>Aaj koi payment nahi</p></div>';else te.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+Object.entries(modes).filter(function(e){return e[1]>0;}).map(function(e){return'<div style="background:#f8faff;padding:10px;border-radius:8px;text-align:center"><div style="font-size:20px">'+icons[e[0]]+'</div><div style="font-size:11px;color:#64748B;font-weight:700">'+e[0]+'</div><div style="font-size:14px;font-weight:800;color:#1A3A6B">'+rs(e[1])+'</div></div>';}).join('')+'</div><div style="background:#1A3A6B;padding:10px;text-align:center;font-weight:700;color:#FFD700;margin-top:8px;border-radius:8px">Aaj Total: '+rs(total)+'</div>';}var le=document.getElementById('pm-list');if(le){if(!D.payments.length){le.innerHTML='<div class="empty"><p>Koi payment nahi</p></div>';return;}le.innerHTML=D.payments.slice().reverse().slice(0,30).map(function(p,ii){var orig=D.payments.length-1-ii;return'<div style="padding:10px 12px;border-bottom:1px solid #f0f4ff;display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:12px">'+icons[p.mode]+' '+p.mode+'</b><div style="font-size:11px;color:#64748B">'+fd(p.date)+(p.customer?' | '+p.customer:'')+'</div></div><div style="display:flex;align-items:center;gap:6px"><b style="font-size:14px;color:#16A34A">'+rs(p.amount)+'</b><button onclick="delPayment('+orig+')" style="background:#fee2e2;border:none;border-radius:6px;padding:5px 7px;color:#DC2626;cursor:pointer">🗑️</button></div></div>';}).join('');}}
 function delPayment(i){initExtra();var p=D.payments[i];if(p)bfLogActivity('Payment','Delete',(p.mode||'Payment')+' - '+rs(p.amount||0)+(p.customer?' ('+p.customer+')':''));D.payments.splice(i,1);save();showPayments();toast('🗑️ Deleted!','ts');}
 // ─ Returns ─
-function addReturn(){var item=(document.getElementById('ret-item')||{}).value||'';if(!item.trim()){toast('❌ Item naam daalo!','te');return;}initExtra();D.returns.push({id:Date.now(),date:(document.getElementById('ret-date')||{}).value||td(),type:(document.getElementById('ret-type')||{}).value||'Return',customer:(document.getElementById('ret-cust')||{}).value||'',item:item.trim(),amount:parseFloat((document.getElementById('ret-amt')||{}).value)||0,reason:(document.getElementById('ret-reason')||{}).value||''});save();['ret-cust','ret-item','ret-amt','ret-reason'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showReturns();toast('✅ Record saved!','ts');}
+function addReturn(){var item=(document.getElementById('ret-item')||{}).value||'';if(!item.trim()){toast('❌ Item naam daalo!','te');return;}initExtra();bfReturnRestock(document.getElementById('ret-type'),item);D.returns.push({id:bfUid(),date:(document.getElementById('ret-date')||{}).value||td(),type:(document.getElementById('ret-type')||{}).value||'Return',customer:(document.getElementById('ret-cust')||{}).value||'',item:item.trim(),amount:parseFloat((document.getElementById('ret-amt')||{}).value)||0,reason:(document.getElementById('ret-reason')||{}).value||''});save();['ret-cust','ret-item','ret-amt','ret-reason'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showReturns();toast('✅ Record saved!','ts');}
 function showReturns(){initExtra();var rets=D.returns.filter(function(r){return r.type==='Return';});var exchs=D.returns.filter(function(r){return r.type==='Exchange';});var rte=document.getElementById('ret-total');if(rte)rte.textContent=rs(rets.reduce(function(a,r){return a+(r.amount||0);},0));var ree=document.getElementById('ret-exch');if(ree)ree.textContent=exchs.length;var le=document.getElementById('ret-list');if(!le)return;if(!D.returns.length){le.innerHTML='<div class="empty"><p>Koi return nahi</p></div>';return;}le.innerHTML=D.returns.slice().reverse().map(function(r,ii){var orig=D.returns.length-1-ii;var isR=r.type==='Return';return'<div style="padding:11px 12px;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:start"><div><span style="background:'+(isR?'#fee2e2':'#fff8e1')+';color:'+(isR?'#DC2626':'#EA580C')+';padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">'+(isR?'↩️ Return':'🔄 Exchange')+'</span><b style="display:block;font-size:13px;color:#1A3A6B;margin-top:3px">'+r.item+'</b><div style="font-size:11px;color:#64748B">'+(r.customer||'Unknown')+' | '+fd(r.date)+'</div></div><div style="text-align:right"><b style="color:#DC2626;font-size:14px">'+rs(r.amount||0)+'</b><br><button onclick="delReturn('+orig+')" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 7px;color:#DC2626;cursor:pointer;font-size:12px;margin-top:3px">🗑️</button></div></div></div>';}).join('');}
 function delReturn(i){initExtra();var r=D.returns[i];if(r)bfLogActivity('Return/Exchange','Delete',(r.item||'Item')+' - '+rs(r.amount||0)+(r.customer?' ('+r.customer+')':''));D.returns.splice(i,1);save();showReturns();toast('🗑️ Deleted!','ts');}
 // ─ EMI/Loan ─
-function addLoan(){var src=(document.getElementById('loan-src')||{}).value||'';var amt=parseFloat((document.getElementById('loan-total')||{}).value)||0;if(!src.trim()||!amt){toast('❌ Bank naam aur amount daalo!','te');return;}initExtra();D.loans.push({id:Date.now(),source:src.trim(),totalAmt:amt,remaining:amt,emi:parseFloat((document.getElementById('loan-emi')||{}).value)||0,dueDate:parseInt((document.getElementById('loan-due')||{}).value)||1,startDate:(document.getElementById('loan-start')||{}).value||td(),paid:0});save();['loan-src','loan-total','loan-emi','loan-due','loan-start'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showLoans();toast('✅ Loan saved!','ts');}
+function addLoan(){var src=(document.getElementById('loan-src')||{}).value||'';var amt=parseFloat((document.getElementById('loan-total')||{}).value)||0;if(!src.trim()||!amt){toast('❌ Bank naam aur amount daalo!','te');return;}initExtra();D.loans.push({id:bfUid(),source:src.trim(),totalAmt:amt,remaining:amt,emi:parseFloat((document.getElementById('loan-emi')||{}).value)||0,dueDate:parseInt((document.getElementById('loan-due')||{}).value)||1,startDate:(document.getElementById('loan-start')||{}).value||td(),paid:0});save();['loan-src','loan-total','loan-emi','loan-due','loan-start'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showLoans();toast('✅ Loan saved!','ts');}
 function showLoans(){initExtra();var out=D.loans.reduce(function(a,l){return a+(l.remaining||0);},0);var memi=D.loans.filter(function(l){return l.remaining>0;}).reduce(function(a,l){return a+(l.emi||0);},0);var oe=document.getElementById('loan-out');if(oe)oe.textContent=rs(out);var me=document.getElementById('loan-memi');if(me)me.textContent=rs(memi);var le=document.getElementById('loan-list');if(!le)return;if(!D.loans.length){le.innerHTML='<div class="empty"><p>Koi loan nahi</p></div>';return;}var today=new Date().getDate();le.innerHTML=D.loans.map(function(l,i){var pct=l.totalAmt>0?Math.round((1-(l.remaining/l.totalAmt))*100):0;var isDue=l.dueDate===today&&l.remaining>0;var done=l.remaining<=0;return'<div style="padding:12px;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px"><div><b style="font-size:13px;color:#1A3A6B">🏦 '+l.source+'</b>'+(isDue?'<span style="background:#fee2e2;color:#DC2626;font-size:10px;padding:2px 6px;border-radius:10px;margin-left:6px">⚠️ EMI DUE</span>':'')+(done?'<span style="background:#dcfce7;color:#16A34A;font-size:10px;padding:2px 6px;border-radius:10px;margin-left:6px">✅ PAID</span>':'')+'<br><span style="font-size:11px;color:#64748B">EMI: '+rs(l.emi||0)+'/mo | '+l.dueDate+' tarikh</span></div><div style="text-align:right"><b style="font-size:15px;color:'+(done?'#16A34A':'#DC2626')+'">'+rs(l.remaining)+'</b><div style="font-size:11px;color:#64748B">baaki</div></div></div><div style="background:#f0f4ff;border-radius:10px;height:8px;overflow:hidden;margin-bottom:7px"><div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#16A34A,#22c55e)"></div></div><div style="display:flex;gap:6px">'+(!done?'<button onclick="payEmi('+i+')" style="flex:1;padding:9px;background:#1A3A6B;color:#FFD700;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✅ EMI Paid '+rs(l.emi||0)+'</button>':'')+'<button onclick="delLoan('+i+')" style="padding:9px 12px;background:#fee2e2;color:#DC2626;border:none;border-radius:8px;font-size:13px;cursor:pointer">🗑️</button></div></div>';}).join('');}
 function payEmi(i){initExtra();var l=D.loans[i];if(!l)return;l.remaining=Math.max(0,(l.remaining||0)-(l.emi||0));l.paid=(l.paid||0)+(l.emi||0);save();showLoans();toast('✅ EMI paid! Baaki: '+rs(l.remaining),'ts');}
 function delLoan(i){requireOwner('Loan delete?',function(){initExtra();var l=D.loans[i];if(l)bfLogActivity('Loan/EMI','Delete',(l.source||'Loan')+' - '+rs(l.remaining||0)+' baaki');D.loans.splice(i,1);save();showLoans();toast('🗑️ Loan deleted!','ts');});}
 // ─ Festival ─
-function addFestival(){var date=(document.getElementById('fst-date')||{}).value||'';if(!date){toast('❌ Date daalo!','te');return;}initExtra();D.festivals.push({id:Date.now(),name:(document.getElementById('fst-name')||{}).value||'Festival',date:date,budget:parseFloat((document.getElementById('fst-budget')||{}).value)||0,plan:(document.getElementById('fst-plan')||{}).value||''});save();['fst-date','fst-budget','fst-plan'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showFestivals();toast('✅ Plan saved!','ts');}
+function addFestival(){var date=(document.getElementById('fst-date')||{}).value||'';if(!date){toast('❌ Date daalo!','te');return;}initExtra();D.festivals.push({id:bfUid(),name:(document.getElementById('fst-name')||{}).value||'Festival',date:date,budget:parseFloat((document.getElementById('fst-budget')||{}).value)||0,plan:(document.getElementById('fst-plan')||{}).value||''});save();['fst-date','fst-budget','fst-plan'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});showFestivals();toast('✅ Plan saved!','ts');}
 function showFestivals(){initExtra();var le=document.getElementById('fst-list');if(!le)return;if(!D.festivals.length){le.innerHTML='<div class="empty"><p>Koi plan nahi</p></div>';return;}le.innerHTML=D.festivals.slice().sort(function(a,b){return a.date.localeCompare(b.date);}).map(function(f){var orig=D.festivals.indexOf(f);var diff=Math.ceil((new Date(f.date)-new Date())/864e5);var past=diff<0;return'<div style="padding:12px;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px"><div><b style="font-size:14px;color:'+(past?'#94A3B8':'#1A3A6B')+'">'+f.name+'</b><div style="font-size:11px;color:#64748B">'+fd(f.date)+'</div></div><div style="text-align:right"><b style="font-size:16px;color:#EA580C">'+rs(f.budget)+'</b><br>'+(past?'<span style="font-size:10px;color:#94A3B8">Guzar gaya</span>':'<span style="font-size:11px;font-weight:700;color:'+(diff<=14?'#DC2626':'#16A34A')+'">'+diff+' din baaki</span>')+'</div></div>'+(f.plan?'<div style="background:#f8faff;padding:8px;border-radius:6px;font-size:12px;color:#475569;margin-bottom:6px;white-space:pre-line">'+f.plan+'</div>':'')+'<button onclick="delFestival('+orig+')" style="padding:6px 10px;background:#fee2e2;color:#DC2626;border:none;border-radius:6px;font-size:12px;cursor:pointer">🗑️ Delete</button></div>';}).join('');}
 function delFestival(i){initExtra();var f=D.festivals[i];if(f)bfLogActivity('Festival','Delete',f.name||'Festival');D.festivals.splice(i,1);save();showFestivals();toast('🗑️ Deleted!','ts');}
 // ─ Staff Advance System ─
@@ -6226,7 +6254,7 @@ function renderAdvDashboard(){initExtra();var nowM=td().substring(0,7);var se=do
 // ─ BB Purchase ─
 var BB_ITEMS=[{name:'6513',category:'Fabric/Suit',qty:22,buyPrice:465,sellPrice:0,minStock:5},{name:'6810',category:'Fabric/Suit',qty:10,buyPrice:360,sellPrice:0,minStock:5},{name:'P146',category:'Fabric/Suit',qty:11,buyPrice:345,sellPrice:0,minStock:5},{name:'P139',category:'Fabric/Suit',qty:11,buyPrice:295,sellPrice:0,minStock:5},{name:'4164',category:'Fabric/Suit',qty:6,buyPrice:415,sellPrice:0,minStock:5}];
 function addPurchaseToStock(){BB_ITEMS.forEach(function(item){var exist=D.stock.find(function(s){return bfNormName(s.name)===bfNormName(item.name);});if(exist){exist.qty+=item.qty;exist.buyPrice=item.buyPrice;if(!exist.id)exist.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);}else D.stock.push({id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:item.name,category:item.category,qty:item.qty,buyPrice:item.buyPrice,sellPrice:item.sellPrice,minStock:item.minStock});});save();toast('✅ 5 items stock mein add! (OP225 — 60 pcs)','ts');}
-function addPurchaseExpense(){if(!D.expenses)D.expenses=[];if(D.expenses.find(function(e){return e.note&&e.note.includes('OP225');})){toast('⚠️ OP225 pehle se record hai!','te');return;}D.expenses.push({id:Date.now(),date:'2026-07-01',amount:24528,cat:'Purchase/Kharida',note:'BB Synthetics OP225 — 60 pcs (IGST ₹1168)'});save();toast('✅ ₹24,528 expense record ho gaya!','ts');}
+function addPurchaseExpense(){if(!D.expenses)D.expenses=[];if(D.expenses.find(function(e){return e.note&&e.note.includes('OP225');})){toast('⚠️ OP225 pehle se record hai!','te');return;}D.expenses.push({id:bfUid(),date:'2026-07-01',amount:24528,cat:'Purchase/Kharida',note:'BB Synthetics OP225 — 60 pcs (IGST ₹1168)'});save();toast('✅ ₹24,528 expense record ho gaya!','ts');}
 function printPurchaseBill(){var el=document.getElementById('pg-purchase');if(!el)return;var w=window.open('','_blank');if(!w){toast('❌ Popup block hai','te');return;}w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>OP225</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:10px}.xbk,.xbkb,.xtitle{display:none!important}button{display:none!important}table{width:100%;border-collapse:collapse}</style></head><body>'+el.innerHTML+'</body></html>');w.document.close();setTimeout(function(){w.print();},400);}
 
 // ═══ PASSWORD / LOGIN SYSTEM ═══
@@ -7882,6 +7910,39 @@ lrRenderAll();
 <script>
 (function(){
   var CLOUD_DOC_ID = "ultimate_app";
+  // ── LOGIN (Firebase Auth). false = abhi jaisa chal raha hai. true = email+password login zaroori.
+  // Pehle Firebase Console mein Email/Password chalu karein aur users banayein (SETUP_AUTH_RULES.md), phir true karein.
+  var BF_AUTH_REQUIRED = false;
+  function bfAuthReady(){
+    if(!BF_AUTH_REQUIRED || typeof firebase.auth!=='function') return Promise.resolve();
+    var auth=firebase.auth();
+    return new Promise(function(resolve){
+      function show(msg){
+        var ov=document.getElementById('bfAuthOv');
+        if(!ov){
+          ov=document.createElement('div');ov.id='bfAuthOv';
+          ov.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#0F172A;display:flex;align-items:center;justify-content:center;padding:20px;font-family:sans-serif';
+          ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:22px;width:100%;max-width:340px"><div style="font-size:18px;font-weight:800;margin-bottom:4px">Bhagya Fashion</div><div style="font-size:12px;color:#64748B;margin-bottom:14px">Login karein</div><input id="bfAuE" type="email" placeholder="Email" autocomplete="username" style="width:100%;padding:11px;margin-bottom:8px;border:1px solid #CBD5E1;border-radius:10px;font-size:15px;box-sizing:border-box"><input id="bfAuP" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:11px;margin-bottom:8px;border:1px solid #CBD5E1;border-radius:10px;font-size:15px;box-sizing:border-box"><div id="bfAuM" style="color:#B91C1C;font-size:12px;min-height:16px;margin-bottom:6px"></div><button id="bfAuB" style="width:100%;padding:12px;border:0;border-radius:10px;background:#1D4ED8;color:#fff;font-size:15px;font-weight:700">Login</button></div>';
+          document.body.appendChild(ov);
+          document.getElementById('bfAuB').onclick=function(){
+            var e=document.getElementById('bfAuE').value.trim(),pw=document.getElementById('bfAuP').value;
+            if(!e||!pw){document.getElementById('bfAuM').textContent='Email aur password dono daalein';return;}
+            document.getElementById('bfAuM').textContent='';
+            auth.signInWithEmailAndPassword(e,pw).catch(function(er){document.getElementById('bfAuM').textContent='Login nahi hua: '+(er.code==='auth/network-request-failed'?'internet check karein':'email/password galat hai');});
+          };
+        }
+        ov.style.display='flex';if(msg)document.getElementById('bfAuM').textContent=msg;
+      }
+      auth.onAuthStateChanged(function(u){
+        if(u){var ov=document.getElementById('bfAuOv')||document.getElementById('bfAuthOv');if(ov)ov.style.display='none';resolve();}
+        else show();
+      });
+    });
+  }
+  window.bfSignOut=function(){
+    if(!BF_AUTH_REQUIRED||typeof firebase.auth!=='function'){if(typeof toast==='function')toast('ℹ️ Login abhi chalu nahi hai','ts');return;}
+    if(confirm('Logout karein?'))firebase.auth().signOut().then(function(){location.reload();});
+  };
   // Pehle poora app-data ek hi bade "bf_ultimate_v1" blob mein tha, isliye stock ka ek item
   // badalne par bhi SAARI sale history + sab kuch dobara upload hota tha — isi wajah se
   // late/slow ho raha tha. Ab har hissa (sales, cash, udhar, expenses...) alag-alag
@@ -7892,6 +7953,37 @@ lrRenderAll();
   var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bf_d_cfbs","bf_d_returns","bf_d_daily","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
   var docRef = bfDb.collection("bhagya_sync").doc(CLOUD_DOC_ID);
   var justWroteFromCloud = false;
+  var cloudLoaded = false;
+  var ARR_KEYS=["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_returns"];
+  // ── MULTI-PHONE SAFE MERGE: har record ka apna _id; push par cloud ke saath 3-way merge ──
+  function bfH(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
+  function bfIdsDet(a){var seen={};a.forEach(function(r){if(r&&typeof r==='object'&&!r._id){var b=bfH(JSON.stringify(r));seen[b]=(seen[b]||0)+1;r._id=b+'-'+seen[b];}});return a;}
+  function bfIdsRand(a){a.forEach(function(r){if(r&&typeof r==='object'&&!r._id)r._id='n'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);});return a;}
+  function bfMap(a){var m={};a.forEach(function(r){if(r&&r._id)m[r._id]=bfH(JSON.stringify(r));});return m;}
+  function bfBaseGet(k){try{return JSON.parse(localStorage.getItem('bf_base_'+k)||'null');}catch(e){return null;}}
+  function bfBaseSet(k,m){try{localStorage.setItem('bf_base_'+k,JSON.stringify(m));}catch(e){}}
+  function bfBq(){try{return JSON.parse(localStorage.getItem('bf_stock_baseqty')||'{}');}catch(e){return {};}}
+  function bfBqSet(id,q){var m=bfBq();m[id]=q;try{localStorage.setItem('bf_stock_baseqty',JSON.stringify(m));}catch(e){}}
+  function bfMergeArr(k,ls,cs){
+    var L,C,B=bfBaseGet(k);
+    try{L=JSON.parse(ls||'[]');}catch(e){L=[];} if(!Array.isArray(L))L=[];
+    try{C=JSON.parse(cs||'[]');}catch(e){C=[];} if(!Array.isArray(C))C=[];
+    bfIdsDet(C); if(B===null)bfIdsDet(L); else bfIdsRand(L);
+    var R=C.slice(),pos={},Lm={};
+    R.forEach(function(r,i){if(r&&r._id)pos[r._id]=i;});
+    L.forEach(function(r){if(r&&r._id)Lm[r._id]=1;});
+    L.forEach(function(r){if(!r||!r._id)return;
+      if(B===null||B[r._id]!==bfH(JSON.stringify(r))){ if(pos[r._id]!==undefined)R[pos[r._id]]=r; else{pos[r._id]=R.length;R.push(r);} }});
+    if(B)Object.keys(B).forEach(function(id){if(!Lm[id]&&pos[id]!==undefined)R[pos[id]]=null;});
+    return R.filter(Boolean);
+  }
+  function bfUiRefresh(){
+    try{ justWroteFromCloud=true; if(typeof load==='function')load(); justWroteFromCloud=false;
+      ['fillDrop','showDash','showStock'].forEach(function(f){if(typeof window[f]==='function')window[f]();});
+      if(typeof go==='function'&&typeof window._currentPage!=='undefined')go(window._currentPage);
+    }catch(e){justWroteFromCloud=false;console.warn('UI refresh',e);}
+  }
+
   var writeTimer = null;
   var pendingKeys = {};      // jo keys badli hain lekin abhi cloud pe nahi gayi
   var pushInFlight = false;  // ek push chal raha hai kya abhi
@@ -7990,36 +8082,46 @@ lrRenderAll();
   };
 
   function pushStockToCloud(){
-    var ids = Object.keys(pendingStockItems);
+    var ids=Object.keys(pendingStockItems);
     if(!ids.length) return;
-    var toSend = pendingStockItems;
-    pendingStockItems = {};
-    var now = Date.now();
-    var payload = {};
-    ids.forEach(function(id){
-      var it = toSend[id];
-      var val = it.__deleted
-        ? JSON.stringify({id:id, __deleted:true, _ts:now})
-        : JSON.stringify(Object.assign({}, it, {_ts:now}));
-      payload['stock_items.'+id] = val;   // Firestore dot-path — sirf ye ek item update hoga,
-      bfStockTsSet(id, now);              // baaki saare items ko haath tak nahi lagega
-    });
+    var toSend=pendingStockItems; pendingStockItems={};
+    var now=Date.now();
     bfSyncBadge('syncing');
     if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('☁️ Cloud par bhej rahe hain...','#92400E');
-    docRef.set(payload, {merge:true}).then(function(){
-      failStreak = 0; bfSyncBadge('done'); bfBigWarning(false);
-      if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('✅ Cloud par bhi SAVE ho gaya (dono phone par dikhega)','#166534');
+    docRef.firestore.runTransaction(function(tx){return tx.get(docRef).then(function(snap){
+      var cd=snap.exists?snap.data():{},cur=cd.stock_items||{},map={},res={};
+      ids.forEach(function(id){
+        var it=toSend[id],c=null,o;
+        try{c=cur[id]?JSON.parse(cur[id]):null;}catch(e){}
+        if(it.__deleted){o={id:id,__deleted:true,_ts:now};}
+        else{
+          var q=it.qty||0;
+          if(c&&!c.__deleted){var cq=c.qty||0,b=bfBq()[id];if(b===undefined)b=cq;q=cq+((it.qty||0)-b);} /* DELTA: dusre phone ki bikri kat-ti nahi */
+          if(q<0)q=0;
+          o=Object.assign({},it,{qty:q,_ts:now});
+        }
+        map[id]=JSON.stringify(o);res[id]=o;
+      });
+      tx.set(docRef,{stock_items:map},{merge:true});
+      return res;});})
+    .then(function(res){
+      var applied=false;
+      ids.forEach(function(id){
+        var o=res[id];bfStockTsSet(id,o._ts);
+        if(o.__deleted)return;
+        if(pendingStockItems[id]){bfBqSet(id,toSend[id].qty||0);return;}
+        if(typeof window.__bfApplyStockItem==='function'){window.__bfApplyStockItem(id,o);applied=true;}
+      });
+      if(applied&&typeof save==='function'){justWroteFromCloud=true;save();justWroteFromCloud=false;if(typeof fillDrop==='function')fillDrop();if(typeof showStock==='function')showStock();}
+      failStreak=0;bfSyncBadge('done');bfBigWarning(false);
+      if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('✅ Cloud par bhi SAVE ho gaya (sab phone par dikhega)','#166534');
     }).catch(function(e){
-      console.warn('BF stock sync error:', e);
-      failStreak++;
-      ids.forEach(function(id){ pendingStockItems[id] = toSend[id]; });
+      console.warn('BF stock sync error:',e);failStreak++;
+      ids.forEach(function(id){if(!pendingStockItems[id])pendingStockItems[id]=toSend[id];});
       bfSyncBadge('fail');
       if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('⚠️ Is phone par SAVE hai, par Cloud par jaana baaki — Internet check karein','#991B1B');
-      if(failStreak >= 2){
-        bfBigWarning(true, '⚠️ Stock Cloud Sync baar-baar fail ho raha hai! File ko Chrome browser mein kholein, WhatsApp/Files-app ke andar seedha na kholein.');
-      }
-      clearTimeout(stockRetryTimer);
-      stockRetryTimer = setTimeout(pushStockToCloud, 4000);
+      if(failStreak>=2)bfBigWarning(true,'⚠️ Stock Cloud Sync baar-baar fail ho raha hai! File ko Chrome browser mein kholein, WhatsApp/Files-app ke andar seedha na kholein.');
+      clearTimeout(stockRetryTimer);stockRetryTimer=setTimeout(pushStockToCloud,4000);
     });
   }
 
@@ -8029,6 +8131,8 @@ lrRenderAll();
     var s = document.createElement('script');
     s.textContent = tag.textContent;
     tag.parentNode.replaceChild(s, tag);
+    var _o=window.__bfApplyStockItem;
+    if(_o){window.__bfApplyStockItem=function(id,inc){_o(id,inc);if(inc&&!inc.__deleted)bfBqSet(id,inc.qty||0);};}
   }
 
   function hideLoader(){
@@ -8046,7 +8150,9 @@ lrRenderAll();
       if(cloudObj && cloudObj[k] !== undefined){
         var cloudTs = cloudObj[k + '_ts'] || 0;
         if(cloudTs >= tsOf(k)){
-          localStorage.setItem(k, cloudObj[k]);
+          var _str = cloudObj[k];
+          if(ARR_KEYS.indexOf(k) >= 0){ try{ var _a = bfIdsDet(JSON.parse(_str)); _str = JSON.stringify(_a); bfBaseSet(k, bfMap(_a)); }catch(e){} }
+          localStorage.setItem(k, _str);
           localStorage.setItem(k + '_bfts', String(cloudTs));
         }
       }
@@ -8100,35 +8206,41 @@ lrRenderAll();
   }
 
   function pushToCloud(){
-    var keys = Object.keys(pendingKeys);
+    var keys=Object.keys(pendingKeys);
     if(!keys.length) return;
-    pendingKeys = {};
-    pushInFlight = true;
-    bfSyncBadge('syncing');
-    var payload = {};
-    var now = Date.now();
-    keys.forEach(function(k){
-      payload[k] = localStorage.getItem(k) || '';
-      payload[k + '_ts'] = now;
-      localStorage.setItem(k + '_bfts', String(now));
-    });
-    docRef.set(payload, {merge:true}).then(function(){
-      failStreak = 0;
-      pushInFlight = false;
-      bfSyncBadge('done');
-      bfBigWarning(false);
+    pendingKeys={}; pushInFlight=true; bfSyncBadge('syncing');
+    var now=Date.now(),loc={};
+    keys.forEach(function(k){var v=localStorage.getItem(k)||'';if(!cloudLoaded&&(v===''||v==='[]'||v==='{}'||v==='1'))return;loc[k]=v;});
+    var ks=Object.keys(loc);
+    if(!ks.length){pushInFlight=false;return;}
+    docRef.firestore.runTransaction(function(tx){return tx.get(docRef).then(function(snap){
+      var cd=snap.exists?snap.data():{},upd={},out={};
+      ks.forEach(function(k){var v;
+        if(ARR_KEYS.indexOf(k)>=0){var arr=bfMergeArr(k,loc[k],cd[k]);v=JSON.stringify(arr);out[k]={s:v,a:arr};}
+        else if(k==='bf_d_bc'){v=String(Math.max(parseInt(loc[k],10)||1,parseInt(cd[k],10)||1));out[k]={s:v};}
+        else{v=loc[k];out[k]={s:v};}
+        upd[k]=v;upd[k+'_ts']=now;});
+      tx.set(docRef,upd,{merge:true});
+      return out;});})
+    .then(function(out){
+      var changed=false;
+      ks.forEach(function(k){
+        localStorage.setItem(k+'_bfts',String(now));
+        var o=out[k];
+        if(pendingKeys[k])return;
+        if(o.a)bfBaseSet(k,bfMap(o.a));
+        if(o.s!==localStorage.getItem(k)){justWroteFromCloud=true;localStorage.setItem(k,o.s);justWroteFromCloud=false;changed=true;}
+      });
+      if(changed)bfUiRefresh();
+      if(ks.indexOf('bf_d_sales')>=0){var d=0,seen={};try{JSON.parse(localStorage.getItem('bf_d_sales')||'[]').forEach(function(b){if(seen[b.billNo])d++;seen[b.billNo]=1;});}catch(e){}
+        if(d&&typeof toast==='function')toast('⚠️ '+d+' bill ka number do phone par same ban gaya — Sale list mein check karein','te');}
+      failStreak=0;pushInFlight=false;bfSyncBadge('done');bfBigWarning(false);
     }).catch(function(e){
-      console.warn('BF Cloud sync error:', e);
-      pushInFlight = false;
-      failStreak++;
-      bfSyncBadge('fail');
-      if(failStreak >= 2){
-        bfBigWarning(true, '⚠️ Cloud Sync baar-baar fail ho raha hai! Is entry ko safe maankar band mat karein — file ko phone mein Download karke Chrome browser mein kholein, WhatsApp ke andar seedha na kholein.');
-      }
-      // Jo bhej nahi paaye wo wapas pending mein daal do, thodi der baad phir koshish karo
-      keys.forEach(function(k){ pendingKeys[k] = true; });
-      clearTimeout(retryTimer);
-      retryTimer = setTimeout(pushToCloud, 4000);
+      console.warn('BF Cloud sync error:',e);
+      pushInFlight=false;failStreak++;bfSyncBadge('fail');
+      if(failStreak>=2)bfBigWarning(true,'⚠️ Cloud Sync baar-baar fail ho raha hai! Is entry ko safe maankar band mat karein — file ko Chrome browser mein kholein, WhatsApp ke andar seedha na kholein.');
+      ks.forEach(function(k){pendingKeys[k]=true;});
+      clearTimeout(retryTimer);retryTimer=setTimeout(pushToCloud,4000);
     });
   }
 
@@ -8166,15 +8278,16 @@ lrRenderAll();
       var incomingTs = incoming._ts || 0;
       if(incomingTs >= (tsMap[id] || 0)){
         if(incoming.__deleted){ delete byId[id]; }
-        else{ var clean = Object.assign({}, incoming); delete clean._ts; byId[id] = clean; }
+        else{ var clean = Object.assign({}, incoming); delete clean._ts; byId[id] = clean; bfBqSet(id, clean.qty||0); }
         tsMap[id] = incomingTs;
       }
     });
     localStorage.setItem('bf_stock_ts_map', JSON.stringify(tsMap));
     localStorage.setItem('bf_d_stock', JSON.stringify(Object.keys(byId).map(function(k){return byId[k];})));
   }
-  docRef.get().then(function(snap){
+  bfAuthReady().then(function(){return Promise.race([docRef.get(),new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},8000);})]);}).then(function(snap){
     var data = snap.exists ? snap.data() : null;
+    cloudLoaded = true;
     bootMergeStockItems(data);
     applyCloudData(data, function(){
       runMainScript();
@@ -8198,6 +8311,7 @@ lrRenderAll();
 
   // 2) Jab doosre bhai ke phone se data update ho, yahan bhi refresh ho jaye
   function handleRemoteSnapshot(snap){
+    if(snap.exists && snap.metadata && !snap.metadata.fromCache) cloudLoaded = true;
     if(!snap.exists || justWroteFromCloud) return;
     if(snap.metadata && snap.metadata.hasPendingWrites) return;
     // Agar hamara khud ka change abhi bhejna baaki hai, to abhi apply/refresh mat karo —
@@ -8250,7 +8364,7 @@ lrRenderAll();
       });
     }
   }
-  docRef.onSnapshot(handleRemoteSnapshot);
+  bfAuthReady().then(function(){docRef.onSnapshot(handleRemoteSnapshot,function(e){console.warn("BF listener",e);});});
 
   // 3) localStorage.setItem hook -- jab bhi app data save kare, cloud pe bhi bhej do
   //    (sirf jo key badli hai wahi bhejta hai, isliye stock/sale add karna fast rahega)
