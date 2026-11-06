@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1A3A6B">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bhagya Fashion">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Bhagya Fashion — Ultimate App</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -952,6 +958,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
     <button class="btn bg2" style="flex:1" onclick="printStock()">🖨️ Print Stock List</button>
     <button class="btn bs2" style="flex:1" onclick="shareStockWA()">📲 WhatsApp Share</button>
   </div>
+  <div style="display:flex;gap:10px;margin-bottom:12px"><button class="btn bp" style="flex:1" onclick="bfOpenLedger('ledger')">📒 Stock Ledger</button><button class="btn bo" style="flex:1" onclick="bfOpenLedger('verify')">✅ Stock Jaanch</button></div>
   <div class="card">
     <div class="ch"><h3>📦 Stock Add / Update</h3></div>
     <div class="cb">
@@ -974,6 +981,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
         <div class="fg"><label class="fl">Sell Price (₹) *</label><input class="fi" id="sSell" placeholder="0" type="number" inputmode="numeric"></div>
         <div class="fg"><label class="fl">Low Stock Alert</label><input class="fi" id="sMin" placeholder="5" type="number" inputmode="numeric" value="5"></div>
       </div>
+      <div class="fg"><label class="fl">Karan / Supplier / Note (Ledger mein jayega)</label><input class="fi" id="sReason" placeholder="e.g. Madhu Da se maal aaya / toot-phoot / correction" type="text"></div>
       <button class="btn bp" onclick="saveStock()">💾 Stock Save</button>
       <div id="stockSaveNote" style="font-size:11px;color:#166534;margin-top:6px;text-align:center"></div>
     </div>
@@ -1849,7 +1857,8 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   </div>
   <div class="card"><div class="ch"><h3>🛍️ Category Wise Sale</h3></div><div class="cb" id="catChart"><div class="empty"><p>Report generate karo</p></div></div></div>
   <div class="card"><div class="ch"><h3>💸 Expense Breakdown</h3></div><div class="cb" id="expChart"><div class="empty"><p>Report generate karo</p></div></div></div>
-  <button class="btn bg2" onclick="backupData()" style="margin-top:6px">📥 Data Backup</button>
+  <button class="btn bp" onclick="bfBkOpen()" style="margin-top:6px">🛡️ Backup Center</button>
+  <button class="btn bg2" onclick="backupData()" style="margin-top:6px">📥 Backup File Banao</button>
   <button class="btn bo" onclick="restoreData()" style="margin-top:6px">♻️ Backup se Restore</button>
   <button class="btn bo" onclick="bfSignOut()" style="margin-top:6px">🚪 Logout</button>
 </div>
@@ -1896,7 +1905,8 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
   </div>
   <div class="card"><div class="ch"><h3>🛍️ Category Wise</h3></div><div class="cb" id="r2Cat"><div class="empty"><p>Report banao</p></div></div></div>
   <div class="card"><div class="ch"><h3>💸 Expense Breakdown</h3></div><div class="cb" id="r2Exp2"><div class="empty"><p>Report banao</p></div></div></div>
-  <button class="btn bg2" onclick="backupData()">📥 Data Backup (JSON)</button>
+  <button class="btn bp" onclick="bfBkOpen()">🛡️ Backup Center</button>
+  <button class="btn bg2" onclick="backupData()">📥 Backup File Banao</button>
   <button class="btn bo" onclick="restoreData()">♻️ Backup se Restore</button>
 </div>
 
@@ -2448,7 +2458,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script type="text/plain" id="bfMainScript">
-var D={sales:[],stock:[],cash:[],udhar:[],expenses:[],bc:1,calc:[],calcMeta:{billNo:'CALC-001',custName:'',custPhone:''},cfbs:{},returns:[],daily:{}};
+var D={sales:[],stock:[],cash:[],udhar:[],expenses:[],bc:1,calc:[],calcMeta:{billNo:'CALC-001',custName:'',custPhone:''},cfbs:{},returns:[],daily:{},stockMoves:[]};
 
 // ═══ ACTIVITY LOG (delete/edit tracking, cloud sync) ═══
 function bfLogActivity(module,action,detail){
@@ -2529,7 +2539,7 @@ var _alUnlocked=false;
 // ── STOCK PASSWORD FUNCTIONS (global scope) ──
 function bfUid(){return Date.now()*1000+Math.floor(Math.random()*1000);}
 function bfWaNum(p){var d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;return d;}
-function bfReturnRestock(t,item){if(!t||t.value!=='Return')return;var si=D.stock.find(function(x){return bfNormName(x.name)===bfNormName(item);});if(!si)return;var q=parseInt(prompt('\uD83D\uDCE6 "'+si.name+'" stock mein kitne piece wapas jodne hain? (0 = mat jodo)','1'),10);if(q>0){si.qty=(si.qty||0)+q;bfLogActivity('Stock','Edit',si.name+' \u2014 Return se wapas juda: +'+q);}}
+function bfReturnRestock(t,item){if(!t||t.value!=='Return')return;var si=D.stock.find(function(x){return bfNormName(x.name)===bfNormName(item);});if(!si)return;var q=parseInt(prompt('\uD83D\uDCE6 "'+si.name+'" stock mein kitne piece wapas jodne hain? (0 = mat jodo)','1'),10);if(q>0){bfStockMove(si,q,'RETURN_IN',{refType:'Return',reason:'Return/Exchange se wapas juda'});bfLogActivity('Stock','Edit',si.name+' \u2014 Return se wapas juda: +'+q);}}
 function bfEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function bfOwnerPinOk(v){var p=localStorage.getItem('bf_opin')||'';if(!p||!v)return false;if(Date.now()<parseInt(localStorage.getItem('bf_pinlock')||'0',10)){toast('\uD83D\uDD12 5 galat PIN \u2014 5 minute baad try karein','te');return false;}if(v===p){localStorage.setItem('bf_pinfail','0');return true;}var n=parseInt(localStorage.getItem('bf_pinfail')||'0',10)+1;localStorage.setItem('bf_pinfail',String(n));if(n>=5){localStorage.setItem('bf_pinlock',String(Date.now()+300000));localStorage.setItem('bf_pinfail','0');}return false;}
 function checkStPwd(){
@@ -2585,7 +2595,7 @@ function alPwdBack(){
   var ov=document.getElementById('alLockOv');if(ov)ov.style.display='none';
   go('dash');
 }
-var BF_FIELDS=['sales','stock','cash','udhar','expenses','bc','calc','calcMeta','cfbs','returns','daily'];
+var BF_FIELDS=['sales','stock','cash','udhar','expenses','bc','calc','calcMeta','cfbs','returns','daily','stockMoves','customers','staff','attendance','payments','loans','festivals','targets','attReg','advances'];
 var _bfLastSaved={};
 var _bfLastStockById={};  // item.id -> last-known serialized value, taaki save() par sirf
                            // BADLE hue stock items alag se cloud ko bheje ja saken (poora
@@ -2647,6 +2657,7 @@ function load(){
   D.stock.forEach(function(item){
     if(!item.id)item.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
   });
+  bfSeedOpeningMoves();
   // Chhote pieces disk par likh do (sirf jo badla hai) — isse cloud sync sirf changed
   // hissa bhejta hai, poora data baar baar upload nahi hota (fast + reliable)
   BF_FIELDS.forEach(function(f){
@@ -2691,6 +2702,142 @@ function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 // (extra space / alag capital-small) ko app EK HI item maane — pehle chhoti si spelling
 // ki galti se DUPLICATE item ban jaata tha, isliye lagta tha "update save nahi hua".
 function bfNormName(s){return (s||'').toString().trim().replace(/\s+/g,' ').toLowerCase();}
+// ═══ 📒 STOCK MOVEMENT LEDGER ═══
+// Rule: stock ki Qty SIRF bfStockMove() se badle (seedha si.qty=... kabhi nahi). Har badlav = ek pakki entry (D.stockMoves).
+var BF_MOVE_TYPES={
+  OPENING:{t:'Opening Stock',c:'#475569'},PURCHASE:{t:'Stock In (Add/Purchase)',c:'#166534'},NEW_ITEM:{t:'Naya Item',c:'#166534'},
+  SALE:{t:'Bikri (Sale)',c:'#C2410C'},SALE_CANCEL:{t:'Bill Delete — Stock Wapas',c:'#1D4ED8'},RETURN_IN:{t:'Return Wapas',c:'#1D4ED8'},
+  ADJUST:{t:'Adjustment / Correction',c:'#7C3AED'},MERGE_IN:{t:'Merge (Jud gaya)',c:'#0F766E'},MERGE_OUT:{t:'Merge (Hata)',c:'#0F766E'},
+  ITEM_DELETE:{t:'Item Delete',c:'#B91C1C'},LEDGER_FIX:{t:'Ledger Correction (Qty same)',c:'#64748B'}
+};
+function bfMoveType(k){return BF_MOVE_TYPES[k]||{t:k,c:'#334155'};}
+function bfPushMove(stockId,name,type,delta,before,after,o){
+  o=o||{};if(!Array.isArray(D.stockMoves))D.stockMoves=[];
+  var m={_id:'mv'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),ts:Date.now(),date:td(),stockId:stockId||'',name:name||'',type:type,delta:delta,before:before,after:after,refType:o.refType||'',refId:(o.refId===undefined||o.refId===null)?'':String(o.refId),reason:o.reason||'',dev:(navigator.userAgent||'').slice(0,40)};
+  D.stockMoves.push(m);return m;
+}
+function bfStockMove(si,delta,type,o){
+  delta=Number(delta)||0;if(!si||delta===0)return null;
+  if(!si.id)si.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
+  var before=Number(si.qty)||0;si.qty=before+delta;
+  return bfPushMove(si.id,si.name,type,delta,before,si.qty,o);
+}
+function bfLedgerSums(){var s={};(D.stockMoves||[]).forEach(function(m){s[m.stockId]=(s[m.stockId]||0)+(Number(m.delta)||0);});return s;}
+// Ledger shuru hone se pehle ka stock = "Opening" entry (ek hi baar; ID fixed hai isliye do phone par double nahi hoti)
+function bfSeedOpeningMoves(){
+  if(!Array.isArray(D.stockMoves))D.stockMoves=[];
+  var has={},n=0;D.stockMoves.forEach(function(m){has[m.stockId]=1;});
+  D.stock.forEach(function(si){
+    var q=Number(si.qty)||0;if(!si.id||has[si.id]||!q)return;
+    D.stockMoves.push({_id:'open-'+si.id,ts:Date.now(),date:td(),stockId:si.id,name:si.name,type:'OPENING',delta:q,before:0,after:q,refType:'',refId:'',reason:'Ledger shuru hone se pehle ka stock (Opening Balance)',dev:'system'});n++;
+  });
+  return n;
+}
+function bfAskPin(msg){var p=prompt('🔒 '+msg+'\nOwner PIN daalen:');if(p===null)return false;if(!bfOwnerPinOk(p.trim())){toast('❌ Galat PIN! Kuch nahi badla.','te');return false;}return true;}
+
+// ── Screen ──
+var _slTab='ledger',_slLimit=100,_slQ='',_slType='',_slFrom='',_slTo='',_slId='',_slAll=false;
+function bfOpenLedger(tab,id){
+  if(bfSeedOpeningMoves())save();
+  _slTab=tab||'ledger';_slLimit=100;_slId=id||'';if(!id){_slQ='';}
+  var ov=document.getElementById('slOv');
+  if(!ov){ov=document.createElement('div');ov.id='slOv';ov.style.cssText='position:fixed;inset:0;z-index:9000;background:#F1F5F9;overflow-y:auto;-webkit-overflow-scrolling:touch;';document.body.appendChild(ov);}
+  ov.style.display='block';document.body.style.overflow='hidden';bfRenderLedger();
+}
+function bfCloseLedger(){var ov=document.getElementById('slOv');if(ov)ov.style.display='none';document.body.style.overflow='';}
+function bfRenderLedger(){
+  var ov=document.getElementById('slOv');if(!ov)return;
+  function tb(k,l){var on=_slTab===k;return '<button onclick="_slTab=\''+k+'\';_slLimit=100;bfRenderLedger()" style="flex:1;padding:11px 6px;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;border:1.5px solid #1A3A6B;'+(on?'background:#1A3A6B;color:#FFD700':'background:#fff;color:#1A3A6B')+'">'+l+'</button>';}
+  ov.innerHTML='<div style="position:sticky;top:0;z-index:2;background:#1A3A6B;color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:15px;font-weight:800;color:#FFD700">📒 Stock Ledger</div><div style="font-size:10px;opacity:.85">Har stock badlav ka pakka record</div></div><button onclick="bfCloseLedger()" style="background:#fff;color:#1A3A6B;border:none;border-radius:8px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer">✖ Band</button></div>'
+   +'<div style="padding:12px;max-width:760px;margin:0 auto"><div style="display:flex;gap:8px;margin-bottom:12px">'+tb('ledger','📒 Ledger')+tb('verify','✅ Stock Jaanch')+'</div><div id="slBody"></div></div>';
+  if(_slTab==='verify')bfRenderVerify();else bfRenderLedgerTab();
+}
+function bfLedgerFiltered(){
+  var q=bfNormName(_slQ);
+  var a=(D.stockMoves||[]).map(function(m,i){return{m:m,i:i};}).filter(function(x){
+    var m=x.m;
+    if(_slId&&m.stockId!==_slId)return false;
+    if(_slType&&m.type!==_slType)return false;
+    if(_slFrom&&(m.date||'')<_slFrom)return false;
+    if(_slTo&&(m.date||'')>_slTo)return false;
+    if(q&&bfNormName((m.name||'')+' '+(m.reason||'')+' '+(m.refType||'')+' '+(m.refId?'bill #'+m.refId:'')+' '+bfMoveType(m.type).t).indexOf(q)<0)return false;
+    return true;});
+  a.sort(function(x,y){return((y.m.ts||0)-(x.m.ts||0))||(y.i-x.i);});
+  return a.map(function(x){return x.m;});
+}
+function bfRenderLedgerTab(){
+  var b=document.getElementById('slBody');if(!b)return;
+  var o='<option value="">Sab type</option>';Object.keys(BF_MOVE_TYPES).forEach(function(k){o+='<option value="'+k+'"'+(_slType===k?' selected':'')+'>'+BF_MOVE_TYPES[k].t+'</option>';});
+  var st='width:100%;box-sizing:border-box;padding:9px 10px;border:1.5px solid #CBD5E1;border-radius:9px;font-size:13px;font-family:inherit;background:#fff';
+  var chip='';if(_slId){var nm='';D.stock.forEach(function(s){if(s.id===_slId)nm=s.name;});if(!nm)(D.stockMoves||[]).forEach(function(m){if(m.stockId===_slId)nm=m.name;});chip='<div style="background:#DBEAFE;color:#1D4ED8;border-radius:9px;padding:8px 10px;font-size:12px;font-weight:700;margin-bottom:8px">Sirf is item ka: '+bfEsc(nm)+' <span onclick="_slId=\'\';bfRenderLedgerTab()" style="float:right;cursor:pointer">✖ hatao</span></div>';}
+  b.innerHTML='<div style="background:#fff;border-radius:12px;padding:10px;margin-bottom:10px">'+chip
+   +'<input placeholder="🔍 Item / Bill no / Karan dhundo..." value="'+bfEsc(_slQ)+'" oninput="_slQ=this.value;_slLimit=100;bfRenderLedgerList()" style="'+st+';margin-bottom:8px">'
+   +'<select onchange="_slType=this.value;_slLimit=100;bfRenderLedgerList()" style="'+st+';margin-bottom:8px">'+o+'</select>'
+   +'<div style="display:flex;gap:8px"><input type="date" value="'+_slFrom+'" onchange="_slFrom=this.value;_slLimit=100;bfRenderLedgerList()" style="'+st+'"><input type="date" value="'+_slTo+'" onchange="_slTo=this.value;_slLimit=100;bfRenderLedgerList()" style="'+st+'"></div>'
+   +'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn bd" onclick="_slQ=\'\';_slType=\'\';_slFrom=\'\';_slTo=\'\';_slId=\'\';bfRenderLedgerTab()">Filter hatao</button><button class="btn bs2" onclick="bfLedgerCSV()">📥 CSV Download</button></div></div><div id="slList"></div>';
+  bfRenderLedgerList();
+}
+function bfRenderLedgerList(){
+  var el=document.getElementById('slList');if(!el)return;
+  var a=bfLedgerFiltered(),inn=0,out=0;a.forEach(function(m){var d=Number(m.delta)||0;if(d>0)inn+=d;else out-=d;});
+  var h='<div style="display:flex;gap:8px;margin-bottom:10px;text-align:center;font-size:11px;color:#64748B"><div style="flex:1;background:#fff;border-radius:10px;padding:8px"><b style="font-size:15px;color:#1A3A6B">'+a.length+'</b><br>Entries</div><div style="flex:1;background:#fff;border-radius:10px;padding:8px"><b style="font-size:15px;color:#16A34A">+'+inn+'</b><br>Stock In</div><div style="flex:1;background:#fff;border-radius:10px;padding:8px"><b style="font-size:15px;color:#DC2626">−'+out+'</b><br>Stock Out</div></div>';
+  if(!a.length)h+='<div style="text-align:center;color:#94A3B8;padding:24px">Koi entry nahi mili</div>';
+  a.slice(0,_slLimit).forEach(function(m){
+    var ty=bfMoveType(m.type),d=Number(m.delta)||0,tm='';try{tm=new Date(m.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}catch(e){}
+    h+='<div style="background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid '+ty.c+'"><div style="display:flex;justify-content:space-between;gap:8px"><div style="font-weight:700;font-size:13px">'+bfEsc(m.name)+'</div><div style="font-weight:800;font-size:16px;color:'+(d>=0?'#16A34A':'#DC2626')+'">'+(d>0?'+':'')+d+'</div></div>'
+     +'<div style="font-size:11px;color:#64748B;margin-top:2px">'+fd(m.date)+' '+tm+' · <span style="color:'+ty.c+';font-weight:700">'+ty.t+'</span>'+(m.refId?' · '+bfEsc(m.refType||'Ref')+' #'+bfEsc(m.refId):'')+'</div>'
+     +'<div style="font-size:11px;color:#334155;margin-top:3px">'+(m.type==='LEDGER_FIX'?'Ledger '+m.before+' → '+m.after+' (Stock Qty nahi badli)':'Qty: '+m.before+' → <b>'+m.after+'</b>')+'</div>'
+     +(m.reason?'<div style="font-size:11px;color:#475569;margin-top:3px;line-height:1.5">📝 '+bfEsc(m.reason)+'</div>':'')+'</div>';
+  });
+  if(a.length>_slLimit)h+='<button class="btn bp" onclick="_slLimit+=100;bfRenderLedgerList()">Aur dikhao ('+(a.length-_slLimit)+' baaki)</button>';
+  el.innerHTML=h;
+}
+function bfLedgerCSV(){
+  var rows=[['Date','Time','Item','Type','Change','Qty Before','Qty After','Reference','Reason']];
+  bfLedgerFiltered().reverse().forEach(function(m){var tm='';try{tm=new Date(m.ts).toLocaleTimeString('en-IN');}catch(e){}rows.push([fd(m.date),tm,m.name,bfMoveType(m.type).t,m.delta,m.before,m.after,(m.refType?m.refType+' ':'')+(m.refId?'#'+m.refId:''),m.reason]);});
+  var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return '"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  var u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));var a=document.createElement('a');a.href=u;a.download='StockLedger_'+td()+'.csv';a.click();toast('📥 Ledger CSV ban gayi','ts');
+}
+// ── Stock Jaanch: Stock page ki Qty vs Ledger ka jod ──
+function bfStockCheck(){
+  var sums=bfLedgerSums(),rows=[],seen={},orphan=[];
+  D.stock.forEach(function(si){seen[si.id]=1;var q=Number(si.qty)||0,l=sums[si.id]||0;rows.push({id:si.id,name:si.name,qty:q,led:l,diff:q-l});});
+  Object.keys(sums).forEach(function(id){if(!seen[id]&&sums[id]!==0){var nm='';(D.stockMoves||[]).forEach(function(m){if(m.stockId===id)nm=m.name;});orphan.push({id:id,name:nm,led:sums[id]});}});
+  return{rows:rows,orphan:orphan};
+}
+function bfRenderVerify(){
+  var b=document.getElementById('slBody');if(!b)return;
+  var c=bfStockCheck(),bad=c.rows.filter(function(r){return r.diff!==0;}),neg=c.rows.filter(function(r){return r.qty<0;});
+  var h='<div style="display:flex;gap:8px;margin-bottom:10px;text-align:center;font-size:11px;color:#64748B"><div style="flex:1;background:#fff;border-radius:10px;padding:8px"><b style="font-size:16px;color:#1A3A6B">'+c.rows.length+'</b><br>Items</div><div style="flex:1;background:#fff;border-radius:10px;padding:8px"><b style="font-size:16px;color:#16A34A">'+(c.rows.length-bad.length)+'</b><br>Hisaab Sahi ✅</div><div style="flex:1;background:#fff;border-radius:10px;padding:8px"><b style="font-size:16px;color:'+(bad.length?'#DC2626':'#16A34A')+'">'+bad.length+'</b><br>Farak ⚠️</div></div>';
+  h+='<div style="background:'+(bad.length?'#FEE2E2':'#DCFCE7')+';border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:'+(bad.length?'#991B1B':'#166534')+';margin-bottom:10px;line-height:1.6">'+(bad.length?'⚠️ '+bad.length+' item ki Stock Qty aur Ledger ka jod nahi mil raha. Neeche dekhkar theek karein.':'✅ Sab items ki Qty Ledger se mil rahi hai.')+(neg.length?'<br>🚨 '+neg.length+' item ka stock MINUS (negative) hai.':'')+(c.orphan.length?'<br>ℹ️ '+c.orphan.length+' purane/hataye item ka ledger balance zero nahi hai.':'')+'</div>';
+  if(bad.length>1)h+='<button class="btn bo" style="margin-bottom:10px" onclick="bfFixAllLedger()">🔧 Sab farak Ledger mein milao (Qty nahi badlegi)</button>';
+  bad.forEach(function(r){
+    h+='<div style="background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #DC2626"><div style="font-weight:700;font-size:13px">'+bfEsc(r.name)+'</div><div style="display:flex;gap:8px;text-align:center;font-size:11px;color:#64748B;margin:6px 0"><div style="flex:1">Stock Qty<br><b style="font-size:15px;color:#1A3A6B">'+r.qty+'</b></div><div style="flex:1">Ledger<br><b style="font-size:15px;color:#7C3AED">'+r.led+'</b></div><div style="flex:1">Farak<br><b style="font-size:15px;color:#DC2626">'+(r.diff>0?'+':'')+r.diff+'</b></div></div><div style="display:flex;gap:8px"><button class="btn bg2" style="padding:9px" onclick="bfOpenLedger(\'ledger\',\''+r.id+'\')">📒 History</button><button class="btn bo" style="padding:9px" onclick="bfFixMismatch(\''+r.id+'\')">🔧 Theek karo</button></div></div>';
+  });
+  h+='<button class="btn bd" style="margin:6px 0 10px" onclick="_slAll=!_slAll;bfRenderVerify()">'+(_slAll?'▲ Sahi items chhupao':'▼ Sab items dikhao ('+c.rows.length+')')+'</button>';
+  if(_slAll)c.rows.forEach(function(r){h+='<div onclick="bfOpenLedger(\'ledger\',\''+r.id+'\')" style="background:#fff;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:12px;cursor:pointer"><span>'+(r.diff?'⚠️':'✅')+' '+bfEsc(r.name)+'</span><b>'+r.qty+(r.diff?' / '+r.led:'')+'</b></div>';});
+  b.innerHTML=h;
+}
+function bfFixMismatch(id){
+  var si=null;D.stock.forEach(function(x){if(x.id===id)si=x;});if(!si)return;
+  var l=bfLedgerSums()[id]||0,q=Number(si.qty)||0;if(q===l){bfRenderVerify();return;}
+  var c=prompt('"'+si.name+'"\nStock page Qty: '+q+'\nLedger ke hisaab se: '+l+'\n\n1 = Ledger ko Stock Qty ('+q+') ke barabar karo (Qty NAHI badlegi)\n2 = Stock Qty ko Ledger ('+l+') ke barabar karo (Qty BADLEGI)\n\n1 ya 2 likhein:','1');
+  if(c===null)return;c=c.trim();if(c!=='1'&&c!=='2'){toast('❌ Sirf 1 ya 2 likhein','te');return;}
+  if(!bfAskPin('Stock/Ledger sudhaarne ke liye'))return;
+  if(c==='1')bfPushMove(id,si.name,'LEDGER_FIX',q-l,l,q,{refType:'Jaanch',reason:'Jaanch mein farak mila (Stock '+q+', Ledger '+l+') — Ledger ko Stock Qty se milaya, Qty nahi badli'});
+  else bfStockMove(si,l-q,'ADJUST',{refType:'Jaanch',reason:'Jaanch mein farak mila — Stock Qty '+q+' ko Ledger '+l+' ke barabar kiya'});
+  bfLogActivity('Stock','Edit',si.name+' — Stock Jaanch sudhaar (option '+c+'): Stock '+q+', Ledger '+l);
+  save();showStock();fillDrop();bfRenderVerify();toast('✅ Theek ho gaya','ts');
+}
+function bfFixAllLedger(){
+  var bad=bfStockCheck().rows.filter(function(r){return r.diff!==0;});if(!bad.length)return;
+  if(!confirm(bad.length+' items ka farak Ledger mein "Ledger Correction" entry se milaya jayega. Stock Qty NAHI badlegi. Pakka?'))return;
+  if(!bfAskPin('Ledger milane ke liye'))return;
+  bad.forEach(function(r){bfPushMove(r.id,r.name,'LEDGER_FIX',r.diff,r.led,r.qty,{refType:'Jaanch',reason:'Jaanch mein farak mila (Stock '+r.qty+', Ledger '+r.led+') — Ledger ko Stock Qty se milaya'});});
+  bfLogActivity('Stock','Edit','Stock Jaanch: '+bad.length+' items ka Ledger farak milaya (Qty nahi badli)');
+  save();bfRenderVerify();toast('✅ '+bad.length+' items Ledger mein mila diye','ts');
+}
+
 
 // ═══ AUTO MARGIN CALCULATOR ═══
 var calcGlobalMargin=40;
@@ -3193,7 +3340,7 @@ function computeBusinessHealth(){
   var margin=curSale>0?(profit/curSale)*100:0;
 
   var lowCount=D.stock.filter(function(s){return (s.qty||0)>0&&(s.qty||0)<=(s.minStock||5);}).length;
-  var outCount=D.stock.filter(function(s){return (s.qty||0)===0;}).length;
+  var outCount=D.stock.filter(function(s){return (s.qty||0)<=0;}).length;
   var totalItems=D.stock.length||1;
   var stockIssueRatio=(lowCount+outCount)/totalItems;
 
@@ -3373,16 +3520,46 @@ function delSaleBill(billNo){
   if(!bfOwnerPinOk(pin.trim())){toast('❌ Galat PIN! Delete nahi hua.','te');return;}
   var s=D.sales.find(function(x){return x.billNo===billNo;});
   if(!s){toast('❌ Bill nahi mila!','te');return;}
-  if(!confirm('❗ Pakka Bill #'+billNo+' ('+(s.customer||'Walk-in')+' — '+rs(s.total)+') delete karna hai?\nStock wapas jud jayega aur Cash/Udhar entry bhi hat jayegi.'))return;
+  var _why=prompt('📝 Bill #'+billNo+' delete karne ka KARAN likhein (zaroori — Stock Ledger aur Activity Log mein jayega):','');
+  if(_why===null)return;_why=_why.trim();
+  if(_why.length<3){toast('❌ Karan likhna zaroori hai (kam se kam 3 akshar). Delete nahi hua.','te');return;}
+  var _bn=String(billNo);
+  // ── Juda hua Cash entry dhoondo: pehle billNo field se (pakka), na mile to purane bills ke liye text se ──
+  var _ci=-1,_k;
+  for(_k=D.cash.length-1;_k>=0;_k--){if(D.cash[_k].billNo!==undefined&&String(D.cash[_k].billNo)===_bn){_ci=_k;break;}}
+  if(_ci<0){
+    var _tag='(Bill #'+billNo+')';
+    for(_k=D.cash.length-1;_k>=0;_k--){var _c=D.cash[_k];if(_c.billNo!==undefined)continue;var _d=_c.desc||'';if(_d.indexOf('Sale - ')===0&&_d.slice(-_tag.length)===_tag){_ci=_k;break;}}
+  }
+  // ── Juda hua Udhar entry: pehle billNo field se, phir purani note 'Bill #n' se ──
+  var _ux=D.udhar.findIndex(function(u){return u.billNo!==undefined&&String(u.billNo)===_bn;});
+  if(_ux<0)_ux=D.udhar.findIndex(function(u){return u.billNo===undefined&&u.note==='Bill #'+billNo;});
+  var _u=_ux>=0?D.udhar[_ux]:null;
+  var _paid=_u?Math.max(0,(_u.amount||0)-(_u.remaining||0)):0;
+  var _msg='❗ Pakka Bill #'+billNo+' ('+(s.customer||'Walk-in')+' — '+rs(s.total)+') delete karna hai?\nStock wapas jud jayega aur Cash/Udhar entry bhi hat jayegi.';
+  if(_paid>0)_msg+='\n\n⚠️ Is bill ke udhar mein '+rs(_paid)+' pehle hi wasool ho chuka hai. Wo "Udhar payment" Cash entry apne-aap NAHI hategi — Cash book mein dekh lena.';
+  if(!confirm(_msg))return;
   var _sx=D.sales.indexOf(s);if(_sx>=0)D.sales.splice(_sx,1);
-  // FIX: bill delete par Cash, Udhar aur Stock ka asar bhi wapas karo
-  var _tag='(Bill #'+billNo+')';
-  for(var _k=D.cash.length-1;_k>=0;_k--){var _d=D.cash[_k].desc||'';if(_d.indexOf('Sale - ')===0&&_d.slice(-_tag.length)===_tag){D.cash.splice(_k,1);break;}}
-  var _ux=D.udhar.findIndex(function(u){return u.note==='Bill #'+billNo;});if(_ux>=0)D.udhar.splice(_ux,1);
-  (s.items||[]).forEach(function(it){var si=bfFindStock(it);if(si)si.qty=(si.qty||0)+(it.deducted!==undefined?it.deducted:(it.qty||0));});
-  if(typeof bfLogActivity==='function')bfLogActivity('Sale Bill','Delete','Bill #'+billNo+' — '+(s.customer||'Walk-in')+' — '+rs(s.total)+' ('+fd(s.date)+')');
+  var _cashDone=false,_udharDone=false;
+  if(_ci>=0){D.cash.splice(_ci,1);_cashDone=true;}
+  if(_ux>=0){D.udhar.splice(_ux,1);_udharDone=true;}
+  // Stock wapas jodo (jitna bill banate waqt actually ghata tha)
+  var _restored=[],_notRestored=[];
+  (s.items||[]).forEach(function(it){var back=(it.deducted!==undefined?it.deducted:(it.qty||0));if(!(back>0))return;var si=bfFindStock(it);
+    if(si){bfStockMove(si,back,'SALE_CANCEL',{refType:'Bill',refId:billNo,reason:'Bill #'+billNo+' delete — '+(s.customer||'Walk-in')+' — '+rs(s.total)+' — Karan: '+_why});_restored.push((it.name||'?')+' +'+back);}
+    else _notRestored.push((it.name||'?')+' ×'+back);});
+  // ── Cancelled record: poora bill (items, rate, payment mode) Activity Log mein bachao ──
+  if(typeof bfLogActivity==='function'){
+    var _its=(s.items||[]).map(function(it){return (it.name||'?')+' ×'+(it.qty||0)+' @'+rs(it.price||0);}).join('; ');
+    bfLogActivity('Sale Bill','Delete','CANCELLED Bill #'+billNo+' — '+(s.customer||'Walk-in')+(s.phone?' ('+s.phone+')':'')+' — '+rs(s.total)+' — '+fd(s.date)+' — Pay: '+(s.payMode||'cash')+(s.discount?' — Disc: '+s.discount+'%':'')+' — Karan: '+_why+' — Items: '+_its+' — Stock wapas: '+(_restored.join(', ')||'koi nahi')+(_notRestored.length?' — ⚠️ Stock item nahi mila, wapas NAHI juda: '+_notRestored.join(', '):'')+(_cashDone?'':' — ⚠️ Cash entry nahi mili')+(_udharDone?'':(s.payMode==='udhar'?' — ⚠️ Udhar entry nahi mili':'')));
+  }
   save();showDash();
-  toast('🗑️ Bill #'+billNo+' delete ho gaya!','ts');
+  var _warn=[];
+  if(!_cashDone)_warn.push('Cash entry nahi mili');
+  if(s.payMode==='udhar'&&!_udharDone)_warn.push('Udhar entry nahi mili');
+  if(_notRestored.length)_warn.push('Stock wapas nahi juda ('+_notRestored.join(', ')+')');
+  if(_warn.length)toast('🗑️ Bill #'+billNo+' delete hua, par '+_warn.join(' & ')+' — haath se check karein','te');
+  else toast('🗑️ Bill #'+billNo+' delete ho gaya!','ts');
 }
 
 // SALE
@@ -3466,6 +3643,23 @@ function calcBill(){
   document.getElementById('bTotal').textContent=rs(sub-(sub*disc/100));
 }
 var _lastSavedBillObj=null;
+// FIX: bill banane se PEHLE stock check — item na mile ya qty kam ho to owner se poochho
+function bfPreBillStockCheck(){
+  var need={},issues=[];
+  billItems.forEach(function(bi){
+    var si=bfFindStock(bi);
+    if(!si){issues.push('❌ \"'+bi.name+'\" — stock list mein nahi mila (qty minus nahi hogi)');return;}
+    var k=si.id||bfNormName(si.name);
+    if(!need[k])need[k]={si:si,q:0};
+    need[k].q+=bi.qty;
+  });
+  Object.keys(need).forEach(function(k){
+    var o=need[k],have=o.si.qty||0;
+    if(o.q>have)issues.push('⚠️ \"'+o.si.name+'\" — stock '+have+', bill mein '+o.q+' ('+(o.q-have)+' kam, stock negative ho jayega)');
+  });
+  if(!issues.length)return true;
+  return confirm('Stock mein gadbad:\n\n'+issues.join('\n')+'\n\nPhir bhi Bill banana hai?\n(OK = bill banao | Cancel = wapas jao, pehle stock sahi karo)');
+}
 function finalizeBill(){
   var sub=billItems.reduce(function(a,i){return a+i.total;},0);
   var disc=Math.min(100,Math.max(0,parseFloat(document.getElementById('disc').value)||0));
@@ -3473,8 +3667,8 @@ function finalizeBill(){
   var pm=document.getElementById('payMode').value;
   var bill={billNo:D.bc++,date:td(),customer:document.getElementById('cName').value.trim()||'Walk-in',phone:document.getElementById('cPhone').value.trim(),items:billItems.slice(),subtotal:sub,discount:disc,total:total,payMode:pm};
   D.sales.push(bill);
-  if(pm==='udhar')D.udhar.push({id:bfUid(),name:bill.customer,phone:bill.phone,amount:total,remaining:total,date:td(),note:'Bill #'+bill.billNo});
-  D.cash.push({date:td(),desc:'Sale - '+bill.customer+' (Bill #'+bill.billNo+')',type:pm==='udhar'?'pending':'income',amount:total});
+  if(pm==='udhar')D.udhar.push({id:bfUid(),name:bill.customer,phone:bill.phone,amount:total,remaining:total,date:td(),note:'Bill #'+bill.billNo,billNo:bill.billNo});
+  D.cash.push({date:td(),desc:'Sale - '+bill.customer+' (Bill #'+bill.billNo+')',type:pm==='udhar'?'pending':'income',amount:total,billNo:bill.billNo});
   var _stockMissed=[];
   billItems.forEach(function(bi){
     var si=null;
@@ -3485,9 +3679,11 @@ function finalizeBill(){
     }
     if(si){
       var before=si.qty||0;
-      si.qty=Math.max(0,before-bi.qty);bi.deducted=before-si.qty;bi.cost=si.buyPrice||0;
-      if(typeof bfLogActivity==='function')bfLogActivity('Stock','Edit',si.name+' — Sale se minus hua (Bill #'+bill.billNo+'): '+before+' → '+si.qty+' (Sold: '+bi.qty+')');
+      // FIX: clamp (Math.max(0,..)) hata diya — jitna bika utna hi minus hoga, negative bhi dikhega
+      bfStockMove(si,-bi.qty,'SALE',{refType:'Bill',refId:bill.billNo,reason:'Bill #'+bill.billNo+' — '+(bill.customer||'Walk-in')+' — bika '+bi.qty+' @'+rs(bi.price||0)});bi.deducted=bi.qty;bi.cost=si.buyPrice||0;
+      if(typeof bfLogActivity==='function')bfLogActivity('Stock','Edit',si.name+' — Sale se minus hua (Bill #'+bill.billNo+'): '+before+' → '+si.qty+' (Sold: '+bi.qty+')'+(si.qty<0?' ⚠️ NEGATIVE STOCK — stock entry/purchase check karein':''));
     }else{
+      bi.deducted=0;bi.noStock=true;
       _stockMissed.push(bi.name);
       console.warn('Stock deduction skipped — no matching stock item for:',bi.name);
       if(typeof bfLogActivity==='function')bfLogActivity('Stock','Edit','⚠️ "'+bi.name+'" ka stock nahi mila (Bill #'+bill.billNo+') — Qty minus NAHI hui, naam check karein');
@@ -3502,6 +3698,7 @@ function finalizeBill(){
 }
 function saveBill(){
   if(!billItems.length){toast('❌ Koi item nahi! (Bill pehle se save ho sakta hai)','te');return;}
+  if(!bfPreBillStockCheck())return;
   var res=finalizeBill();
   if(res.stockMissed.length){
     toast('⚠️ Bill saved, par "'+res.stockMissed.join(', ')+'" ka Stock nahi mila (Qty minus nahi hui)','te');
@@ -3514,6 +3711,7 @@ function showPrintBill(){
   var b;
   if(billItems.length){
     // Abhi tak "Bill Save" nahi dabaya — isliye pehle asli sale save/deduct karo, phir preview dikhao
+    if(!bfPreBillStockCheck())return;
     var res=finalizeBill();
     b={customer:res.bill.customer,phone:res.bill.phone,billNo:res.bill.billNo,date:res.bill.date,items:res.bill.items,sub:res.bill.subtotal,disc:res.bill.discount,total:res.bill.total};
     if(res.stockMissed.length)toast('⚠️ Bill saved, par "'+res.stockMissed.join(', ')+'" ka Stock nahi mila','te');
@@ -3807,6 +4005,8 @@ function mergeDuplicateStock(){
     var sell=g.map(function(x){return x.sellPrice||0;}).find(function(v){return v>0;})||0;
     var min=g.map(function(x){return x.minStock;}).find(function(v){return v;})||5;
     if(!base.id)base.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
+    g.slice(1).forEach(function(x){var xq=Number(x.qty)||0;if(!x.id)x.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);if(xq!==0)bfPushMove(x.id,x.name,'MERGE_OUT',-xq,xq,0,{refType:'Merge',reason:'Duplicate "'+x.name+'" ko "'+base.name+'" mein milaya'});});
+    var _bq=Number(base.qty)||0;if(totalQty-_bq!==0)bfPushMove(base.id,base.name,'MERGE_IN',totalQty-_bq,_bq,totalQty,{refType:'Merge',reason:(g.length-1)+' duplicate item ki Qty yahan jodi'});
     newStock.push({id:base.id,name:base.name,category:base.category||'Other',qty:totalQty,buyPrice:buy,sellPrice:sell,minStock:min});
     if(typeof bfLogActivity==='function')bfLogActivity('Stock','Edit','🔗 '+g.length+' duplicate items "'+base.name+'" milaye — Total Qty: '+totalQty);
   });
@@ -3861,12 +4061,16 @@ function saveStock(){
   var buy=parseFloat(document.getElementById('sBuy').value)||0;
   var sell=parseFloat(document.getElementById('sSell').value)||0;
   var min=parseInt(document.getElementById('sMin').value)||5;
+  var why=((document.getElementById('sReason')||{value:''}).value||'').trim();
   if(!name){toast('❌ Item naam daalen!','te');return;}
   var nn=bfNormName(name);
   var idx=D.stock.findIndex(function(s){return bfNormName(s.name)===nn;});
   var savedOk=false;
+  if(qty<0&&why.length<3){toast('❌ Qty kam (minus) karni hai to Karan likhna zaroori hai','te');return;}
   if(idx>=0){
-    D.stock[idx].qty=(D.stock[idx].qty||0)+qty;
+    if(!D.stock[idx].id)D.stock[idx].id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
+    bfStockMove(D.stock[idx],qty,qty>0?'PURCHASE':'ADJUST',{refType:'Stock Entry',reason:why||'Stock Add (naya maal)'});
+    var _rq=document.getElementById('sReason');if(_rq)_rq.value='';
     if(buy)D.stock[idx].buyPrice=buy;
     if(sell)D.stock[idx].sellPrice=sell;
     if(!D.stock[idx].id)D.stock[idx].id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
@@ -3880,7 +4084,9 @@ function saveStock(){
     }catch(e){savedOk=false;}
     toast(savedOk?('✅ '+D.stock[idx].name+' updated! Qty ab '+D.stock[idx].qty+' (Phone par SAVE ho gaya)'):('⚠️ '+name+' update to hua par SAVE confirm nahi ho paya — page reload karke check karein!'),savedOk?'ts':'te');
   }else{
-    var newItem={id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:name,category:cat,qty:qty,buyPrice:buy,sellPrice:sell,minStock:min};
+    var newItem={id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:name,category:cat,qty:0,buyPrice:buy,sellPrice:sell,minStock:min};
+    bfStockMove(newItem,qty,'NEW_ITEM',{refType:'Stock Entry',reason:why||'Naya item add kiya'});
+    var _rq2=document.getElementById('sReason');if(_rq2)_rq2.value='';
     D.stock.push(newItem);
     save();
     try{
@@ -3939,13 +4145,13 @@ function bulkImportStock(){
     var nn=bfNormName(name);
     var idx=D.stock.findIndex(function(s){return bfNormName(s.name)===nn;});
     if(idx>=0){
-      D.stock[idx].qty=(D.stock[idx].qty||0)+qty;
+      if(!D.stock[idx].id)D.stock[idx].id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9)+'_'+li;
+      bfStockMove(D.stock[idx],qty,'PURCHASE',{refType:'Bulk Paste',reason:'Bulk Paste — line '+(li+1)});
       if(buy)D.stock[idx].buyPrice=buy;
       if(sell)D.stock[idx].sellPrice=sell;
-      if(!D.stock[idx].id)D.stock[idx].id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9)+'_'+li;
       updated++;
     }else{
-      D.stock.push({id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9)+'_'+li,name:name,category:bfBulkGuessCat(name),qty:qty,buyPrice:buy,sellPrice:sell,minStock:5});
+      var _ni={id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9)+'_'+li,name:name,category:bfBulkGuessCat(name),qty:0,buyPrice:buy,sellPrice:sell,minStock:5};bfStockMove(_ni,qty,'NEW_ITEM',{refType:'Bulk Paste',reason:'Bulk Paste — naya item, line '+(li+1)});D.stock.push(_ni);
       added++;
     }
   });
@@ -3967,8 +4173,8 @@ function showStock(){
   var f=D.stock.filter(function(s){return s.name.toLowerCase().includes(q)||(s.category||'').toLowerCase().includes(q);});
   document.getElementById('sCount').textContent=f.length+' items';
   try{
-    var totQ=D.stock.reduce(function(a,s){return a+(s.qty||0);},0);
-    var totV=D.stock.reduce(function(a,s){return a+((s.sellPrice||0)*(s.qty||0));},0);
+    var totQ=D.stock.reduce(function(a,s){return a+Math.max(0,s.qty||0);},0);
+    var totV=D.stock.reduce(function(a,s){return a+((s.sellPrice||0)*Math.max(0,s.qty||0));},0);
     document.getElementById('stockTotItems').textContent=D.stock.length;
     document.getElementById('stockTotQty').textContent=totQ;
     document.getElementById('stockTotVal').textContent=rs(totV);
@@ -3980,18 +4186,20 @@ function showStock(){
   f.forEach(function(item){
     var orig=D.stock.indexOf(item);
     var lowStock=item.qty<=(item.minStock||5);
+    var negStock=(item.qty||0)<0;
     var sellP=item.sellPrice||0;
     var sellColor=sellP>0?'color:var(--green);font-weight:700':'color:var(--red);font-weight:700';
     var sellTxt=sellP>0?rs(sellP):'₹0 ⚠️';
     html+='<tr class="'+(lowStock?'ls':'')+'">'
       +'<td><div style="font-weight:600;font-size:12px">'+item.name+'</div>'
       +'<span class="bg bg-b">'+(item.category||'Other')+'</span>'
-      +(lowStock?' <span class="stock-alert-low">⚠️Low</span>':'')
+      +(negStock?' <span class="stock-alert-low">🚨 NEGATIVE</span>':(lowStock?' <span class="stock-alert-low">⚠️Low</span>':''))
       +'</td>'
-      +'<td><b>'+item.qty+'</b></td>'
+      +'<td><b'+(negStock?' style="color:#DC2626"':'')+'>'+item.qty+'</b></td>'
       +'<td>'+(item.buyPrice>0?rs(item.buyPrice):'—')+'</td>'
       +'<td style="'+sellColor+'">'+sellTxt+'</td>'
       +'<td>'
+      +'<button onclick="bfOpenLedger(\'ledger\',\''+item.id+'\')" style="background:#1A3A6B;border:none;border-radius:8px;padding:8px 10px;color:#fff;font-size:15px;cursor:pointer;min-height:38px;margin-right:4px">📒</button>'
       +'<button onclick="delStock('+orig+')" style="background:#DC2626;border:none;border-radius:8px;padding:8px 12px;color:#fff;font-size:16px;cursor:pointer;min-width:42px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;">🗑️</button>'
       +'</td>'
       +'</tr>';
@@ -4022,7 +4230,7 @@ function addInventoryNewItem(){
   if(qty<=0){toast('❌ Physical Qty daalen!','te');return;}
   var existIdx=D.stock.findIndex(function(s){return s.name.toLowerCase()===name.toLowerCase();});
   if(existIdx>=0){toast('❌ "'+name+'" pehle se list mein hai — upar counting sheet mein dhundo!','te');return;}
-  D.stock.push({id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:name,category:cat,qty:qty,buyPrice:buy,sellPrice:sell,minStock:5});
+  var _ii={id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:name,category:cat,qty:0,buyPrice:buy,sellPrice:sell,minStock:5};bfStockMove(_ii,qty,'NEW_ITEM',{refType:'Inventory',reason:'Inventory counting mein naya mila'});D.stock.push(_ii);
   var newIdx=D.stock.length-1;
   _invWorking.push({idx:newIdx,name:name,category:cat,buyPrice:buy,sysQty:qty,physQty:qty,reason:'✨ Naya item — pehle system mein nahi tha'});
   save();fillDrop();
@@ -4095,7 +4303,7 @@ function applyInventoryAdjustment(){
   if(!confirm('❗ '+changed.length+' items ki Stock Qty ko Physical count ke barabar badal diya jayega.\nPakka karna hai?'))return;
   changed.forEach(function(r){
     var old=D.stock[r.idx].qty;
-    D.stock[r.idx].qty=r.physQty;
+    bfStockMove(D.stock[r.idx],(Number(r.physQty)||0)-(Number(old)||0),'ADJUST',{refType:'Inventory',reason:'Physical count: system '+old+' → physical '+r.physQty+(r.reason?' — '+r.reason:'')});
     bfLogActivity('Stock','Edit',r.name+' Qty (Inventory adjustment): '+old+' → '+r.physQty+(r.reason?' — '+r.reason:''));
   });
   save();fillDrop();showStock();
@@ -4220,6 +4428,7 @@ function delStock(i){
   if(!item){toast('❌ Item nahi mila!','te');return;}
   var nama=item.name;
   bfLogActivity('Stock','Delete',nama+' (Qty: '+(item.qty||0)+', Buy: '+(item.buyPrice||0)+', Sell: '+(item.sellPrice||0)+')');
+  var _dq=Number(item.qty)||0;if(_dq!==0&&item.id)bfPushMove(item.id,item.name,'ITEM_DELETE',-_dq,_dq,0,{refType:'Item Delete',reason:'Item stock list se hataya (Qty '+_dq+' thi)'});
   D.stock.splice(i,1);
   save();
   showStock();
@@ -4802,6 +5011,7 @@ function saveUdhar(){
     var paid=(old.amount||0)-(old.remaining||0);
     bfLogActivity('Lending/Udhar','Edit','"'+(old?old.name:'')+'" '+rs(old?old.amount:0)+' → "'+name+'" '+rs(amt));
     D.udhar[_udharEditIdx]={id:old.id,name:name,phone:phone,amount:amt,remaining:Math.max(0,amt-paid),date:date,note:note};
+    if(old.billNo!==undefined)D.udhar[_udharEditIdx].billNo=old.billNo; // bill se juda link edit par bhi bana rahe
     _udharEditIdx=null;
     document.getElementById('uSaveBtn').innerHTML='💾 Udhar Save';
     var cb=document.getElementById('uCancelBtn');if(cb)cb.style.display='none';
@@ -5394,31 +5604,257 @@ function genReport(fromId,toId,saleId,expId,profitId,catId,expChId){
   if(expEl)expEl.innerHTML=Object.keys(expC).length===0?'<div class="empty"><p>Data nahi</p></div>':Object.entries(expC).sort(function(a,b){return b[1]-a[1];}).map(function(e){return'<div class="chi"><div class="chl"><span>'+e[0]+'</span><span style="color:var(--red)">'+rs(e[1])+'</span></div><div class="cht"><div class="chf" style="width:'+(e[1]/maxE*100)+'%;background:linear-gradient(90deg,var(--red),#f87171)"></div></div></div>';}).join('');
   toast('📊 Report ready!','ts');
 }
-var BF_EXTRA_KEYS=['bhagya_capital_entries','bhagya_custom_markets','bhagya_custom_people','bhagya_loan_roi_tracker_v1'];
-function backupData(){
-  var ex={};BF_EXTRA_KEYS.forEach(function(k){var v=localStorage.getItem(k);if(v!==null)ex[k]=v;});
-  var d=JSON.stringify({_bfBackup:2,savedAt:new Date().toISOString(),D:D,extra:ex},null,2);
-  var b=new Blob([d],{type:'application/json'});
-  var u=URL.createObjectURL(b);
-  var a=document.createElement('a');a.href=u;a.download='BhagyaFashion_Backup_'+td()+'.json';a.click();
-  toast('📥 Backup saved!','ts');
+// ═══════════ 🛡️ BACKUP CENTER v3 ═══════════
+// Backup file = checksum (jaanch) wali file. Restore se pehle file verify hoti hai, preview dikhta hai,
+// abhi ka data is phone mein safe (IndexedDB) hota hai, aur restore ke baad dobara verify hota hai.
+// Auto-backup: roz ek (10 din tak) is phone ke andar. PIN/password backup file mein JAANBUJHKAR nahi hote.
+var BF_BK_VER=3;
+var BF_EXTRA_KEYS=['bhagya_capital_entries','bhagya_custom_markets','bhagya_custom_people','bhagya_loan_roi_tracker_v1','bf_bs_manual_locks','bf_upi_id','bf_profit_mode','bf_cf_mode'];
+var BF_EXTRA_PREFIX=['bf_dr_mode_'];
+var BF_BK_ARRAYS=['sales','stock','cash','udhar','expenses','returns','stockMoves','calc','staff','customers','attendance','payments','loans','festivals','advances'];
+var BF_BK_LABELS=[['sales','🧾 Sale Bills'],['stock','📦 Stock Items'],['cash','💵 Cash Entries'],['udhar','📒 Udhar'],['expenses','💸 Expenses'],['returns','↩️ Returns'],['stockMoves','📊 Stock Moves'],['staff','🧑‍💼 Staff'],['customers','👥 Customers'],['advances','💰 Advances']];
+
+function bfBkEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function bfBkIsExtraKey(k){return BF_EXTRA_KEYS.indexOf(k)>=0||BF_EXTRA_PREFIX.some(function(p){return String(k).indexOf(p)===0;});}
+function bfBkCollectExtra(){
+  var ex={};
+  BF_EXTRA_KEYS.forEach(function(k){var v=localStorage.getItem(k);if(v!==null)ex[k]=v;});
+  for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&BF_EXTRA_PREFIX.some(function(p){return k.indexOf(p)===0;}))ex[k]=localStorage.getItem(k);}
+  return ex;
 }
-function restoreData(){
-  var inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
-  inp.onchange=function(){var f=inp.files[0];if(!f)return;var r=new FileReader();
-    r.onload=function(){try{
-      var o=JSON.parse(r.result),nd=o._bfBackup?o.D:o,ex=o.extra||{};
-      if(!nd||!Array.isArray(nd.sales))throw 0;
-      if(!confirm('♻️ Restore: '+nd.sales.length+' bills, '+(nd.stock||[]).length+' stock items.\nPehle abhi ka data ek Backup file mein save hoga, phir ye data lagega. Pakka?'))return;
-      backupData();
-      Object.keys(nd).forEach(function(k){D[k]=nd[k];});
-      Object.keys(ex).forEach(function(k){if(ex[k]!=null)localStorage.setItem(k,typeof ex[k]==='string'?ex[k]:JSON.stringify(ex[k]));});
-      save();bfLogActivity('Backup','Edit','Restore file se data wapas liya ('+nd.sales.length+' bills)');
-      toast('✅ Restore ho gaya — app reload ho raha hai','ts');setTimeout(function(){location.reload();},1800);
-    }catch(e){toast('❌ Ye valid Backup file nahi hai','te');}};
-    r.readAsText(f);};
+function bfBkCounts(d){var o={};BF_BK_LABELS.forEach(function(x){o[x[0]]=Array.isArray(d&&d[x[0]])?d[x[0]].length:0;});return o;}
+function bfBkSummary(d){var tot=0,last='';((d&&d.sales)||[]).forEach(function(s){tot+=(+s.total||0);if(s.date&&s.date>last)last=s.date;});return{totalSale:Math.round(tot),lastBillDate:last};}
+function bfBkFmt(iso){try{return new Date(iso).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return String(iso||'');}}
+function bfBkAgeDays(iso){if(!iso)return null;var t=Date.parse(iso);return isNaN(t)?null:Math.floor((Date.now()-t)/86400000);}
+
+// ── checksum ──
+function bfBkCyrb53(str){var h1=0xdeadbeef,h2=0x41c6ce57;for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return(4294967296*(2097151&h2)+(h1>>>0)).toString(16);}
+function bfBkHasSubtle(){return !!(window.crypto&&window.crypto.subtle&&window.TextEncoder);}
+async function bfBkHashWith(str,algo){
+  if(algo==='sha256'){var buf=await window.crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');}
+  return bfBkCyrb53(str);
+}
+async function bfBkHash(str){var algo=bfBkHasSubtle()?'sha256':'cyrb53';try{return{algo:algo,sum:await bfBkHashWith(str,algo)};}catch(e){return{algo:'cyrb53',sum:bfBkCyrb53(str)};}}
+
+// ── backup banana ──
+async function bfBkBuild(kind){
+  var payload=JSON.stringify({D:D,extra:bfBkCollectExtra()});
+  var h=await bfBkHash(payload),sm=bfBkSummary(D);
+  var meta={_bfBackup:BF_BK_VER,app:'BhagyaFashionUltimate',kind:kind||'manual',savedAt:new Date().toISOString(),
+    device:(navigator.userAgent||'').slice(0,60),counts:bfBkCounts(D),totalSale:sm.totalSale,lastBillDate:sm.lastBillDate,
+    algo:h.algo,checksum:h.sum,size:payload.length,payload:payload};
+  return{meta:meta,text:JSON.stringify(meta)};
+}
+
+// ── backup padhna + jaanch (file ya snapshot dono ke liye) ──
+async function bfBkParse(src){
+  var r={ok:false,errors:[],warnings:[],verified:false,D:null,extra:{},meta:{},missing:[]};
+  var o=src;
+  if(typeof src==='string'){try{o=JSON.parse(src);}catch(e){r.errors.push('File padhi nahi ja saki — JSON adhuri ya kharab hai.');return r;}}
+  if(!o||typeof o!=='object'){r.errors.push('Ye Bhagya Fashion ki backup file nahi lagti.');return r;}
+  var nd;
+  if(o._bfBackup&&o._bfBackup>BF_BK_VER){r.errors.push('Ye file naye version ki hai — pehle app update karein.');return r;}
+  if(o._bfBackup>=3&&typeof o.payload==='string'){
+    r.meta=o;
+    if(o.algo==='sha256'&&!bfBkHasSubtle()){r.warnings.push('Checksum jaanch nahi ho paayi (https link se app kholein).');}
+    else{
+      var sum;try{sum=await bfBkHashWith(o.payload,o.algo);}catch(e){sum=null;}
+      if(sum!==o.checksum){r.errors.push('❌ Checksum match nahi hua — file badal gayi ya adhuri download hui hai. Isse restore na karein.');return r;}
+      r.verified=true;
+    }
+    try{var p=JSON.parse(o.payload);nd=p.D;r.extra=p.extra||{};}catch(e){r.errors.push('File ke andar ka data kharab hai.');return r;}
+  }else if(o._bfBackup){r.meta=o;nd=o.D;r.extra=o.extra||{};r.warnings.push('Purani format ki file hai — checksum nahi hai, isliye sirf structure jaanch hui.');}
+  else{nd=o;r.warnings.push('Bahut purani format ki file hai — checksum nahi hai.');}
+  if(!nd||typeof nd!=='object'||!Array.isArray(nd.sales)||!Array.isArray(nd.stock)){r.errors.push('File mein Sale/Stock ka data nahi mila.');return r;}
+  BF_BK_ARRAYS.forEach(function(f){if(nd[f]!==undefined&&!Array.isArray(nd[f]))r.errors.push('"'+f+'" ka data galat shape mein hai.');});
+  if(r.errors.length)return r;
+  var bad=0,dup=0,seen={};
+  nd.sales.forEach(function(s){if(!s||typeof s!=='object'||s.billNo==null||isNaN(+s.total)){bad++;return;}if(seen[s.billNo])dup++;seen[s.billNo]=1;});
+  if(bad)r.warnings.push(bad+' bill mein billNo ya total sahi nahi hai.');
+  if(dup)r.warnings.push(dup+' bill ka number dobara aaya hai (duplicate billNo).');
+  var qbad=nd.stock.filter(function(x){return !x||isNaN(+x.qty);}).length;
+  if(qbad)r.warnings.push(qbad+' stock item ki quantity sahi nahi hai.');
+  r.missing=BF_FIELDS.filter(function(f){return nd[f]===undefined;});
+  r.D=nd;r.ok=true;return r;
+}
+
+// ── file download / share ──
+function bfBkDownload(name,text){
+  var blob=new Blob([text],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){a.remove();URL.revokeObjectURL(u);},4000);
+}
+function bfBkFileName(){var d=new Date();return'BhagyaFashion_Backup_'+td()+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.json';}
+function bfBkMarkFile(){try{localStorage.setItem('bf_bk_lastfile',new Date().toISOString());}catch(e){}}
+
+async function backupData(){
+  try{
+    var b=await bfBkBuild('manual');
+    var chk=await bfBkParse(b.text);
+    if(!chk.ok){toast('❌ Backup ki jaanch fail hui — dobara try karein','te');return;}
+    bfBkDownload(bfBkFileName(),b.text);bfBkMarkFile();
+    try{await bfBkSave(b.meta,'manual');}catch(e){}
+    toast('✅ Backup ready ('+b.meta.counts.sales+' bills, '+b.meta.counts.stock+' stock) — jaanch pass','ts');
+    if(document.getElementById('bfbkOv')&&document.getElementById('bfbkOv').style.display==='flex')bfBkOpen();
+  }catch(e){console.warn(e);toast('❌ Backup nahi ban paya','te');}
+}
+async function bfBkShare(){
+  try{
+    var b=await bfBkBuild('manual'),chk=await bfBkParse(b.text);
+    if(!chk.ok){toast('❌ Backup ki jaanch fail hui','te');return;}
+    var name=bfBkFileName(),types=['application/json','text/plain'],shared=false;
+    for(var i=0;i<types.length&&!shared;i++){
+      var f=new File([b.text],name,{type:types[i]});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){
+        try{await navigator.share({files:[f],title:'Bhagya Fashion Backup',text:'Backup '+td()});shared=true;}catch(e){if(e&&e.name==='AbortError')return;}
+      }
+    }
+    if(!shared){bfBkDownload(name,b.text);toast('📥 Share nahi ho paya — file download ho gayi, use WhatsApp se bhej dein','ts');}
+    bfBkMarkFile();try{await bfBkSave(b.meta,'manual');}catch(e){}
+    bfBkOpen();
+  }catch(e){console.warn(e);toast('❌ Share nahi ho paya','te');}
+}
+
+// ── is phone ke andar snapshots (IndexedDB) ──
+function bfBkDB(){return new Promise(function(res,rej){if(!window.indexedDB){rej(new Error('IndexedDB nahi hai'));return;}var q=indexedDB.open('bf_backup_db',1);q.onupgradeneeded=function(){q.result.createObjectStore('snaps',{keyPath:'id'});};q.onsuccess=function(){res(q.result);};q.onerror=function(){rej(q.error);};});}
+function bfBkTx(mode,fn){return bfBkDB().then(function(db){return new Promise(function(res,rej){var tx=db.transaction('snaps',mode),out;try{out=fn(tx.objectStore('snaps'));}catch(e){db.close();rej(e);return;}tx.oncomplete=function(){db.close();res(out&&out.result!==undefined?out.result:undefined);};tx.onerror=tx.onabort=function(){db.close();rej(tx.error);};});});}
+function bfBkPut(rec){return bfBkTx('readwrite',function(st){return st.put(rec);});}
+function bfBkGet(id){return bfBkTx('readonly',function(st){return st.get(id);});}
+function bfBkDel(id){return bfBkTx('readwrite',function(st){return st.delete(id);});}
+function bfBkList(){return bfBkDB().then(function(db){return new Promise(function(res,rej){var out=[],tx=db.transaction('snaps','readonly'),q=tx.objectStore('snaps').openCursor();
+  q.onsuccess=function(){var c=q.result;if(c){var v=c.value;out.push({id:v.id,kind:v.kind,savedAt:v.savedAt,counts:v.counts,totalSale:v.totalSale,lastBillDate:v.lastBillDate,checksum:v.checksum,size:v.size});c.continue();}};
+  tx.oncomplete=function(){db.close();out.sort(function(a,b){return a.savedAt<b.savedAt?1:-1;});res(out);};tx.onerror=tx.onabort=function(){db.close();rej(tx.error);};});});}
+async function bfBkRotate(kind){var lim={auto:10,'pre-restore':3,manual:5}[kind]||5,l=(await bfBkList()).filter(function(x){return x.kind===kind;});for(var i=lim;i<l.length;i++)await bfBkDel(l[i].id);}
+async function bfBkSave(meta,kind){var rec=Object.assign({},meta,{kind:kind,id:kind==='auto'?'auto_'+td():kind+'_'+Date.now()});await bfBkPut(rec);await bfBkRotate(kind);return rec;}
+async function bfBkAuto(force){
+  try{
+    if(!D||!((D.sales||[]).length||(D.stock||[]).length||(D.cash||[]).length))return;   // khali data se purana achha backup kabhi na dabe
+    var last=parseInt(localStorage.getItem('bf_bk_lastauto')||'0',10);
+    if(!force&&localStorage.getItem('bf_bk_lastautoday')===td()&&Date.now()-last<2*3600*1000)return;
+    var b=await bfBkBuild('auto'),prev=null;
+    try{prev=await bfBkGet('auto_'+td());}catch(e){}
+    if(!prev||prev.checksum!==b.meta.checksum)await bfBkSave(b.meta,'auto');
+    localStorage.setItem('bf_bk_lastauto',String(Date.now()));localStorage.setItem('bf_bk_lastautoday',td());
+  }catch(e){console.warn('Auto backup:',e);}
+}
+function bfBkRemind(){
+  try{
+    var age=bfBkAgeDays(localStorage.getItem('bf_bk_lastfile'));
+    if(age!==null&&age<7)return;
+    if(localStorage.getItem('bf_bk_remind')===td())return;
+    localStorage.setItem('bf_bk_remind',td());
+    toast(age===null?'⚠️ Abhi tak koi Backup FILE nahi li — Backup Center mein jaakar le lein':'⚠️ Backup file '+age+' din purani hai — nayi le lein','te');
+  }catch(e){}
+}
+
+// ── Backup Center screen ──
+function bfBkModal(html){
+  var ov=document.getElementById('bfbkOv');
+  if(!ov){
+    var st=document.createElement('style');
+    st.textContent='#bfbkOv{position:fixed;inset:0;background:rgba(15,23,42,.62);z-index:100000;display:none;align-items:flex-end;justify-content:center}'
+    +'.bfbk-box{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));font-family:Poppins,sans-serif;color:#1E293B;font-size:13px}'
+    +'.bfbk-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.bfbk-h b{font-size:16px;color:#1A3A6B}.bfbk-x{border:0;background:#F1F5F9;border-radius:50%;width:32px;height:32px;font-size:16px}'
+    +'.bfbk-b{display:block;width:100%;border:0;border-radius:12px;padding:12px;margin-top:8px;font-family:inherit;font-weight:700;font-size:13px;background:#1A3A6B;color:#fff}.bfbk-b.g{background:#F59E0B;color:#1A3A6B}.bfbk-b.o{background:#fff;color:#1A3A6B;border:2px solid #1A3A6B}.bfbk-b.r{background:#DC2626}.bfbk-b.s{width:auto;display:inline-block;padding:7px 10px;margin:0 0 0 6px;font-size:11px}'
+    +'.bfbk-chip{border-radius:10px;padding:9px 11px;margin:6px 0;font-weight:600;font-size:12px}.bfbk-ok{background:#DCFCE7;color:#166534}.bfbk-w{background:#FEF3C7;color:#92400E}.bfbk-e{background:#FEE2E2;color:#991B1B}.bfbk-i{background:#DBEAFE;color:#1E3A8A}'
+    +'.bfbk-t{width:100%;border-collapse:collapse;margin:8px 0}.bfbk-t td,.bfbk-t th{padding:6px 4px;border-bottom:1px solid #E2E8F0;text-align:left;font-size:12px}.bfbk-t th{color:#64748B}'
+    +'.bfbk-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #E2E8F0;font-size:12px}';
+    document.head.appendChild(st);
+    ov=document.createElement('div');ov.id='bfbkOv';ov.onclick=function(e){if(e.target===ov)bfBkClose();};document.body.appendChild(ov);
+  }
+  ov.innerHTML='<div class="bfbk-box">'+html+'</div>';ov.style.display='flex';
+}
+function bfBkClose(){var ov=document.getElementById('bfbkOv');if(ov)ov.style.display='none';window._bfBkPending=null;}
+var BF_BK_KIND={auto:'🤖 Auto','pre-restore':'🛟 Restore se pehle',manual:'📥 Manual'};
+async function bfBkOpen(){
+  var age=bfBkAgeDays(localStorage.getItem('bf_bk_lastfile')),chip;
+  if(age===null)chip='<div class="bfbk-chip bfbk-e">❌ Abhi tak koi Backup FILE nahi li gayi</div>';
+  else if(age>=7)chip='<div class="bfbk-chip bfbk-w">⚠️ Last backup file '+age+' din pehle ki hai</div>';
+  else chip='<div class="bfbk-chip bfbk-ok">✅ Last backup file: '+(age===0?'aaj':age+' din pehle')+'</div>';
+  var list=[],note='';
+  try{list=await bfBkList();}catch(e){note='<div class="bfbk-chip bfbk-w">Is browser mein auto-backup (IndexedDB) nahi chal raha — file backup zaroor lein.</div>';}
+  var rows=list.length?list.map(function(x){
+    return'<div class="bfbk-row"><div>'+(BF_BK_KIND[x.kind]||bfBkEsc(x.kind))+'<br><span style="color:#64748B">'+bfBkFmt(x.savedAt)+' · '+((x.counts||{}).sales||0)+' bills · '+((x.counts||{}).stock||0)+' stock</span></div>'
+    +'<div><button class="bfbk-b s o" onclick="bfBkRestoreSnap(\''+bfBkEsc(x.id)+'\')">♻️</button><button class="bfbk-b s o" onclick="bfBkDownloadSnap(\''+bfBkEsc(x.id)+'\')">⬇️</button></div></div>';
+  }).join(''):'<div style="color:#64748B;padding:8px 0">Abhi koi auto-backup nahi bana (app khulne ke thodi der baad banta hai).</div>';
+  var inst=window._bfInstallEv?'<button class="bfbk-b g" onclick="bfInstallApp()">📲 App ko Phone mein Install karo</button>':'';
+  bfBkModal('<div class="bfbk-h"><b>🛡️ Backup Center</b><button class="bfbk-x" onclick="bfBkClose()">✕</button></div>'+chip+note
+    +'<button class="bfbk-b" onclick="backupData()">📥 Backup File Banao (jaanch ke saath)</button>'
+    +'<button class="bfbk-b g" onclick="bfBkShare()">📤 WhatsApp / Share se bhejo</button>'
+    +'<button class="bfbk-b o" onclick="restoreData()">♻️ File se Restore</button>'
+    +'<button class="bfbk-b o" onclick="restoreData(true)">🔍 File ki jaanch (bina restore)</button>'+inst
+    +'<div style="margin-top:14px;font-weight:700;color:#1A3A6B">Is phone ke Auto-Backups</div>'+rows
+    +'<div class="bfbk-chip bfbk-i" style="margin-top:12px">ℹ️ Auto-backup roz ek banta hai (10 din tak) is phone ke andar. Phone kho jaye ya browser data saaf ho jaye to ye bhi jaate hain — isliye hafte mein ek baar <b>File Backup</b> WhatsApp/Drive par zaroor rakhein. Cloud (Firebase) alag se chalu hai. PIN/password backup file mein nahi jaate.</div>');
+}
+async function bfBkDownloadSnap(id){try{var r=await bfBkGet(id);if(!r)return;var c=Object.assign({},r);delete c.id;bfBkDownload('BhagyaFashion_'+bfBkEsc(r.kind)+'_'+String(r.savedAt).slice(0,10)+'.json',JSON.stringify(c));bfBkMarkFile();}catch(e){toast('❌ File nahi mili','te');}}
+async function bfBkRestoreSnap(id){
+  try{var r=await bfBkGet(id);if(!r){toast('❌ Backup nahi mila','te');return;}var c=Object.assign({},r);delete c.id;bfBkPreview(await bfBkParse(c),false);}
+  catch(e){toast('❌ Backup khul nahi paya','te');}
+}
+
+// ── restore: file chuno → jaanch → preview → confirm → apply → dobara jaanch ──
+function restoreData(verifyOnly){
+  var inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json,text/plain';
+  inp.onchange=function(){var f=inp.files[0];if(!f)return;var rd=new FileReader();
+    rd.onload=async function(){bfBkPreview(await bfBkParse(rd.result),!!verifyOnly);};
+    rd.onerror=function(){toast('❌ File padhi nahi ja saki','te');};
+    rd.readAsText(f);};
   inp.click();
 }
+function bfBkPreview(r,verifyOnly){
+  if(!r.ok){bfBkModal('<div class="bfbk-h"><b>❌ Backup theek nahi hai</b><button class="bfbk-x" onclick="bfBkClose()">✕</button></div>'+r.errors.map(function(e){return'<div class="bfbk-chip bfbk-e">'+bfBkEsc(e)+'</div>';}).join('')+'<div class="bfbk-chip bfbk-i">Aapka abhi ka data bilkul nahi chhua gaya.</div><button class="bfbk-b o" onclick="bfBkClose()">Theek hai</button>');return;}
+  window._bfBkPending=r;
+  var cur=bfBkCounts(D),bk=bfBkCounts(r.D),cs=bfBkSummary(D),bs=bfBkSummary(r.D),fewer=[];
+  var rows=BF_BK_LABELS.map(function(x){var c=cur[x[0]],has=r.D[x[0]]!==undefined,b=has?bk[x[0]]:null,lower=has&&b<c;if(lower)fewer.push(x[1]);
+    return'<tr><td>'+x[1]+'</td><td>'+c+'</td><td style="font-weight:700;color:'+(!has?'#94A3B8':lower?'#DC2626':'#166534')+'">'+(has?b:'—')+'</td></tr>';}).join('');
+  var m=r.meta||{};
+  var h='<div class="bfbk-h"><b>'+(verifyOnly?'🔍 Backup ki jaanch':'♻️ Restore Preview')+'</b><button class="bfbk-x" onclick="bfBkClose()">✕</button></div>'
+   +(r.verified?'<div class="bfbk-chip bfbk-ok">✅ Checksum sahi — file poori aur ashuddh-mukt hai</div>':'<div class="bfbk-chip bfbk-w">⚠️ Checksum se jaanch nahi ho paayi</div>')
+   +r.warnings.map(function(w){return'<div class="bfbk-chip bfbk-w">⚠️ '+bfBkEsc(w)+'</div>';}).join('')
+   +'<div style="color:#64748B;font-size:12px">Backup ki tareekh: <b>'+(m.savedAt?bfBkFmt(m.savedAt):'pata nahi')+'</b>'+(bs.lastBillDate?' · Aakhri bill: <b>'+bfBkEsc(bs.lastBillDate)+'</b>':'')+'</div>'
+   +'<table class="bfbk-t"><tr><th></th><th>Abhi app mein</th><th>Is backup mein</th></tr>'+rows
+   +'<tr><td>💰 Total Sale</td><td>₹'+cs.totalSale.toLocaleString('en-IN')+'</td><td style="font-weight:700">₹'+bs.totalSale.toLocaleString('en-IN')+'</td></tr></table>';
+  if(fewer.length)h+='<div class="bfbk-chip bfbk-e">🚨 Is backup mein abhi se KAM data hai ('+fewer.map(bfBkEsc).join(', ')+'). Restore karne se naye entries hat jayengi — kya ye purana backup hai?</div>';
+  if(r.missing.length)h+='<div class="bfbk-chip bfbk-i">Is backup mein ye sections nahi hain, inka abhi ka data jaisa hai waisa rahega: '+r.missing.map(bfBkEsc).join(', ')+'</div>';
+  if(verifyOnly)h+='<button class="bfbk-b o" onclick="bfBkClose()">Theek hai</button>';
+  else h+='<div class="bfbk-chip bfbk-i">Restore se pehle abhi ka data is phone mein "🛟 Restore se pehle" naam se safe ho jayega. Cloud par doosri branch ko bhi ye badlav dikhega.</div><button class="bfbk-b r" onclick="bfBkDoRestore()">♻️ Haan, Restore karo</button><button class="bfbk-b o" onclick="bfBkClose()">Cancel</button>';
+  bfBkModal(h);
+}
+async function bfBkDoRestore(){
+  var r=window._bfBkPending;if(!r||!r.ok)return;
+  bfBkModal('<div class="bfbk-chip bfbk-i">⏳ Pehle abhi ka data safe ho raha hai...</div>');
+  try{await bfBkSave((await bfBkBuild('pre-restore')).meta,'pre-restore');}
+  catch(e){
+    try{var pb=await bfBkBuild('pre-restore');bfBkDownload('BhagyaFashion_PreRestore_'+td()+'.json',pb.text);}
+    catch(e2){bfBkModal('<div class="bfbk-chip bfbk-e">❌ Abhi ka data safe nahi ho paya, isliye restore roka gaya. Kuch nahi badla.</div><button class="bfbk-b o" onclick="bfBkClose()">Theek hai</button>');return;}
+  }
+  var nd=r.D,bad=[];
+  try{
+    BF_FIELDS.forEach(function(f){if(nd[f]!==undefined)D[f]=nd[f];});
+    if(!Array.isArray(D.stockMoves))D.stockMoves=[];
+    D.stock.forEach(function(item){if(!item.id)item.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);});
+    Object.keys(r.extra||{}).forEach(function(k){var v=r.extra[k];if(bfBkIsExtraKey(k)&&v!=null)localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));});
+    save();
+    BF_FIELDS.forEach(function(f){
+      if(nd[f]===undefined)return;
+      var raw=localStorage.getItem('bf_d_'+f),back=null;try{back=JSON.parse(raw);}catch(e){}
+      if(back===null||(Array.isArray(nd[f])&&(!Array.isArray(back)||back.length!==nd[f].length)))bad.push(f);
+    });
+  }catch(e){
+    bfBkModal('<div class="bfbk-chip bfbk-e">❌ Restore beech mein ruk gaya ('+bfBkEsc(e&&e.message)+'). Aapka pehle wala data "🛟 Restore se pehle" backup mein safe hai — Backup Center se wapas le sakte hain.</div><button class="bfbk-b o" onclick="bfBkClose()">Theek hai</button>');return;
+  }
+  var c=bfBkCounts(D);
+  try{bfLogActivity('Backup','Edit','Restore file se data wapas liya ('+c.sales+' bills, '+c.stock+' stock)');}catch(e){}
+  if(bad.length){
+    bfBkModal('<div class="bfbk-chip bfbk-e">❌ Restore ke baad jaanch mein farak mila: '+bad.map(bfBkEsc).join(', ')+'. Phone ki memory bhari ho sakti hai. Backup Center mein "🛟 Restore se pehle" se wapas jayein.</div><button class="bfbk-b o" onclick="bfBkClose()">Theek hai</button>');return;
+  }
+  bfBkModal('<div class="bfbk-chip bfbk-ok">✅ Restore ho gaya aur jaanch pass: '+c.sales+' bills, '+c.stock+' stock items, '+c.cash+' cash entries.</div><div class="bfbk-chip bfbk-i">Cloud par bhej rahe hain — internet chalu rakhein. App kuch second mein khud reload hoga.</div><button class="bfbk-b" onclick="location.reload()">Abhi reload karo</button>');
+  setTimeout(function(){location.reload();},7000);
+}
+function bfInstallApp(){var e=window._bfInstallEv;if(!e){toast('Chrome menu (⋮) → "Install app" / "Add to Home screen"','ts');return;}e.prompt();}
+setTimeout(function(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}bfBkAuto();bfBkRemind();},15000);
+setInterval(bfBkAuto,30*60*1000);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')bfBkAuto();});
 
 // ── PROFIT: AUTO vs MANUAL MODE ──
 var _profitMode=(function(){try{return localStorage.getItem('bf_profit_mode')||'manual';}catch(e){return'manual';}})();
@@ -6253,7 +6689,7 @@ function renderAdvHistory(){initExtra();var sf=(document.getElementById('adv-fst
 function renderAdvDashboard(){initExtra();var nowM=td().substring(0,7);var se=document.getElementById('adv-statStaff');if(se)se.textContent=D.staff.length;var thisMonth=D.advances.filter(function(a){return advMonthKey(a.date)===nowM;});var total=thisMonth.reduce(function(a,b){return a+b.amount;},0);var me=document.getElementById('adv-statMonth');if(me)me.textContent=rs(total);var ce=document.getElementById('adv-statCount');if(ce)ce.textContent=thisMonth.length;var pending=D.advances.filter(function(a){return a.status==='pending';}).reduce(function(a,b){return a+b.amount;},0);var pe=document.getElementById('adv-statPending');if(pe)pe.textContent=rs(pending);var sl=document.getElementById('adv-statusList');if(!sl)return;if(!D.staff.length){sl.innerHTML='<div class="empty"><p>Pehle Staff & Salary mein staff add karo</p></div>';return;}sl.innerHTML=D.staff.map(function(s){var adv=thisMonth.filter(function(a){return String(a.staffId)===String(s.id);});var cnt=adv.length,tot=adv.reduce(function(a,b){return a+b.amount;},0);var badge=cnt===0?'<span class="bg bg-b">Koi advance nahi</span>':cnt===1?'<span class="bg bg-g">✅ Rule ke andar (1x)</span>':'<span class="bg bg-r">⚠️ 1 se zyada baar!</span>';return'<div style="padding:9px 0;border-bottom:1px solid #f0f4ff"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px;color:#1A3A6B">'+s.name+'</b>'+badge+'</div><div style="font-size:11px;color:#64748B;margin-top:2px">Is mahine: '+cnt+' entries, total '+rs(tot)+'</div></div>';}).join('');}
 // ─ BB Purchase ─
 var BB_ITEMS=[{name:'6513',category:'Fabric/Suit',qty:22,buyPrice:465,sellPrice:0,minStock:5},{name:'6810',category:'Fabric/Suit',qty:10,buyPrice:360,sellPrice:0,minStock:5},{name:'P146',category:'Fabric/Suit',qty:11,buyPrice:345,sellPrice:0,minStock:5},{name:'P139',category:'Fabric/Suit',qty:11,buyPrice:295,sellPrice:0,minStock:5},{name:'4164',category:'Fabric/Suit',qty:6,buyPrice:415,sellPrice:0,minStock:5}];
-function addPurchaseToStock(){BB_ITEMS.forEach(function(item){var exist=D.stock.find(function(s){return bfNormName(s.name)===bfNormName(item.name);});if(exist){exist.qty+=item.qty;exist.buyPrice=item.buyPrice;if(!exist.id)exist.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);}else D.stock.push({id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:item.name,category:item.category,qty:item.qty,buyPrice:item.buyPrice,sellPrice:item.sellPrice,minStock:item.minStock});});save();toast('✅ 5 items stock mein add! (OP225 — 60 pcs)','ts');}
+function addPurchaseToStock(){BB_ITEMS.forEach(function(item){var exist=D.stock.find(function(s){return bfNormName(s.name)===bfNormName(item.name);});if(exist){if(!exist.id)exist.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);bfStockMove(exist,item.qty,'PURCHASE',{refType:'Purchase',reason:'Purchase (BB list) se add'});exist.buyPrice=item.buyPrice;}else{var _pn={id:'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9),name:item.name,category:item.category,qty:0,buyPrice:item.buyPrice,sellPrice:item.sellPrice,minStock:item.minStock};bfStockMove(_pn,item.qty,'NEW_ITEM',{refType:'Purchase',reason:'Purchase (BB list) — naya item'});D.stock.push(_pn);}});save();toast('✅ 5 items stock mein add! (OP225 — 60 pcs)','ts');}
 function addPurchaseExpense(){if(!D.expenses)D.expenses=[];if(D.expenses.find(function(e){return e.note&&e.note.includes('OP225');})){toast('⚠️ OP225 pehle se record hai!','te');return;}D.expenses.push({id:bfUid(),date:'2026-07-01',amount:24528,cat:'Purchase/Kharida',note:'BB Synthetics OP225 — 60 pcs (IGST ₹1168)'});save();toast('✅ ₹24,528 expense record ho gaya!','ts');}
 function printPurchaseBill(){var el=document.getElementById('pg-purchase');if(!el)return;var w=window.open('','_blank');if(!w){toast('❌ Popup block hai','te');return;}w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>OP225</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:10px}.xbk,.xbkb,.xtitle{display:none!important}button{display:none!important}table{width:100%;border-collapse:collapse}</style></head><body>'+el.innerHTML+'</body></html>');w.document.close();setTimeout(function(){w.print();},400);}
 
@@ -7950,11 +8386,11 @@ lrRenderAll();
   // STOCK ab is list mein NAHI hai — usko neeche alag, PER-ITEM tarike se sync kiya jaata
   // hai (stock_items map), taaki DO PHONE agar EK SAATH ALAG-ALAG item add karein to
   // ek doosre ka data OVERWRITE/CUT na ho — yahi "ek daalo ek katt jaata hai" ki asli wajah thi.
-  var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bf_d_cfbs","bf_d_returns","bf_d_daily","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
+  var SYNC_KEYS = ["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_bc","bf_d_calc","bf_d_calcMeta","bf_d_cfbs","bf_d_returns","bf_d_daily","bf_d_stockMoves","bf_d_customers","bf_d_staff","bf_d_attendance","bf_d_payments","bf_d_loans","bf_d_festivals","bf_d_targets","bf_d_attReg","bf_d_advances","bhagya_capital_entries","bhagya_custom_markets","bhagya_custom_people","bhagya_loan_roi_tracker_v1"];
   var docRef = bfDb.collection("bhagya_sync").doc(CLOUD_DOC_ID);
   var justWroteFromCloud = false;
   var cloudLoaded = false;
-  var ARR_KEYS=["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_returns"];
+  var ARR_KEYS=["bf_d_sales","bf_d_cash","bf_d_udhar","bf_d_expenses","bf_d_returns","bf_d_stockMoves"];
   // ── MULTI-PHONE SAFE MERGE: har record ka apna _id; push par cloud ke saath 3-way merge ──
   function bfH(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
   function bfIdsDet(a){var seen={};a.forEach(function(r){if(r&&typeof r==='object'&&!r._id){var b=bfH(JSON.stringify(r));seen[b]=(seen[b]||0)+1;r._id=b+'-'+seen[b];}});return a;}
@@ -7984,144 +8420,270 @@ lrRenderAll();
     }catch(e){justWroteFromCloud=false;console.warn('UI refresh',e);}
   }
 
-  var writeTimer = null;
-  var pendingKeys = {};      // jo keys badli hain lekin abhi cloud pe nahi gayi
-  var pushInFlight = false;  // ek push chal raha hai kya abhi
-  var retryTimer = null;
-  var pendingStockItems = {};   // stock: id -> item data (ya {__deleted:true}), abhi push hona baaki
-  var stockWriteTimer = null;
-  var stockRetryTimer = null;
-
-  function bfStockTsMap(){
-    try{ return JSON.parse(localStorage.getItem('bf_stock_ts_map')||'{}'); }catch(e){ return {}; }
+  // ═══ SYNC v2 (1 MB document-limit FIX) ═══
+  // Pehle SAARA data (sales, cash, udhar, expenses, stock...) ek hi Firestore document mein tha;
+  // Firestore ka limit 1 MB per document hai, isliye data badhne par sync band ho jaata.
+  // Ab: har sale/udhar/expense/cash/return/stock-item ALAG chhota document hai (collection "rec"),
+  // aur baaki chhote keys (daily, calc, capital, loan...) 200k-char ke tukdon mein (collection "blob").
+  // Koi limit nahi — lakhon records chalenge. Purana data ek baar apne-aap naye format mein chala jaata hai.
+  var origSetItem = localStorage.setItem.bind(localStorage);
+  var writeTimer=null, pendingKeys={}, pushInFlight=false, retryTimer=null;
+  var pendingStockItems={}, stockWriteTimer=null, stockRetryTimer=null, stockPushing=false;
+  var v2Ready=false, lastU=parseInt(localStorage.getItem('bf_v2_lastU')||'0',10)||0;
+  var recCol=docRef.collection('rec'), blobCol=docRef.collection('blob'), FV=firebase.firestore.FieldValue, TS=firebase.firestore.Timestamp;
+  var CHUNK=200000, blobAsm={};
+  function lsGet(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}}
+  function rawSet(k,v){justWroteFromCloud=true;try{origSetItem(k,v);}finally{justWroteFromCloud=false;}}
+  var recTs=lsGet('bf_v2_rts',{});
+  function saveRecTs(){try{origSetItem('bf_v2_rts',JSON.stringify(recTs));}catch(e){}}
+  function rid(k,id){return k+'__'+String(id).replace(/\//g,'_');}
+  function tsOf(key){return parseInt(localStorage.getItem(key+'_bfts')||'0',10);}
+  function withTimeout(p,ms){return Promise.race([p,new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},ms);})]);}
+  function commitOps(ops){
+    var p=Promise.resolve();
+    for(var i=0;i<ops.length;i+=400)(function(sl){p=p.then(function(){
+      var b=bfDb.batch();
+      sl.forEach(function(o){var ref=(o.col==='blob'?blobCol:recCol).doc(o.id);
+        if(o.t==='d')b.delete(ref); else b.set(ref,Object.assign({},o.d,{u:FV.serverTimestamp()}));});
+      return withTimeout(b.commit(),30000);});})(ops.slice(i,i+400));
+    return p;
   }
-  function bfStockTsGet(id){ return bfStockTsMap()[id] || 0; }
-  function bfStockTsSet(id, ts){
-    var m = bfStockTsMap(); m[id] = ts;
-    localStorage.setItem('bf_stock_ts_map', JSON.stringify(m));
+  function track(d){var x=d.data({serverTimestamps:'estimate'}),u=x&&x.u;if(u&&u.toMillis&&u.toMillis()>lastU){lastU=u.toMillis();try{origSetItem('bf_v2_lastU',String(lastU));}catch(e){}}}
+
+  // ── cloud se aaya data local mein lagana ──
+  function stockToLocal(list){
+    var by={};lsGet('bf_d_stock',[]).forEach(function(i){if(i&&i.id)by[i.id]=i;});
+    list.forEach(function(it){if(it.__deleted)delete by[it.id];else{var c=Object.assign({},it);delete c._ts;by[it.id]=c;bfBqSet(it.id,c.qty||0);}});
+    rawSet('bf_d_stock',JSON.stringify(Object.keys(by).map(function(k){return by[k];})));
+  }
+  function arrApply(k,items){
+    var L=lsGet(k,[]);if(!Array.isArray(L))L=[];
+    var B=bfBaseGet(k);if(B===null){bfIdsDet(L);B={};}
+    var idx={};L.forEach(function(r,i){if(r&&r._id)idx[r._id]=i;});
+    items.forEach(function(it){
+      if(it.del){if(idx[it.rid]!==undefined)L[idx[it.rid]]=null;delete B[it.rid];}
+      else{if(idx[it.rid]!==undefined)L[idx[it.rid]]=it.rec;else{idx[it.rid]=L.length;L.push(it.rec);}B[it.rid]=bfH(JSON.stringify(it.rec));}
+    });
+    bfBaseSet(k,B);rawSet(k,JSON.stringify(L.filter(Boolean)));
+  }
+  function applyBlobDocs(docs,boot){
+    var ch=false;
+    docs.forEach(function(d){var x=d.data(),a=blobAsm[x.k];
+      if(!a||a.ts<x.ts)a=blobAsm[x.k]={ts:x.ts,n:x.n,p:{}};
+      if(a.ts===x.ts)a.p[x.i]=x.v;});
+    Object.keys(blobAsm).forEach(function(k){
+      var a=blobAsm[k];if(a.done===a.ts||Object.keys(a.p).length<a.n)return;
+      if(boot?a.ts<tsOf(k):a.ts<=tsOf(k))return;
+      var s='';for(var i=0;i<a.n;i++)s+=a.p[i];
+      if(k==='bf_d_bc')s=String(Math.max(parseInt(s,10)||1,parseInt(localStorage.getItem(k),10)||1));
+      a.done=a.ts;rawSet(k,s);origSetItem(k+'_bfts',String(a.ts));origSetItem('bf_v2_n_'+k,String(a.n));ch=true;});
+    return ch;
+  }
+  function applyDocs(recDocs,blobDocs,boot){
+    var byK={},stockList=[];
+    recDocs.forEach(function(d){var x=d.data(),ts=x.ts||0;
+      if(ts<=(recTs[d.id]||0))return;recTs[d.id]=ts;
+      try{
+        if(x.k==='stock')stockList.push(x.del?{id:x.rid,__deleted:true}:JSON.parse(x.j));
+        else(byK[x.k]=byK[x.k]||[]).push({rid:x.rid,del:!!x.del,rec:x.del?null:JSON.parse(x.j)});
+      }catch(e){console.warn('bad rec',d.id,e);}});
+    saveRecTs();
+    Object.keys(byK).forEach(function(k){arrApply(k,byK[k]);});
+    var blobCh=applyBlobDocs(blobDocs,boot),haveD=typeof window.__bfApplyStockItem==='function';
+    if(stockList.length){if(haveD)stockList.forEach(function(it){window.__bfApplyStockItem(it.id,it);});else stockToLocal(stockList);}
+    return {arr:Object.keys(byK).length>0||blobCh,stock:stockList.length>0&&haveD};
+  }
+  function handleDocs(recDocs,blobDocs){
+    if(!recDocs.length&&!blobDocs.length)return;
+    if(pushInFlight||stockPushing||Object.keys(pendingKeys).length||Object.keys(pendingStockItems).length){
+      setTimeout(function(){handleDocs(recDocs,blobDocs);},1200);return;}
+    var r=applyDocs(recDocs,blobDocs,false);
+    if(!r.arr&&!r.stock)return;
+    try{
+      justWroteFromCloud=true;
+      if(r.stock&&typeof save==='function')save();
+      if(r.arr&&typeof load==='function')load();
+      justWroteFromCloud=false;
+      ['fillDrop','showDash','showStock'].forEach(function(f){if(typeof window[f]==='function')window[f]();});
+      if(typeof go==='function'&&typeof window._currentPage!=='undefined')go(window._currentPage);
+      if(typeof toast==='function')toast('🔄 Doosri branch se naya update aaya','ts');
+    }catch(e){justWroteFromCloud=false;location.reload();}
+  }
+  function startListeners(){
+    var since=TS.fromMillis(Math.max(0,lastU-120000)),buf={r:[],b:[]},tm=null;
+    function flush(){var r=buf.r,b=buf.b;buf={r:[],b:[]};handleDocs(r,b);}
+    function onSnap(key){return function(s){
+      s.docChanges().forEach(function(c){if(c.type==='removed'||c.doc.metadata.hasPendingWrites)return;buf[key].push(c.doc);track(c.doc);});
+      clearTimeout(tm);tm=setTimeout(flush,300);};}
+    function err(e){console.warn('BF listener',e);}
+    recCol.where('u','>',since).onSnapshot(onSnap('r'),err);
+    blobCol.where('u','>',since).onSnapshot(onSnap('b'),err);
   }
 
-  // Manual "Refresh Now" button — Stock page se seedha cloud (Firestore) se ek baar
-  // fresh fetch karke stock_items ko turant D.stock mein merge karta hai. Ye is liye
-  // add kiya gaya hai ki agar kabhi real-time listener (onSnapshot) kisi wajah se
-  // update miss kar de (jaise tab background mein tha, ya thodi der internet gaya tha),
-  // to user ek button dabakar khud turant latest stock la sake — bina page reload kiye.
-  window.bfManualStockRefresh = function(){
-    var noteEl = document.getElementById('stockRefreshNote');
-    if(!docRef || typeof bfDb==='undefined'){
-      if(noteEl) noteEl.textContent = '❌ Cloud connect nahi hai — internet check karein';
-      if(typeof toast==='function') toast('❌ Cloud connect nahi hai, internet check karein','te');
-      return;
-    }
-    if(noteEl) noteEl.textContent = '⏳ Cloud se check kar rahe hain...';
-    docRef.get({source:'server'}).then(function(snap){
-      var data = snap.exists ? snap.data() : null;
-      var found = 0, applied = 0;
-      if(data && data.stock_items){
-        Object.keys(data.stock_items).forEach(function(id){
-          found++;
-          var incoming; try{ incoming = JSON.parse(data.stock_items[id]); }catch(e){ return; }
-          var incomingTs = incoming._ts || 0;
-          if(incomingTs > bfStockTsGet(id)){
-            applied++;
-            bfStockTsSet(id, incomingTs);
-            if(typeof window.__bfApplyStockItem==='function') window.__bfApplyStockItem(id, incoming);
-          }
-        });
+  // ── local change cloud par bhejna ──
+  function pushToCloud(){
+    var keys=Object.keys(pendingKeys);if(!keys.length||!v2Ready)return;
+    pendingKeys={};pushInFlight=true;bfSyncBadge('syncing');
+    var now=Date.now(),ops=[],after=[],ks=[];
+    keys.forEach(function(k){
+      var v=localStorage.getItem(k)||'';
+      if(!cloudLoaded&&(v===''||v==='[]'||v==='{}'||v==='1'))return;
+      ks.push(k);
+      if(ARR_KEYS.indexOf(k)>=0){
+        var L;try{L=JSON.parse(v||'[]');}catch(e){L=[];}if(!Array.isArray(L))L=[];
+        var B=bfBaseGet(k);if(B===null)bfIdsDet(L);else bfIdsRand(L);
+        var nb={};
+        L.forEach(function(r){if(!r||!r._id)return;var h=bfH(JSON.stringify(r));nb[r._id]=h;
+          if(!B||B[r._id]!==h)ops.push({t:'s',id:rid(k,r._id),d:{k:k,rid:r._id,j:JSON.stringify(r),ts:now,del:false}});});
+        if(B)Object.keys(B).forEach(function(id){if(!nb[id])ops.push({t:'s',id:rid(k,id),d:{k:k,rid:id,j:'',ts:now,del:true}});});
+        after.push(function(){bfBaseSet(k,nb);var s=JSON.stringify(L);
+          if(!pendingKeys[k]&&s!==localStorage.getItem(k)){rawSet(k,s);return true;}return false;});
+      }else{
+        var n=Math.max(1,Math.ceil(v.length/CHUNK)),pn=parseInt(localStorage.getItem('bf_v2_n_'+k)||'0',10)||0;
+        for(var i=0;i<n;i++)ops.push({t:'s',col:'blob',id:k+'__'+i,d:{k:k,i:i,n:n,v:v.slice(i*CHUNK,(i+1)*CHUNK),ts:now}});
+        for(var j=n;j<pn;j++)ops.push({t:'d',col:'blob',id:k+'__'+j});
+        after.push(function(){origSetItem('bf_v2_n_'+k,String(n));return false;});
       }
-      if(applied>0 && typeof save==='function') save();
-      if(typeof fillDrop==='function') fillDrop();
-      if(typeof showStock==='function') showStock();
-      var timeStr = new Date().toLocaleTimeString('en-IN');
-      var msg = '✅ Cloud mein kul '+found+' item hain — '+applied+' naye/update abhi apply hue';
-      if(noteEl) noteEl.textContent = msg+' ('+timeStr+')';
-      if(typeof toast==='function') toast(msg,'ts');
+    });
+    if(!ks.length){pushInFlight=false;return;}
+    commitOps(ops).then(function(){
+      var changed=false;
+      ops.forEach(function(o){if(!o.col&&o.t==='s')recTs[o.id]=now;});saveRecTs();
+      after.forEach(function(f){if(f())changed=true;});
+      ks.forEach(function(k){origSetItem(k+'_bfts',String(now));});
+      if(changed)bfUiRefresh();
+      if(ks.indexOf('bf_d_sales')>=0){var d=0,seen={};try{JSON.parse(localStorage.getItem('bf_d_sales')||'[]').forEach(function(b){if(seen[b.billNo])d++;seen[b.billNo]=1;});}catch(e){}
+        if(d&&typeof toast==='function')toast('⚠️ '+d+' bill ka number do phone par same ban gaya — Sale list mein check karein','te');}
+      failStreak=0;pushInFlight=false;bfSyncBadge('done');bfBigWarning(false);
     }).catch(function(e){
-      console.warn('Manual stock refresh failed', e);
-      if(noteEl) noteEl.textContent = '❌ Refresh fail hua — internet check karein ('+(e&&e.code?e.code:'')+')';
-      if(typeof toast==='function') toast('❌ Cloud se refresh fail hua, internet check karein','te');
+      console.warn('BF Cloud sync error:',e);
+      pushInFlight=false;failStreak++;bfSyncBadge('fail');
+      if(failStreak>=2)bfBigWarning(true,'⚠️ Cloud Sync baar-baar fail ho raha hai! Is entry ko safe maankar band mat karein — file ko Chrome browser mein kholein, WhatsApp ke andar seedha na kholein.');
+      ks.forEach(function(k){pendingKeys[k]=true;});
+      clearTimeout(retryTimer);retryTimer=setTimeout(pushToCloud,4000);
     });
-  };
+  }
 
-  // ⚠️ ASLI WAJAH jo purana stock Stock Manager app mein nahi dikh raha tha: pehle sirf
-  // WOHI stock items cloud (stock_items map) mein jaate the jinko kabhi EDIT/SAVE kiya
-  // gaya ho is Ultimate App mein. Jo items bahut pehle se list mein pade the aur kabhi
-  // dobara touch nahi hue, wo cloud par KABHI gaye hi nahi — isliye Stock Manager app
-  // (jo sirf cloud se padhta hai) unhe kabhi dekh hi nahi paya. Ye function saara
-  // D.stock FORCE se ek baar cloud par bhej deta hai, chahe wo "already synced" lag raha ho.
-  window.bfForcePushAllStock = function(silent){
-    if(typeof D==='undefined' || !D.stock || !D.stock.length){
-      if(!silent && typeof toast==='function') toast('❌ Stock khali hai, push karne ko kuch nahi','te');
-      return;
-    }
-    var noteEl = document.getElementById('stockRefreshNote');
-    var now = Date.now();
-    var count = 0;
-    D.stock.forEach(function(item){
-      if(!item.id) item.id = 'st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
-      pendingStockItems[item.id] = item;
-      count++;
-    });
-    try{ localStorage.setItem('bf_stock_backfill_done_v1','1'); }catch(e){}
-    if(!count) return;
-    if(!silent && noteEl) noteEl.textContent = '⏳ '+count+' purane items cloud par bhej rahe hain...';
-    clearTimeout(stockWriteTimer);
-    pushStockToCloud();
-    if(!silent && typeof toast==='function') toast('☁️ '+count+' items cloud par bheja ja raha hai — Stock Manager app mein thodi der mein dikhega','ts');
+  // ── STOCK: har item alag document; qty DELTA se (dusre phone ki bikri kat-ti nahi) ──
+  window.__bfQueueStockPush=function(changed){
+    Object.keys(changed).forEach(function(id){pendingStockItems[id]=changed[id];});
+    clearTimeout(stockWriteTimer);stockWriteTimer=setTimeout(pushStockToCloud,500);
   };
-
-  // Jab bhi kisi stock item mein change ho (add/edit/delete), yahan queue ho jaata hai
-  window.__bfQueueStockPush = function(changedItems){
-    Object.keys(changedItems).forEach(function(id){ pendingStockItems[id] = changedItems[id]; });
-    clearTimeout(stockWriteTimer);
-    stockWriteTimer = setTimeout(pushStockToCloud, 500);
+  window.__bfStockSyncNote=function(msg,color){var el=document.getElementById('stockSaveNote');if(el){el.textContent=msg;el.style.color=color||'#166534';}};
+  window.bfForcePushAllStock=function(silent){
+    if(typeof D==='undefined'||!D.stock||!D.stock.length){if(!silent&&typeof toast==='function')toast('❌ Stock khali hai, push karne ko kuch nahi','te');return;}
+    var noteEl=document.getElementById('stockRefreshNote'),count=0;
+    D.stock.forEach(function(item){if(!item.id)item.id='st_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);pendingStockItems[item.id]=item;count++;});
+    try{localStorage.setItem('bf_stock_backfill_done_v1','1');}catch(e){}
+    if(!silent&&noteEl)noteEl.textContent='⏳ '+count+' purane items cloud par bhej rahe hain...';
+    clearTimeout(stockWriteTimer);pushStockToCloud();
+    if(!silent&&typeof toast==='function')toast('☁️ '+count+' items cloud par bheja ja raha hai','ts');
   };
-  window.__bfStockSyncNote = function(msg, color){
-    var el = document.getElementById('stockSaveNote');
-    if(el){ el.textContent = msg; el.style.color = color || '#166534'; }
-  };
-
   function pushStockToCloud(){
-    var ids=Object.keys(pendingStockItems);
-    if(!ids.length) return;
-    var toSend=pendingStockItems; pendingStockItems={};
-    var now=Date.now();
-    bfSyncBadge('syncing');
-    if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('☁️ Cloud par bhej rahe hain...','#92400E');
-    docRef.firestore.runTransaction(function(tx){return tx.get(docRef).then(function(snap){
-      var cd=snap.exists?snap.data():{},cur=cd.stock_items||{},map={},res={};
-      ids.forEach(function(id){
-        var it=toSend[id],c=null,o;
-        try{c=cur[id]?JSON.parse(cur[id]):null;}catch(e){}
-        if(it.__deleted){o={id:id,__deleted:true,_ts:now};}
-        else{
-          var q=it.qty||0;
-          if(c&&!c.__deleted){var cq=c.qty||0,b=bfBq()[id];if(b===undefined)b=cq;q=cq+((it.qty||0)-b);} /* DELTA: dusre phone ki bikri kat-ti nahi */
-          if(q<0)q=0;
-          o=Object.assign({},it,{qty:q,_ts:now});
-        }
-        map[id]=JSON.stringify(o);res[id]=o;
-      });
-      tx.set(docRef,{stock_items:map},{merge:true});
-      return res;});})
-    .then(function(res){
-      var applied=false;
-      ids.forEach(function(id){
-        var o=res[id];bfStockTsSet(id,o._ts);
-        if(o.__deleted)return;
-        if(pendingStockItems[id]){bfBqSet(id,toSend[id].qty||0);return;}
-        if(typeof window.__bfApplyStockItem==='function'){window.__bfApplyStockItem(id,o);applied=true;}
-      });
-      if(applied&&typeof save==='function'){justWroteFromCloud=true;save();justWroteFromCloud=false;if(typeof fillDrop==='function')fillDrop();if(typeof showStock==='function')showStock();}
-      failStreak=0;bfSyncBadge('done');bfBigWarning(false);
-      if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('✅ Cloud par bhi SAVE ho gaya (sab phone par dikhega)','#166534');
+    var ids=Object.keys(pendingStockItems);if(!ids.length||!v2Ready||stockPushing)return;
+    var toSend=pendingStockItems,done={},p=Promise.resolve(),now=Date.now();
+    pendingStockItems={};stockPushing=true;bfSyncBadge('syncing');
+    window.__bfStockSyncNote('☁️ Cloud par bhej rahe hain...','#92400E');
+    for(var i=0;i<ids.length;i+=100)(function(part){p=p.then(function(){
+      return withTimeout(bfDb.runTransaction(function(tx){
+        var refs=part.map(function(id){return recCol.doc(rid('stock',id));});
+        return Promise.all(refs.map(function(r){return tx.get(r);})).then(function(snaps){
+          var res={};
+          part.forEach(function(id,ix){
+            var it=toSend[id],o,c=null,s=snaps[ix];
+            if(s.exists&&!s.data().del){try{c=JSON.parse(s.data().j);}catch(e){}}
+            if(it.__deleted){o={id:id,__deleted:true,_ts:now};tx.set(refs[ix],{k:'stock',rid:id,j:'',ts:now,del:true,u:FV.serverTimestamp()});}
+            else{
+              var q=it.qty||0;
+              if(c){var cq=c.qty||0,b=bfBq()[id];if(b===undefined)b=cq;q=cq+((it.qty||0)-b);}
+              if(q<0)q=0;
+              o=Object.assign({},it,{qty:q,_ts:now});
+              tx.set(refs[ix],{k:'stock',rid:id,j:JSON.stringify(o),ts:now,del:false,u:FV.serverTimestamp()});
+            }
+            res[id]=o;});
+          return res;});
+      }),30000).then(function(res){
+        part.forEach(function(id){
+          var o=res[id];done[id]=1;recTs[rid('stock',id)]=now;
+          if(o.__deleted)return;
+          if(pendingStockItems[id]){bfBqSet(id,toSend[id].qty||0);return;}
+          if(typeof window.__bfApplyStockItem==='function')window.__bfApplyStockItem(id,o);
+        });
+      });});})(ids.slice(i,i+100));
+    p.then(function(){
+      saveRecTs();
+      if(typeof save==='function'){justWroteFromCloud=true;save();justWroteFromCloud=false;if(typeof fillDrop==='function')fillDrop();if(typeof showStock==='function')showStock();}
+      stockPushing=false;failStreak=0;bfSyncBadge('done');bfBigWarning(false);
+      window.__bfStockSyncNote('✅ Cloud par bhi SAVE ho gaya (sab phone par dikhega)','#166534');
+      if(Object.keys(pendingStockItems).length)pushStockToCloud();
     }).catch(function(e){
-      console.warn('BF stock sync error:',e);failStreak++;
-      ids.forEach(function(id){if(!pendingStockItems[id])pendingStockItems[id]=toSend[id];});
+      console.warn('BF stock sync error:',e);stockPushing=false;failStreak++;saveRecTs();
+      ids.forEach(function(id){if(!done[id]&&!pendingStockItems[id])pendingStockItems[id]=toSend[id];});
       bfSyncBadge('fail');
-      if(typeof window.__bfStockSyncNote==='function')window.__bfStockSyncNote('⚠️ Is phone par SAVE hai, par Cloud par jaana baaki — Internet check karein','#991B1B');
+      window.__bfStockSyncNote('⚠️ Is phone par SAVE hai, par Cloud par jaana baaki — Internet check karein','#991B1B');
       if(failStreak>=2)bfBigWarning(true,'⚠️ Stock Cloud Sync baar-baar fail ho raha hai! File ko Chrome browser mein kholein, WhatsApp/Files-app ke andar seedha na kholein.');
       clearTimeout(stockRetryTimer);stockRetryTimer=setTimeout(pushStockToCloud,4000);
+    });
+  }
+  window.bfManualStockRefresh=function(){
+    var noteEl=document.getElementById('stockRefreshNote');
+    if(noteEl)noteEl.textContent='⏳ Cloud se check kar rahe hain...';
+    recCol.where('k','==','stock').get({source:'server'}).then(function(snap){
+      var r=applyDocs(snap.docs,[],false);
+      if(r.stock&&typeof save==='function'){justWroteFromCloud=true;save();justWroteFromCloud=false;}
+      if(typeof fillDrop==='function')fillDrop();if(typeof showStock==='function')showStock();
+      var msg='✅ Cloud mein kul '+snap.size+' item hain — refresh ho gaya ('+new Date().toLocaleTimeString('en-IN')+')';
+      if(noteEl)noteEl.textContent=msg;if(typeof toast==='function')toast(msg,'ts');
+    }).catch(function(e){
+      if(noteEl)noteEl.textContent='❌ Refresh fail hua — internet check karein ('+(e&&e.code?e.code:'')+')';
+      if(typeof toast==='function')toast('❌ Cloud se refresh fail hua, internet check karein','te');
+    });
+  };
+
+  // ── PURANE (1 document wale) data ko naye format mein ek baar le jaana ──
+  var myLock='L'+Date.now()+Math.random().toString(36).slice(2,6);
+  function migrate(data){
+    var ops=[];
+    ARR_KEYS.forEach(function(k){
+      if(typeof data[k]!=='string')return;
+      var a;try{a=bfIdsDet(JSON.parse(data[k]));}catch(e){return;}
+      if(!Array.isArray(a))return;
+      var ts=data[k+'_ts']||1;
+      a.forEach(function(r){if(r&&r._id)ops.push({t:'s',id:rid(k,r._id),d:{k:k,rid:r._id,j:JSON.stringify(r),ts:ts,del:false}});});
+    });
+    var si=data.stock_items||{};
+    Object.keys(si).forEach(function(id){var o;try{o=JSON.parse(si[id]);}catch(e){return;}
+      ops.push({t:'s',id:rid('stock',id),d:{k:'stock',rid:id,j:o.__deleted?'':si[id],ts:o._ts||1,del:!!o.__deleted}});});
+    SYNC_KEYS.forEach(function(k){
+      if(ARR_KEYS.indexOf(k)>=0||typeof data[k]!=='string')return;
+      var v=data[k],n=Math.max(1,Math.ceil(v.length/CHUNK)),ts=data[k+'_ts']||1;
+      for(var i=0;i<n;i++)ops.push({t:'s',col:'blob',id:k+'__'+i,d:{k:k,i:i,n:n,v:v.slice(i*CHUNK,(i+1)*CHUNK),ts:ts}});
+    });
+    return commitOps(ops).then(function(){return docRef.set({v2_done:true,v2_at:Date.now()},{merge:true});});
+  }
+  function ensureV2(data,tries){
+    tries=tries||0;
+    if(data&&data.v2_done){v2Ready=true;return Promise.resolve();}
+    var hasLegacy=!!data&&Object.keys(data).some(function(k){return k==='stock_items'||SYNC_KEYS.indexOf(k)>=0;});
+    if(!hasLegacy)return docRef.set({v2_done:true,v2_at:Date.now()},{merge:true}).then(function(){v2Ready=true;});
+    return bfDb.runTransaction(function(tx){return tx.get(docRef).then(function(s){
+      var d=s.exists?s.data():{};
+      if(d.v2_done)return 'done';
+      if(d.v2_lock&&d.v2_lock!==myLock&&Date.now()-(d.v2_lock_at||0)<180000)return 'wait';
+      tx.set(docRef,{v2_lock:myLock,v2_lock_at:Date.now()},{merge:true});return d;});})
+    .then(function(r){
+      if(r==='done'){v2Ready=true;return;}
+      if(r==='wait'){
+        if(tries>=40)return;
+        return new Promise(function(res){setTimeout(res,3000);}).then(function(){return docRef.get();}).then(function(s){return ensureV2(s.data(),tries+1);});
+      }
+      return migrate(r).then(function(){v2Ready=true;});
+    });
+  }
+  function initialPull(){
+    return Promise.all([recCol.get(),blobCol.get()]).then(function(rs){
+      rs[0].docs.concat(rs[1].docs).forEach(track);
+      applyDocs(rs[0].docs,rs[1].docs,true);
     });
   }
 
@@ -8138,27 +8700,6 @@ lrRenderAll();
   function hideLoader(){
     var l = document.getElementById('bfCloudLoader');
     if(l) l.style.display = 'none';
-  }
-
-  function tsOf(key){
-    return parseInt(localStorage.getItem(key + '_bfts') || '0', 10);
-  }
-
-  function applyCloudData(cloudObj, cb){
-    justWroteFromCloud = true;
-    SYNC_KEYS.forEach(function(k){
-      if(cloudObj && cloudObj[k] !== undefined){
-        var cloudTs = cloudObj[k + '_ts'] || 0;
-        if(cloudTs >= tsOf(k)){
-          var _str = cloudObj[k];
-          if(ARR_KEYS.indexOf(k) >= 0){ try{ var _a = bfIdsDet(JSON.parse(_str)); _str = JSON.stringify(_a); bfBaseSet(k, bfMap(_a)); }catch(e){} }
-          localStorage.setItem(k, _str);
-          localStorage.setItem(k + '_bfts', String(cloudTs));
-        }
-      }
-    });
-    justWroteFromCloud = false;
-    if(cb) cb();
   }
 
   function bfBigWarning(show, msg){
@@ -8205,45 +8746,6 @@ lrRenderAll();
     }
   }
 
-  function pushToCloud(){
-    var keys=Object.keys(pendingKeys);
-    if(!keys.length) return;
-    pendingKeys={}; pushInFlight=true; bfSyncBadge('syncing');
-    var now=Date.now(),loc={};
-    keys.forEach(function(k){var v=localStorage.getItem(k)||'';if(!cloudLoaded&&(v===''||v==='[]'||v==='{}'||v==='1'))return;loc[k]=v;});
-    var ks=Object.keys(loc);
-    if(!ks.length){pushInFlight=false;return;}
-    docRef.firestore.runTransaction(function(tx){return tx.get(docRef).then(function(snap){
-      var cd=snap.exists?snap.data():{},upd={},out={};
-      ks.forEach(function(k){var v;
-        if(ARR_KEYS.indexOf(k)>=0){var arr=bfMergeArr(k,loc[k],cd[k]);v=JSON.stringify(arr);out[k]={s:v,a:arr};}
-        else if(k==='bf_d_bc'){v=String(Math.max(parseInt(loc[k],10)||1,parseInt(cd[k],10)||1));out[k]={s:v};}
-        else{v=loc[k];out[k]={s:v};}
-        upd[k]=v;upd[k+'_ts']=now;});
-      tx.set(docRef,upd,{merge:true});
-      return out;});})
-    .then(function(out){
-      var changed=false;
-      ks.forEach(function(k){
-        localStorage.setItem(k+'_bfts',String(now));
-        var o=out[k];
-        if(pendingKeys[k])return;
-        if(o.a)bfBaseSet(k,bfMap(o.a));
-        if(o.s!==localStorage.getItem(k)){justWroteFromCloud=true;localStorage.setItem(k,o.s);justWroteFromCloud=false;changed=true;}
-      });
-      if(changed)bfUiRefresh();
-      if(ks.indexOf('bf_d_sales')>=0){var d=0,seen={};try{JSON.parse(localStorage.getItem('bf_d_sales')||'[]').forEach(function(b){if(seen[b.billNo])d++;seen[b.billNo]=1;});}catch(e){}
-        if(d&&typeof toast==='function')toast('⚠️ '+d+' bill ka number do phone par same ban gaya — Sale list mein check karein','te');}
-      failStreak=0;pushInFlight=false;bfSyncBadge('done');bfBigWarning(false);
-    }).catch(function(e){
-      console.warn('BF Cloud sync error:',e);
-      pushInFlight=false;failStreak++;bfSyncBadge('fail');
-      if(failStreak>=2)bfBigWarning(true,'⚠️ Cloud Sync baar-baar fail ho raha hai! Is entry ko safe maankar band mat karein — file ko Chrome browser mein kholein, WhatsApp ke andar seedha na kholein.');
-      ks.forEach(function(k){pendingKeys[k]=true;});
-      clearTimeout(retryTimer);retryTimer=setTimeout(pushToCloud,4000);
-    });
-  }
-
   // 0) Boot hote hi check karo ki ye browser theek se localStorage aur internet support
   //    karta hai ya nahi. WhatsApp/Files-app ke andar wale "preview" browser mein aksar
   //    ya to storage save nahi hota (band karte hi data ud jaata hai) ya internet band
@@ -8262,119 +8764,30 @@ lrRenderAll();
     }
   })();
 
-  // 1) Pehle ek baar cloud se data le lo, phir asli app chalao
-  function bootMergeStockItems(data){
-    // App start hote hi cloud ke stock_items ko localStorage ke bf_d_stock array mein
-    // merge karo (D abhi bana nahi hai isliye seedha localStorage par kaam karte hain)
-    if(!data || !data.stock_items) return;
-    var tsMap = bfStockTsMap();
-    var byId = {};
-    try{
-      var local = JSON.parse(localStorage.getItem('bf_d_stock') || '[]');
-      local.forEach(function(item){ if(item.id) byId[item.id] = item; });
-    }catch(e){}
-    Object.keys(data.stock_items).forEach(function(id){
-      var incoming; try{ incoming = JSON.parse(data.stock_items[id]); }catch(e){ return; }
-      var incomingTs = incoming._ts || 0;
-      if(incomingTs >= (tsMap[id] || 0)){
-        if(incoming.__deleted){ delete byId[id]; }
-        else{ var clean = Object.assign({}, incoming); delete clean._ts; byId[id] = clean; bfBqSet(id, clean.qty||0); }
-        tsMap[id] = incomingTs;
-      }
-    });
-    localStorage.setItem('bf_stock_ts_map', JSON.stringify(tsMap));
-    localStorage.setItem('bf_d_stock', JSON.stringify(Object.keys(byId).map(function(k){return byId[k];})));
-  }
-  bfAuthReady().then(function(){return Promise.race([docRef.get(),new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},8000);})]);}).then(function(snap){
-    var data = snap.exists ? snap.data() : null;
-    cloudLoaded = true;
-    bootMergeStockItems(data);
-    applyCloudData(data, function(){
-      runMainScript();
-      hideLoader();
-      // Pehli baar (sirf ek baar) — purana local stock jo kabhi cloud par nahi gaya
-      // tha use FORCE push kar do, taaki Stock Manager app ko turant poora sahi stock dikhe.
-      try{
-        if(!localStorage.getItem('bf_stock_backfill_done_v1')){
-          setTimeout(function(){
-            if(typeof window.bfForcePushAllStock==='function') window.bfForcePushAllStock(true);
-          }, 1500);
-        }
-      }catch(e){}
-    });
+  // 1) Boot: cloud check → (zaroorat ho to) migration → cloud data local mein → app chalao
+  bfAuthReady().then(function(){return withTimeout(docRef.get(),8000);}).then(function(snap){
+    cloudLoaded=true;
+    return ensureV2(snap.exists?snap.data():null);
+  }).then(function(){
+    return v2Ready?withTimeout(initialPull(),20000):null;
+  }).then(function(){
+    runMainScript();hideLoader();
+    if(!v2Ready){bfBigWarning(true,'⚠️ Cloud ka naya format abhi taiyaar nahi hua (doosra phone migration kar raha hai). Thodi der baad app dobara kholein.');return;}
+    startListeners();
+    ARR_KEYS.forEach(function(k){pendingKeys[k]=true;});
+    setTimeout(pushToCloud,1500);
+    try{if(!localStorage.getItem('bf_stock_backfill_done_v1'))setTimeout(function(){window.bfForcePushAllStock(true);},2500);}catch(e){}
   }).catch(function(e){
-    console.warn('BF Cloud fetch failed, offline mode:', e);
-    bfBigWarning(true, '⚠️ App khulte hi Cloud se connect nahi ho paya. Is session mein daala gaya stock doosre phone tak nahi pahunchega. Internet check karein ya file ko Chrome browser mein kholein (WhatsApp ke andar seedha na kholein).');
-    runMainScript();
-    hideLoader();
+    console.warn('BF Cloud fetch failed, offline mode:',e);
+    bfBigWarning(true,'⚠️ App khulte hi Cloud se connect nahi ho paya. Is session mein daala gaya data doosre phone tak nahi pahunchega. Internet check karein ya file ko Chrome browser mein kholein (WhatsApp ke andar seedha na kholein).');
+    runMainScript();hideLoader();
   });
 
-  // 2) Jab doosre bhai ke phone se data update ho, yahan bhi refresh ho jaye
-  function handleRemoteSnapshot(snap){
-    if(snap.exists && snap.metadata && !snap.metadata.fromCache) cloudLoaded = true;
-    if(!snap.exists || justWroteFromCloud) return;
-    if(snap.metadata && snap.metadata.hasPendingWrites) return;
-    // Agar hamara khud ka change abhi bhejna baaki hai, to abhi apply/refresh mat karo —
-    // nahi to hamara unsaved change reload mein kho sakta hai. Thodi der baad phir try karo.
-    if(pushInFlight || Object.keys(pendingKeys).length || Object.keys(pendingStockItems).length){
-      setTimeout(function(){ handleRemoteSnapshot(snap); }, 1200);
-      return;
-    }
-    var data = snap.data();
-    var changed = false;
-    SYNC_KEYS.forEach(function(k){
-      var cloudTs = data[k + '_ts'] || 0;
-      if(cloudTs > tsOf(k)) changed = true;
-    });
-    // Stock: har item alag se check karo — sirf jo actually naya/updated hai wahi apply hoga,
-    // baaki dusre bhai ke phone ke items ko haath tak nahi lagega
-    var stockChanged = false;
-    if(data.stock_items && typeof window.__bfApplyStockItem === 'function'){
-      Object.keys(data.stock_items).forEach(function(id){
-        var incoming; try{ incoming = JSON.parse(data.stock_items[id]); }catch(e){ return; }
-        var incomingTs = incoming._ts || 0;
-        if(incomingTs > bfStockTsGet(id)){
-          stockChanged = true;
-          bfStockTsSet(id, incomingTs);
-          window.__bfApplyStockItem(id, incoming);
-        }
-      });
-    }
-    if(changed || stockChanged){
-      applyCloudData(data, function(){
-        // Poora page reload karne ke bajaye sirf data reload karke current screen
-        // dobara render karo — isse app "atakta/reload hota" hua nahi lagega.
-        try{
-          justWroteFromCloud = true;
-          // stockChanged wale case mein pehle save() (jo abhi D.stock mein merge hua hai
-          // usko localStorage mein flush karega), USKE BAAD load() (baaki fields ke liye) —
-          // isi order se stock ka fresh merge load() se overwrite nahi hota
-          if(stockChanged && typeof save==='function') save();
-          if(changed && typeof load==='function') load();
-          justWroteFromCloud = false;
-          if(typeof fillDrop==='function')fillDrop();
-          if(typeof showDash==='function')showDash();
-          if(typeof showStock==='function')showStock();
-          if(typeof go==='function' && typeof window._currentPage!=='undefined')go(window._currentPage);
-          if(typeof toast==='function')toast('🔄 Doosri branch se naya update aaya','ts');
-        }catch(e){
-          justWroteFromCloud = false;
-          location.reload();
-        }
-      });
-    }
-  }
-  bfAuthReady().then(function(){docRef.onSnapshot(handleRemoteSnapshot,function(e){console.warn("BF listener",e);});});
-
-  // 3) localStorage.setItem hook -- jab bhi app data save kare, cloud pe bhi bhej do
-  //    (sirf jo key badli hai wahi bhejta hai, isliye stock/sale add karna fast rahega)
-  var origSetItem = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function(key, value){
-    origSetItem(key, value);
-    if(SYNC_KEYS.indexOf(key) !== -1 && !justWroteFromCloud){
-      pendingKeys[key] = true;
-      clearTimeout(writeTimer);
-      writeTimer = setTimeout(pushToCloud, 500);
+  // 3) localStorage.setItem hook -- jab bhi app data save kare, sirf badla hua hissa cloud par jaaye
+  localStorage.setItem=function(key,value){
+    origSetItem(key,value);
+    if(SYNC_KEYS.indexOf(key)!==-1&&!justWroteFromCloud){
+      pendingKeys[key]=true;clearTimeout(writeTimer);writeTimer=setTimeout(pushToCloud,500);
     }
   };
   // 4) Band karne se pehle agar koi data abhi tak cloud par nahi gaya, to warn karo
@@ -8691,5 +9104,24 @@ window.bfaReplay=function(){var id=activeId();if(id)play(id);};
 </script>
 <!-- ═══════════ END ANIMATION PACK ═══════════ -->
 
+
+<script>
+/* ═══ 📲 PWA: install + offline (service worker) ═══ */
+(function(){
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window._bfInstallEv=e;});
+  window.addEventListener('appinstalled',function(){window._bfInstallEv=null;try{toast('✅ App install ho gaya','ts');}catch(e){}});
+  if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return; // file:// ya WhatsApp se khola to offline-install nahi chalega
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./service-worker.js').then(function(reg){
+      reg.addEventListener('updatefound',function(){
+        var nw=reg.installing;if(!nw)return;
+        nw.addEventListener('statechange',function(){
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){try{toast('🔄 App ka naya version aa gaya — agli baar khulne par chalega','ts');}catch(e){}}
+        });
+      });
+    }).catch(function(err){console.warn('Service worker register nahi hua:',err);});
+  });
+})();
+</script>
 </body>
 </html>
