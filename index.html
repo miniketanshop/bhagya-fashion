@@ -2541,13 +2541,19 @@ function bfUid(){return Date.now()*1000+Math.floor(Math.random()*1000);}
 function bfWaNum(p){var d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;return d;}
 function bfReturnRestock(t,item){if(!t||t.value!=='Return')return;var si=D.stock.find(function(x){return bfNormName(x.name)===bfNormName(item);});if(!si)return;var q=parseInt(prompt('\uD83D\uDCE6 "'+si.name+'" stock mein kitne piece wapas jodne hain? (0 = mat jodo)','1'),10);if(q>0){bfStockMove(si,q,'RETURN_IN',{refType:'Return',reason:'Return/Exchange se wapas juda'});bfLogActivity('Stock','Edit',si.name+' \u2014 Return se wapas juda: +'+q);}}
 function bfEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function bfOwnerPinOk(v){var p=localStorage.getItem('bf_opin')||'';if(!p||!v)return false;if(Date.now()<parseInt(localStorage.getItem('bf_pinlock')||'0',10)){toast('\uD83D\uDD12 5 galat PIN \u2014 5 minute baad try karein','te');return false;}if(v===p){localStorage.setItem('bf_pinfail','0');return true;}var n=parseInt(localStorage.getItem('bf_pinfail')||'0',10)+1;localStorage.setItem('bf_pinfail',String(n));if(n>=5){localStorage.setItem('bf_pinlock',String(Date.now()+300000));localStorage.setItem('bf_pinfail','0');}return false;}
+function bfPinEq(a,b){a=String(a==null?'':a).trim();b=String(b==null?'':b).trim();if(!a||!b)return false;if(a===b)return true;var da=a.replace(/\D/g,''),db=b.replace(/\D/g,'');return da.length>0&&da===db;}
+function bfPinCheck(v,p){if(!p||!v)return false;var lk=parseInt(localStorage.getItem('bf_pinlock')||'0',10);if(Date.now()<lk){toast('\uD83D\uDD12 5 galat PIN \u2014 '+Math.ceil((lk-Date.now())/1000)+' second baad try karein','te');return false;}if(bfPinEq(v,p)){localStorage.setItem('bf_pinfail','0');localStorage.setItem('bf_pinlock','0');return true;}var n=parseInt(localStorage.getItem('bf_pinfail')||'0',10)+1;localStorage.setItem('bf_pinfail',String(n));if(n>=5){localStorage.setItem('bf_pinlock',String(Date.now()+60000));localStorage.setItem('bf_pinfail','0');}return false;}
+function bfOwnerPinOk(v){return bfPinCheck(v,localStorage.getItem('bf_opin')||'');}
+var BF_STOCK_PIN='977761',BF_ALOG_PIN='454061';
+function bfStockPinOk(v){return bfPinCheck(v,BF_STOCK_PIN);}
+function bfAlogPinOk(v){return bfPinCheck(v,BF_ALOG_PIN);}
+function bfResetOwnerPin(){var rc=localStorage.getItem('bf_rcode')||'';var op=localStorage.getItem('bf_opin')||'';if(!rc&&op)rc='BF'+op.slice(-2)+'786';var c=prompt('\uD83D\uDD11 Reset Code daalo (BF + PIN ke aakhri 2 ank + 786):');if(c===null)return;if(String(c).trim().toUpperCase()!==String(rc).toUpperCase()){toast('\u274C Reset code galat!','te');return;}var np=prompt('Naya Owner PIN daalo (4 se 12 ank):');if(np===null)return;np=String(np).trim();if(np.length<4){toast('\u274C PIN 4+ ank ka hona chahiye!','te');return;}localStorage.setItem('bf_opin',np);localStorage.setItem('bf_rcode','BF'+np.slice(-2)+'786');localStorage.setItem('bf_pinfail','0');localStorage.setItem('bf_pinlock','0');toast('\u2705 Naya PIN set ho gaya! Ab usi se unlock karo.','ts');}
 function checkStPwd(){
   var inp=document.getElementById('stPwdIn'),err=document.getElementById('stPwdErr');
   if(!inp)return;
-  var val=(inp.value||'').replace(/\D/g,'');
+  var val=(inp.value||'').trim();
   if(_pendingNav==='balance'){
-    if(bfOwnerPinOk(val)){
+    if(bfStockPinOk(val)){
       _bsUnlocked=true;
       var ovb=document.getElementById('stockLockOv');if(ovb)ovb.style.display='none';
       _pendingNav=null;
@@ -2560,7 +2566,7 @@ function checkStPwd(){
     }
     return;
   }
-  if(bfOwnerPinOk(val)){
+  if(bfStockPinOk(val)){
     _stUnlocked=true;
     var ov=document.getElementById('stockLockOv');if(ov)ov.style.display='none';
     var nav=_pendingNav||'stock';_pendingNav=null;
@@ -2579,8 +2585,8 @@ function stPwdBack(){
 function checkAlPwd(){
   var inp=document.getElementById('alPwdIn'),err=document.getElementById('alPwdErr');
   if(!inp)return;
-  var val=(inp.value||'').replace(/\D/g,'');
-  if(bfOwnerPinOk(val)){
+  var val=(inp.value||'').trim();
+  if(bfAlogPinOk(val)){
     _alUnlocked=true;
     var ov=document.getElementById('alLockOv');if(ov)ov.style.display='none';
     toast('✅ Activity Log unlock!','ts');
@@ -3129,9 +3135,10 @@ function go(name){
       _alOv.style.cssText='display:flex;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9600;background:linear-gradient(160deg,#080f2a,#1A3A6B);flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
       _alOv.innerHTML='<div style="color:#FFD700;font-size:22px;font-weight:900;margin-bottom:6px;text-align:center">🕵️ Activity Log</div>'
         +'<div style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:22px;text-align:center">🔒 PIN Daalo</div>'
-        +'<input id="alPwdIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off" style="width:220px;padding:14px;border-radius:12px;font-size:28px;text-align:center;border:3px solid #FFD700;background:rgba(255,255,255,.12);color:#FFD700;outline:none;margin-bottom:12px;letter-spacing:10px;font-weight:900">'
+        +'<input id="alPwdIn" type="password" inputmode="numeric" maxlength="12" placeholder="••••••" autocomplete="off" style="width:220px;padding:14px;border-radius:12px;font-size:28px;text-align:center;border:3px solid #FFD700;background:rgba(255,255,255,.12);color:#FFD700;outline:none;margin-bottom:12px;letter-spacing:10px;font-weight:900">'
         +'<div id="alPwdErr" style="display:none;color:#ff6b6b;font-size:12px;font-weight:700;margin-bottom:10px;background:rgba(220,38,38,.2);padding:8px 16px;border-radius:8px">❌ Galat PIN!</div>'
         +'<button onclick="checkAlPwd()" style="background:#FFD700;color:#1A3A6B;border:none;border-radius:12px;padding:15px 0;font-size:16px;font-weight:900;cursor:pointer;width:220px;margin-bottom:10px">🔓 UNLOCK KARO</button>'
+        +'<div onclick=\"bfResetOwnerPin()\" style=\"color:#FFD700;font-size:12px;text-decoration:underline;margin:4px 0 14px;cursor:pointer\">\uD83D\uDD11 Password bhool gaye? Reset karo</div>'
         +'<button onclick="alPwdBack()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:9px 24px;font-size:12px;cursor:pointer">← Wapas</button>';
       document.body.appendChild(_alOv);
       document.getElementById('alPwdIn').addEventListener('keydown',function(e){if(e.key==='Enter')checkAlPwd();});
@@ -3155,9 +3162,10 @@ function go(name){
       _ov.style.cssText='display:flex;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9500;background:linear-gradient(160deg,#080f2a,#1A3A6B);flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
       _ov.innerHTML='<div id="stOvTitle" style="color:#FFD700;font-size:22px;font-weight:900;margin-bottom:6px;text-align:center">'+_ptitle+'</div>'
         +'<div style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:22px;text-align:center">🔒 Sirf Owner Password Daalo</div>'
-        +'<input id="stPwdIn" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off" style="width:220px;padding:14px;border-radius:12px;font-size:28px;text-align:center;border:3px solid #FFD700;background:rgba(255,255,255,.12);color:#FFD700;outline:none;margin-bottom:12px;letter-spacing:10px;font-weight:900">'
+        +'<input id="stPwdIn" type="password" inputmode="numeric" maxlength="12" placeholder="••••••" autocomplete="off" style="width:220px;padding:14px;border-radius:12px;font-size:28px;text-align:center;border:3px solid #FFD700;background:rgba(255,255,255,.12);color:#FFD700;outline:none;margin-bottom:12px;letter-spacing:10px;font-weight:900">'
         +'<div id="stPwdErr" style="display:none;color:#ff6b6b;font-size:12px;font-weight:700;margin-bottom:10px;background:rgba(220,38,38,.2);padding:8px 16px;border-radius:8px">❌ Galat Password!</div>'
         +'<button onclick="checkStPwd()" style="background:#FFD700;color:#1A3A6B;border:none;border-radius:12px;padding:15px 0;font-size:16px;font-weight:900;cursor:pointer;width:220px;margin-bottom:10px">🔓 UNLOCK KARO</button>'
+        +'<div onclick=\"bfResetOwnerPin()\" style=\"color:#FFD700;font-size:12px;text-decoration:underline;margin:4px 0 14px;cursor:pointer\">\uD83D\uDD11 Password bhool gaye? Reset karo</div>'
         +'<button onclick="stPwdBack()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:9px 24px;font-size:12px;cursor:pointer">← Wapas</button>';
       document.body.appendChild(_ov);
       document.getElementById('stPwdIn').addEventListener('keydown',function(e){if(e.key==='Enter')checkStPwd();});
@@ -6722,8 +6730,8 @@ function doLogin(role){
   var sp=localStorage.getItem('bf_spin')||'';
   var err=document.getElementById('ls_err');
   var ok=false;
-  if(role==='owner'&&pin===op){_role='owner';ok=true;}
-  else if(role==='staff'&&((sp&&pin===sp)||(!sp&&pin===op))){_role='staff';ok=true;}
+  pin=String(pin).trim();if(role==='owner'&&bfPinEq(pin,op)){_role='owner';ok=true;}
+  else if(role==='staff'&&((sp&&bfPinEq(pin,sp))||(!sp&&bfPinEq(pin,op)))){_role='staff';ok=true;}
   if(ok){var ls=document.getElementById('loginScreen');if(ls)ls.style.display='none';toast((role==='owner'?'👑 Owner':'🧑 Staff')+' login! Swagat hai Miniketan bhai 🙏','ts');}
   else{if(err){err.style.display='block';err.textContent='❌ Galat PIN! Dobara try karo.';}var pi=document.getElementById('ls_lpin');if(pi)pi.value='';}
 }
@@ -6742,10 +6750,10 @@ function doResetPin(){
 function doLogout(){_role='';var ls=document.getElementById('loginScreen');if(ls){ls.style.cssText='position:fixed;inset:0;background:linear-gradient(135deg,#0f2557,#1A3A6B);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';_hd('lsPanelSetup');_hd('lsPanelForgot');_sw('lsPanelLogin');var pi=document.getElementById('ls_lpin');if(pi)pi.value='';var err=document.getElementById('ls_err');if(err)err.style.display='none';}toast('🔓 Logout ho gaye!','ts');}
 function isOwner(){return _role==='owner';}
 function requireOwner(msg,cb){if(isOwner()){cb();return;}var pop=document.getElementById('ownerAuthPop');if(!pop){cb();return;}document.getElementById('authPopMsg').textContent=msg||'Owner permission chahiye';document.getElementById('authPopErr').style.display='none';document.getElementById('authPopPin').value='';_ownerCb=cb;pop.style.display='flex';}
-function confirmOwnerAuth(){var p=(document.getElementById('authPopPin')||{}).value||'',op=localStorage.getItem('bf_opin')||'';if(p===op){closeAuthPop();if(_ownerCb){_ownerCb();_ownerCb=null;}}else{document.getElementById('authPopErr').style.display='block';}}
+function confirmOwnerAuth(){var p=(document.getElementById('authPopPin')||{}).value||'',op=localStorage.getItem('bf_opin')||'';if(bfPinEq(p,op)){closeAuthPop();if(_ownerCb){_ownerCb();_ownerCb=null;}}else{document.getElementById('authPopErr').style.display='block';}}
 function closeAuthPop(){var pop=document.getElementById('ownerAuthPop');if(pop)pop.style.display='none';_ownerCb=null;}
 function loadPwdSettings(){var od=document.getElementById('pwdSettOw'),sd=document.getElementById('pwdSettSt');if(isOwner()){if(od)od.style.display='block';if(sd)sd.style.display='none';}else{if(od)od.style.display='none';if(sd)sd.style.display='block';}}
-function changeOwnerPin(){var old=(document.getElementById('chg_opin')||{}).value||'',np=(document.getElementById('chg_npin')||{}).value||'';if(old!==localStorage.getItem('bf_opin')){toast('❌ Purana PIN galat!','te');return;}if(np.length<4){toast('❌ Naya PIN 4+ digit chahiye!','te');return;}localStorage.setItem('bf_opin',np);localStorage.setItem('bf_rcode','BF'+np.slice(-2)+'786');['chg_opin','chg_npin'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});toast('✅ Owner PIN change ho gaya!','ts');}
+function changeOwnerPin(){var old=(document.getElementById('chg_opin')||{}).value||'',np=(document.getElementById('chg_npin')||{}).value||'';if(!bfPinEq(old,localStorage.getItem('bf_opin'))){toast('❌ Purana PIN galat!','te');return;}if(np.length<4){toast('❌ Naya PIN 4+ digit chahiye!','te');return;}localStorage.setItem('bf_opin',np);localStorage.setItem('bf_rcode','BF'+np.slice(-2)+'786');['chg_opin','chg_npin'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});toast('✅ Owner PIN change ho gaya!','ts');}
 function changeStaffPin(){var sp=(document.getElementById('chg_spin')||{}).value||'';if(sp.length<4){toast('❌ Staff PIN 4+ digit chahiye!','te');return;}localStorage.setItem('bf_spin',sp);var rc=document.getElementById('chg_rcode');if(rc&&rc.value){localStorage.setItem('bf_rcode',rc.value);rc.value='';}var se=document.getElementById('chg_spin');if(se)se.value='';toast('✅ Staff PIN set ho gaya!','ts');}
 window.addEventListener('load',function(){setTimeout(initLogin,300);});
 
